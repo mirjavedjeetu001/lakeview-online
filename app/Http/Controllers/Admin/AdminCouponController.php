@@ -1,0 +1,59 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Coupon;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+
+class AdminCouponController extends Controller
+{
+    public function index()
+    {
+        $coupons = Coupon::latest()->paginate(15);
+        return Inertia::render('Admin/Coupons/Index', ['coupons' => $coupons]);
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'code' => 'required|string|max:50|unique:coupons,code',
+            'type' => 'required|in:percentage,fixed',
+            'value' => 'required|numeric|min:0',
+            'min_order_amount' => 'nullable|numeric|min:0',
+            'max_discount_amount' => 'nullable|numeric|min:0',
+            'usage_limit' => 'nullable|integer|min:1',
+            'starts_at' => 'nullable|date',
+            'expires_at' => 'nullable|date|after_or_equal:starts_at',
+            'is_active' => 'boolean',
+        ]);
+
+        Coupon::create($validated);
+        return redirect()->back()->with('success', 'Coupon created successfully.');
+    }
+
+    public function update(Request $request, Coupon $coupon)
+    {
+        $validated = $request->validate([
+            'code' => 'required|string|max:50|unique:coupons,code,' . $coupon->id,
+            'type' => 'required|in:percentage,fixed',
+            'value' => 'required|numeric|min:0',
+            'min_order_amount' => 'nullable|numeric|min:0',
+            'max_discount_amount' => 'nullable|numeric|min:0',
+            'usage_limit' => 'nullable|integer|min:1',
+            'starts_at' => 'nullable|date',
+            'expires_at' => 'nullable|date|after_or_equal:starts_at',
+            'is_active' => 'boolean',
+        ]);
+
+        $coupon->update($validated);
+        return redirect()->back()->with('success', 'Coupon updated successfully.');
+    }
+
+    public function destroy(Coupon $coupon)
+    {
+        $coupon->delete();
+        return redirect()->back()->with('success', 'Coupon deleted successfully.');
+    }
+}
