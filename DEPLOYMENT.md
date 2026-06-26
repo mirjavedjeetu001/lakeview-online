@@ -1,6 +1,6 @@
-# Lake View Sweets & Bakery - cPanel Deployment Guide
+# Lake View Sweets & Bakery - cPanel Deployment Guide (No Terminal)
 
-## Step 1: cPanel Git Version Control
+## Step 1: Clone Repo via cPanel Git Version Control
 
 1. Login to cPanel: https://lakeview-cafe.com:2083
    - Username: lakeviex
@@ -21,7 +21,8 @@
 
 1. Go to **File Manager** in cPanel
 2. Navigate to `/home/lakeviex/lakeview/`
-3. Create a new file named `.env` with this content:
+3. Click **+ File** and create a new file named `.env`
+4. Edit it and paste this content:
 
 ```
 APP_NAME="Lake View Sweets & Bakery"
@@ -52,99 +53,95 @@ CACHE_STORE=file
 MAIL_MAILER=log
 ```
 
-4. Save the file
+5. Save the file
 
-## Step 3: Generate App Key
+## Step 3: Set Permissions
 
-1. Go to **Terminal** in cPanel (under Advanced section)
-2. Run these commands:
-```bash
-cd /home/lakeviex/lakeview
-php artisan key:generate --force
-```
+1. In **File Manager**, navigate to `/home/lakeviex/lakeview/`
+2. Right-click on `storage` folder → **Change Permissions** → set to `775`
+3. Right-click on `bootstrap/cache` folder → **Change Permissions** → set to `775`
 
 ## Step 4: Import Database
 
 1. Go to **phpMyAdmin** in cPanel
-2. Select database `lakeviex_lakeviewonline`
+2. Select database `lakeviex_lakeviewonline` (left sidebar)
 3. Click **Import** tab
-4. Choose file: `/home/lakeviex/lakeview/database/dump.sql`
+4. Click **Choose File** and select the `dump.sql` file:
+   - Navigate to `/home/lakeviex/lakeview/database/dump.sql`
 5. Click **Go** to import
+6. Wait for "Import has been successfully finished" message
 
-## Step 5: Run Migrations
-
-In cPanel **Terminal**:
-```bash
-cd /home/lakeviex/lakeview
-php artisan migrate --force
-```
-
-## Step 6: Set Permissions
-
-In cPanel **Terminal**:
-```bash
-cd /home/lakeviex/lakeview
-chmod -R 775 storage bootstrap/cache
-```
-
-## Step 7: Configure Document Root
+## Step 5: Change Document Root
 
 1. Go to **Domains** in cPanel
 2. Click **Manage** next to `lakeview-cafe.com`
 3. Change **Document Root** to: `/home/lakeviex/lakeview/public`
 4. Save
 
-## Step 8: Clear Caches
+## Step 6: Run Setup Script (Replaces Terminal)
 
-In cPanel **Terminal**:
-```bash
-cd /home/lakeviex/lakeview
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-```
-
-## Step 9: Set Up Auto-Deploy (GitHub Webhook)
-
-1. Copy the `deploy.php` file to your home directory:
-   In cPanel **Terminal**:
-   ```bash
-   cp /home/lakeviex/lakeview/deploy.php /home/lakeviex/public_html/deploy.php
+1. Open your browser and visit:
    ```
+   https://lakeview-cafe.com/setup.php
+   ```
+2. This will automatically:
+   - Generate the APP_KEY
+   - Run database migrations
+   - Create storage symlink
+   - Cache config, routes, and views
 
-2. Go to GitHub repo settings:
-   https://github.com/mirjavedjeetu001/lakeview-online/settings/hooks
+3. You should see "OK" for each step
 
-3. Click **Add webhook**:
+## Step 7: Delete Setup File (IMPORTANT!)
+
+1. Go back to **File Manager**
+2. Navigate to `/home/lakeviex/lakeview/public/`
+3. Delete `setup.php` (security risk if left!)
+
+## Step 8: Test Your Website
+
+Visit: **https://lakeview-cafe.com**
+
+Your website should be live!
+
+---
+
+## Auto-Deploy Setup (Optional - For Future Updates)
+
+### Copy deploy script:
+1. In **File Manager**, copy `/home/lakeviex/lakeview/deploy.php`
+   to `/home/lakeviex/public_html/deploy.php`
+
+### Add GitHub Webhook:
+1. Go to: https://github.com/mirjavedjeetu001/lakeview-online/settings/hooks
+2. Click **Add webhook**:
    - URL: `https://lakeview-cafe.com/deploy.php`
    - Content type: `application/json`
    - Secret: `lakeview_deploy_secret_2024`
    - Events: Just the push event
    - Active: checked
-   - Click **Add webhook**
+3. Click **Add webhook**
 
-## Auto-Deploy Workflow
+### Future Deploy Workflow:
+```bash
+# On your local machine:
+git checkout main
+# make changes...
+git add . && git commit -m "your changes"
+git push origin main
 
-From now on, to deploy changes:
-1. Make changes on `main` branch
-2. Push to GitHub: `git push origin main`
-3. Merge to prod: `git checkout prod && git merge main && git push origin prod`
-4. GitHub webhook triggers `deploy.php` on server
-5. Server pulls prod branch and rebuilds automatically
+# Merge to prod to trigger auto-deploy:
+git checkout prod
+git merge main
+git push origin prod
+```
 
-## Important Notes
-
-- The `vendor/` and `public/build/` directories are included in the repo
-  because shared hosting doesn't have composer/npm
-- After code changes that affect frontend, rebuild locally:
-  ```bash
-  npm run build
-  git add public/build/
-  git commit -m "rebuild assets"
-  ```
-- After composer dependency changes, install locally:
-  ```bash
-  composer install --no-dev --optimize-autoloader
-  git add vendor/
-  git commit -m "update vendor"
-  ```
+### If Frontend Changes:
+```bash
+npm run build
+git add public/build/
+git commit -m "rebuild assets"
+git push origin main
+git checkout prod && git merge main && git push origin prod
+git checkout main
+```
