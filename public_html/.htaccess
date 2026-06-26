@@ -5,11 +5,15 @@
 
     RewriteEngine On
 
-    # Protect sensitive files
-    RewriteRule ^(app|bootstrap|config|database|resources|routes|storage|tests|vendor)(/|$) - [F,L]
+    # Route build assets to public/build
+    RewriteRule ^build/(.*)$ public/build/$1 [L]
 
-    # Protect .env file
+    # Protect sensitive directories
+    RewriteRule ^(app|bootstrap|config|database|resources|routes|storage|tests)(/|$) - [F,L]
+
+    # Protect sensitive files
     RewriteRule ^\.env - [F,L]
+    RewriteRule ^\.git - [F,L]
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
@@ -27,7 +31,7 @@
 </IfModule>
 
 # Block access to sensitive files
-<FilesMatch "\.(env|git|md|yml|yaml|sql)$">
+<FilesMatch "\.(env|git|md|yml|yaml|sql|sh)$">
     Order allow,deny
     Deny from all
 </FilesMatch>
