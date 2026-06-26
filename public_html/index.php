@@ -5,19 +5,16 @@ use Illuminate\Http\Request;
 
 define('LARAVEL_START', microtime(true));
 
-// Path to Laravel app (outside public_html)
-$LARAVEL_PATH = '/home/lakeviex/lakeview';
-
-// Determine if the application is in maintenance mode...
-if (file_exists($maintenance = $LARAVEL_PATH.'/storage/framework/maintenance.php')) {
-    require $maintenance;
+// Maintenance mode
+if (file_exists(__DIR__.'/storage/framework/maintenance.php')) {
+    require __DIR__.'/storage/framework/maintenance.php';
 }
 
-// Register the Composer autoloader...
-require $LARAVEL_PATH.'/vendor/autoload.php';
+// Composer autoloader
+require __DIR__.'/vendor/autoload.php';
 
-// Bootstrap Laravel and handle the request...
+// Bootstrap Laravel
 /** @var Application $app */
-$app = require_once $LARAVEL_PATH.'/bootstrap/app.php';
+$app = require_once __DIR__.'/bootstrap/app.php';
 
 $app->handleRequest(Request::capture());

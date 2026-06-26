@@ -1,7 +1,11 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/lakeviex/lakeview
-    - /bin/cp -R * $DEPLOYPATH
+    - export DEPLOYPATH=/home/lakeviex/public_html
+    - /bin/rsync -av --exclude='public_html' --exclude='.git' --exclude='node_modules' . $DEPLOYPATH/
+    - /bin/cp -f public_html/index.php $DEPLOYPATH/index.php
+    - /bin/cp -f public_html/.htaccess $DEPLOYPATH/.htaccess
+    - /bin/cp -f public_html/setup.php $DEPLOYPATH/setup.php
+    - /bin/chmod -R 755 $DEPLOYPATH
     - /bin/chmod -R 775 $DEPLOYPATH/storage
     - /bin/chmod -R 775 $DEPLOYPATH/bootstrap/cache

@@ -1,28 +1,14 @@
 <?php
-/**
- * Web-based setup script - Run this ONCE in browser after deploying
- * URL: https://lakeview-cafe.com/setup.php
- * DELETE this file after setup is complete!
- */
-
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Laravel app path (outside public_html)
-$LARAVEL_PATH = '/home/lakeviex/lakeview';
-
 echo "<h1>Lake View Setup</h1>";
 
-// Check if Laravel app exists
-if (!file_exists($LARAVEL_PATH . '/artisan')) {
-    die("ERROR: Laravel app not found at $LARAVEL_PATH");
-}
-
 // Check if .env exists
-if (!file_exists($LARAVEL_PATH . '/.env')) {
-    echo "<p style='color:red; font-size:18px;'><b>ERROR: .env file not found!</b></p>";
-    echo "<p>Please create .env file in cPanel File Manager at: <code>$LARAVEL_PATH/.env</code></p>";
-    echo "<p>Content to paste:</p>";
+if (!file_exists(__DIR__ . '/.env')) {
+    echo "<p style='color:red; font-size:18px;'><b>.env file not found!</b></p>";
+    echo "<p>Create .env file here: <code>/home/lakeviex/public_html/.env</code></p>";
+    echo "<p>Paste this content:</p>";
     echo "<pre style='background:#f0f0f0; padding:15px; border-radius:8px; font-size:13px;'>";
     $envContent = 'APP_NAME="Lake View Sweets & Bakery"
 APP_ENV=production
@@ -56,12 +42,12 @@ MAIL_MAILER=log';
     exit;
 }
 
-echo "<p>.env file found. Running setup commands...</p><hr>";
+echo "<p>.env found. Running setup...</p><hr>";
 
 $commands = [
     'key:generate --force' => 'Generate App Key',
-    'migrate --force' => 'Run Database Migrations',
-    'storage:link' => 'Create Storage Symlink',
+    'migrate --force' => 'Run Migrations',
+    'storage:link' => 'Storage Symlink',
     'config:cache' => 'Cache Config',
     'route:cache' => 'Cache Routes',
     'view:cache' => 'Cache Views',
@@ -70,24 +56,19 @@ $commands = [
 $results = [];
 
 foreach ($commands as $cmd => $label) {
-    echo "<h3>$label</h3>";
-    echo "<pre style='background:#f5f5f5; padding:10px; border-radius:5px;'>";
-    $fullCmd = "cd $LARAVEL_PATH && php artisan $cmd 2>&1";
-    $output = shell_exec($fullCmd);
+    echo "<h3>$label</h3><pre style='background:#f5f5f5; padding:10px; border-radius:5px;'>";
+    $output = shell_exec("cd " . __DIR__ . " && php artisan $cmd 2>&1");
     echo htmlspecialchars($output ?: '(no output)');
     echo "</pre>";
     $hasError = $output && (strpos($output, 'ERROR') !== false || strpos($output, 'error') !== false);
     $results[] = "$label: " . ($hasError ? 'FAILED' : 'OK');
 }
 
-echo "<h2>Setup Summary</h2>";
-echo "<ul>";
+echo "<h2>Summary</h2><ul>";
 foreach ($results as $r) {
     $color = strpos($r, 'FAILED') !== false ? 'red' : 'green';
     echo "<li style='color:$color; font-weight:bold;'>$r</li>";
 }
 echo "</ul>";
-
-echo "<hr><h2 style='color:red'>IMPORTANT: Delete setup.php now!</h2>";
-echo "<p>This file is a security risk. Delete it from File Manager.</p>";
+echo "<h2 style='color:red'>Delete setup.php now!</h2>";
 echo "<p>Then visit: <a href='https://lakeview-cafe.com'>https://lakeview-cafe.com</a></p>";
