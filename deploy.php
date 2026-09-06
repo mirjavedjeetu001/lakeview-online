@@ -9,7 +9,7 @@
  */
 
 $SECRET = 'lakeview_deploy_secret_2024';
-$PROJECT_DIR = '/home/lakeviex/lakeview';
+$PROJECT_DIR = '/home/lakeviex/public_html';
 $LOG_FILE = '/home/lakeviex/deploy.log';
 
 function log_msg($msg) {
