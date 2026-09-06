@@ -1,7 +1,7 @@
 <?php
 /**
  * GitHub Webhook Deploy Script
- * Place this file at: /home/lakeviex/deploy.php
+ * Place this file at: /home/lakeviex/public_html/deploy.php
  * Set up GitHub webhook: https://github.com/mirjavedjeetu001/lakeview-online/settings/hooks
  * URL: https://lakeview-cafe.com/deploy.php
  * Content type: application/json
@@ -13,7 +13,8 @@ $PROJECT_DIR = '/home/lakeviex/public_html';
 $LOG_FILE = '/home/lakeviex/deploy.log';
 
 function log_msg($msg) {
-    file_put_contents(__DIR__ . '/deploy.log', date('Y-m-d H:i:s') . ' - ' . $msg . "\n", FILE_APPEND);
+    global $LOG_FILE;
+    file_put_contents($LOG_FILE, date('Y-m-d H:i:s') . ' - ' . $msg . "\n", FILE_APPEND);
 }
 
 // Get the payload
