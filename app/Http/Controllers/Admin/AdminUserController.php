@@ -88,8 +88,8 @@ class AdminUserController extends Controller
     {
         return $request->validate([
             'name' => 'required|string|max:255',
-            'phone' => ['nullable', 'string', 'max:20', Rule::unique('users', 'phone')->ignore($user?->id)],
-            'email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user?->id)],
+            'phone' => ['nullable', 'required_without:email', 'string', 'max:20', Rule::unique('users', 'phone')->ignore($user?->id)],
+            'email' => ['nullable', 'required_without:phone', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user?->id)],
             'password' => $user ? 'nullable|string|min:6' : 'required|string|min:6',
             'role' => 'required|in:customer,admin,super_admin',
             'is_active' => 'boolean',
