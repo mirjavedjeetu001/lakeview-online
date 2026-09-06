@@ -35,11 +35,12 @@
                     <div class="space-y-2.5 text-sm">
                         <div class="flex justify-between"><span class="text-brand-400">Name</span><span class="font-medium text-brand-900">{{ order.customer_name }}</span></div>
                         <div class="flex justify-between"><span class="text-brand-400">Phone</span><span class="font-medium text-brand-900">{{ order.customer_phone }}</span></div>
+                        <div v-if="order.customer_email" class="flex justify-between gap-3"><span class="text-brand-400">Email</span><span class="font-medium text-brand-900 text-right break-all">{{ order.customer_email }}</span></div>
                         <div v-if="order.customer_address" class="flex justify-between"><span class="text-brand-400">Address</span><span class="font-medium text-brand-900 text-right">{{ order.customer_address }}</span></div>
                         <div class="flex justify-between"><span class="text-brand-400">Delivery</span><span class="font-medium text-brand-900">{{ order.delivery_type === 'pickup' ? 'Pickup' : 'Home Delivery' }}</span></div>
                         <div class="flex justify-between"><span class="text-brand-400">Branch</span><span class="font-medium text-brand-900">{{ order.branch?.name }}</span></div>
                         <div v-if="order.delivery_area" class="flex justify-between"><span class="text-brand-400">Area</span><span class="font-medium text-brand-900">{{ order.delivery_area?.name }}</span></div>
-                        <div class="flex justify-between"><span class="text-brand-400">Payment</span><span class="font-medium text-brand-900">{{ order.payment_method === 'advance_payment' ? 'Advance Payment' : 'Cash on Delivery' }}</span></div>
+                        <div class="flex justify-between"><span class="text-brand-400">Payment</span><span class="font-medium text-brand-900">Cash on Delivery</span></div>
                     </div>
                 </div>
 

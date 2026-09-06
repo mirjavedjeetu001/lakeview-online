@@ -65,5 +65,21 @@ class AdminOrderController extends Controller
         $order->update(['payment_verified' => true, 'payment_status' => 'paid']);
         return redirect()->back()->with('success', 'Payment verified successfully.');
     }
-}
 
+    public function updateDiscount(Request $request, Order $order)
+    {
+        $validated = $request->validate([
+            'discount' => 'required|numeric|min:0',
+        ]);
+
+        $maximumDiscount = (float) $order->subtotal + (float) $order->delivery_charge;
+        $discount = min((float) $validated['discount'], $maximumDiscount);
+
+        $order->update([
+            'discount' => $discount,
+            'total' => $maximumDiscount - $discount,
+        ]);
+
+        return redirect()->back()->with('success', 'Order discount updated successfully.');
+    }
+}

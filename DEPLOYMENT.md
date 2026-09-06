@@ -4,7 +4,7 @@
 
 1. Login to cPanel: https://lakeview-cafe.com:2083
    - Username: lakeviex
-   - Password: @D4uYhy@hNl2jo^
+   - Password: use your current cPanel password (never commit it here)
 
 2. Go to **Git Version Control** (under Development section)
 
@@ -39,7 +39,7 @@ DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=lakeviex_lakeviewonline
 DB_USERNAME=lakeviex_lakeviewonline
-DB_PASSWORD=JavedMir41@
+DB_PASSWORD=your_database_password
 
 SESSION_DRIVER=file
 SESSION_LIFETIME=120

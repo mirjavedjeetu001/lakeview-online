@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\AdminDeliveryManController;
 use App\Http\Controllers\Admin\AdminOrderController;
 use App\Http\Controllers\Admin\AdminProductController;
 use App\Http\Controllers\Admin\AdminSettingController;
+use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\BranchSelectionController;
 use App\Http\Controllers\CheckoutController;
@@ -54,15 +55,17 @@ Route::post('/register', function (\Illuminate\Http\Request $request) {
     $validated = $request->validate([
         'name' => 'required|string|max:255',
         'phone' => 'required|string|max:20|unique:users,phone',
+        'email' => 'nullable|email|max:255|unique:users,email',
         'password' => 'required|string|min:6',
     ]);
 
     $user = \App\Models\User::create([
         'name' => $validated['name'],
         'phone' => $validated['phone'],
-        'email' => 'customer_' . \Illuminate\Support\Str::random(8) . '@lakeview.local',
+        'email' => $validated['email'] ?? null,
         'password' => $validated['password'],
         'role' => 'customer',
+        'is_active' => true,
     ]);
 
     auth()->login($user);
@@ -86,7 +89,7 @@ Route::post('/login', function (\Illuminate\Http\Request $request) {
         $user = \App\Models\User::where('phone', $loginField)->first();
     }
 
-    if ($user && \Illuminate\Support\Facades\Hash::check($validated['password'], $user->password)) {
+    if ($user && $user->is_active && \Illuminate\Support\Facades\Hash::check($validated['password'], $user->password)) {
         auth()->login($user, $request->boolean('remember'));
         $request->session()->regenerate();
         if ($user->isAdmin()) {
@@ -123,6 +126,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('delivery-areas', AdminDeliveryAreaController::class)->except(['create', 'edit', 'show']);
     Route::resource('delivery-men', AdminDeliveryManController::class)->except(['create', 'edit', 'show']);
     Route::resource('coupons', AdminCouponController::class)->except(['create', 'edit', 'show']);
+    Route::resource('users', AdminUserController::class)->except(['create', 'edit', 'show']);
 
     Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
@@ -130,6 +134,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::patch('/orders/{order}/delivery-man', [AdminOrderController::class, 'assignDeliveryMan'])->name('orders.delivery-man');
     Route::patch('/orders/{order}/payment', [AdminOrderController::class, 'updatePaymentStatus'])->name('orders.payment');
     Route::patch('/orders/{order}/verify-payment', [AdminOrderController::class, 'verifyPayment'])->name('orders.verify-payment');
+    Route::patch('/orders/{order}/discount', [AdminOrderController::class, 'updateDiscount'])->name('orders.discount');
 
     Route::get('/custom-cakes', [AdminCustomCakeController::class, 'index'])->name('custom-cakes.index');
     Route::get('/custom-cakes/{customCakeOrder}', [AdminCustomCakeController::class, 'show'])->name('custom-cakes.show');
@@ -140,4 +145,5 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     Route::get('/settings', [AdminSettingController::class, 'index'])->name('settings.index');
     Route::post('/settings', [AdminSettingController::class, 'update'])->name('settings.update');
+    Route::post('/settings/test-mail', [AdminSettingController::class, 'testMail'])->name('settings.test-mail');
 });

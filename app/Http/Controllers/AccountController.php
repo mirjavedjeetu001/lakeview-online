@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Validation\Rule;
 
 class AccountController extends Controller
 {
@@ -27,7 +28,7 @@ class AccountController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
-            'email' => 'nullable|email',
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore(auth()->id())],
         ]);
 
         $user = auth()->user();

@@ -6,10 +6,10 @@ use App\Models\Branch;
 use App\Models\CustomCakeOrder;
 use App\Models\DeliveryArea;
 use App\Models\User;
+use App\Services\OrderNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -34,6 +34,7 @@ class CustomCakeController extends Controller
             'delivery_area_id' => ['nullable', 'required_if:delivery_type,home_delivery', Rule::exists('delivery_areas', 'id')->where('is_active', true)],
             'customer_name' => 'required|string|max:255',
             'customer_phone' => 'required|string|max:20',
+            'customer_email' => 'nullable|email|max:255',
             'customer_address' => 'nullable|required_if:delivery_type,home_delivery|string|max:500',
             'cake_type' => 'nullable|string|max:255',
             'cake_size' => 'nullable|string|max:255',
@@ -70,23 +71,29 @@ class CustomCakeController extends Controller
             $imagePath = $request->file('design_image')->store('custom-cakes', 'public');
         }
 
-        // Auto-create or find user by phone number
-        $user = User::firstOrCreate(
-            ['phone' => $validated['customer_phone']],
-            [
+        $user = User::where('phone', $validated['customer_phone'])->first();
+        if (!$user && !empty($validated['customer_email'])) {
+            $user = User::where('email', $validated['customer_email'])->first();
+        }
+        if (!$user) {
+            $user = User::create([
                 'name' => $validated['customer_name'],
-                'email' => 'customer_' . Str::random(8) . '@lakeview.local',
-                'password' => Hash::make(Str::random(16)),
+                'phone' => $validated['customer_phone'],
+                'email' => $validated['customer_email'] ?? null,
+                'password' => Hash::make(str()->random(16)),
                 'role' => 'customer',
-            ]
-        );
+                'is_active' => true,
+            ]);
+        } elseif ($validated['customer_email'] && !$user->email) {
+            $user->update(['email' => $validated['customer_email']]);
+        }
 
         if ($user->name !== $validated['customer_name']) {
             $user->update(['name' => $validated['customer_name']]);
         }
 
         // Auto-login the user
-        if (!Auth::check()) {
+        if (!Auth::check() && $user->is_active) {
             Auth::login($user);
         }
 
@@ -97,6 +104,7 @@ class CustomCakeController extends Controller
             'delivery_area_id' => $validated['delivery_area_id'] ?? null,
             'customer_name' => $validated['customer_name'],
             'customer_phone' => $validated['customer_phone'],
+            'customer_email' => $validated['customer_email'] ?? null,
             'customer_address' => $validated['customer_address'] ?? null,
             'cake_type' => $validated['cake_type'] ?? null,
             'cake_size' => $validated['cake_size'] ?? null,
@@ -112,6 +120,8 @@ class CustomCakeController extends Controller
             'status' => 'pending',
             'notes' => $validated['notes'] ?? null,
         ]);
+
+        app(OrderNotificationService::class)->sendCustomCakeCreated($order);
 
         return redirect()->route('custom-cake.success', ['order' => $order->id]);
     }

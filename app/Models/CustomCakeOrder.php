@@ -11,7 +11,7 @@ class CustomCakeOrder extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'order_number', 'branch_id', 'delivery_man_id', 'customer_name', 'customer_phone', 'customer_address',
+        'user_id', 'order_number', 'branch_id', 'delivery_man_id', 'customer_name', 'customer_phone', 'customer_email', 'customer_address',
         'delivery_type', 'delivery_area_id', 'cake_type', 'cake_size', 'cake_flavor',
         'message_on_cake', 'delivery_date', 'delivery_time', 'design_image',
         'estimated_price', 'delivery_charge', 'total', 'payment_method', 'status', 'payment_status',

@@ -9,10 +9,10 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\User;
+use App\Services\OrderNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -43,6 +43,7 @@ class CheckoutController extends Controller
             'delivery_area_id' => ['nullable', 'required_if:delivery_type,home_delivery', Rule::exists('delivery_areas', 'id')->where('is_active', true)],
             'customer_name' => 'required|string|max:255',
             'customer_phone' => 'required|string|max:20',
+            'customer_email' => 'nullable|email|max:255',
             'customer_address' => 'nullable|required_if:delivery_type,home_delivery|string|max:500',
             'notes' => 'nullable|string|max:500',
             'payment_method' => 'nullable|in:cash_on_delivery',
@@ -147,16 +148,23 @@ class CheckoutController extends Controller
 
         $total = $subtotal + $deliveryCharge - $discount;
 
-        // Auto-create or find user by phone number
-        $user = User::firstOrCreate(
-            ['phone' => $validated['customer_phone']],
-            [
+        // Email is optional. Keep the order address even when the customer does not provide one.
+        $user = User::where('phone', $validated['customer_phone'])->first();
+        if (!$user && !empty($validated['customer_email'])) {
+            $user = User::where('email', $validated['customer_email'])->first();
+        }
+        if (!$user) {
+            $user = User::create([
                 'name' => $validated['customer_name'],
-                'email' => 'customer_' . Str::random(8) . '@lakeview.local',
-                'password' => Hash::make(Str::random(16)),
+                'phone' => $validated['customer_phone'],
+                'email' => $validated['customer_email'] ?? null,
+                'password' => Hash::make(str()->random(16)),
                 'role' => 'customer',
-            ]
-        );
+                'is_active' => true,
+            ]);
+        } elseif ($validated['customer_email'] && !$user->email) {
+            $user->update(['email' => $validated['customer_email']]);
+        }
 
         // Update name if user existed with different name
         if ($user->name !== $validated['customer_name']) {
@@ -164,7 +172,7 @@ class CheckoutController extends Controller
         }
 
         // Auto-login the user
-        if (!Auth::check()) {
+        if (!Auth::check() && $user->is_active) {
             Auth::login($user);
         }
 
@@ -175,6 +183,7 @@ class CheckoutController extends Controller
             'coupon_id' => $couponId,
             'customer_name' => $validated['customer_name'],
             'customer_phone' => $validated['customer_phone'],
+            'customer_email' => $validated['customer_email'] ?? null,
             'customer_address' => $validated['customer_address'] ?? null,
             'delivery_type' => $validated['delivery_type'],
             'subtotal' => $subtotal,
@@ -193,6 +202,8 @@ class CheckoutController extends Controller
             $itemData['order_id'] = $order->id;
             OrderItem::create($itemData);
         }
+
+        app(OrderNotificationService::class)->sendOrderCreated($order);
 
         return redirect()->route('checkout.success', ['order' => $order->id]);
     }

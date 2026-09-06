@@ -70,6 +70,13 @@
                             <div v-if="errors.phone" class="text-red-500 text-sm mt-1.5 bg-red-50 rounded-lg px-3 py-2">{{ errors.phone }}</div>
                         </div>
 
+                        <!-- Optional Email -->
+                        <div>
+                            <label class="block text-sm font-medium text-brand-700 mb-1.5">Email <span class="text-brand-400 font-normal">(optional)</span></label>
+                            <input v-model="form.email" type="email" placeholder="Only if you want email updates" class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-2 focus:ring-gold-200 bg-cream-50 px-4 py-3.5 text-brand-900 transition outline-none" />
+                            <div v-if="errors.email" class="text-red-500 text-sm mt-1.5">{{ errors.email }}</div>
+                        </div>
+
                         <!-- Password -->
                         <div>
                             <label class="block text-sm font-medium text-brand-700 mb-1.5">Password</label>
@@ -116,7 +123,7 @@ import { ref } from 'vue';
 const props = defineProps({ errors: Object });
 const showPassword = ref(false);
 
-const form = useForm({ name: '', phone: '', password: '' });
+const form = useForm({ name: '', phone: '', email: '', password: '' });
 
 const submit = () => form.post(route('register.post'));
 </script>

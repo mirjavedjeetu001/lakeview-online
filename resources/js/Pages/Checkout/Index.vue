@@ -116,6 +116,11 @@
                             </div>
                         </div>
 
+                        <div>
+                            <label class="block text-sm font-medium text-brand-700 mb-1.5">Email <span class="text-brand-400 font-normal">(optional)</span></label>
+                            <input v-model="form.customer_email" type="email" placeholder="Only if you want email confirmation" class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition" />
+                        </div>
+
                         <!-- Address -->
                         <div v-if="form.delivery_type === 'home_delivery'">
                             <label class="block text-sm font-medium text-brand-700 mb-1.5">Delivery Address</label>
@@ -209,6 +214,7 @@ const form = ref({
     delivery_area_id: '',
     customer_name: '',
     customer_phone: '',
+    customer_email: '',
     customer_address: '',
     notes: '',
     coupon_code: '',
@@ -235,6 +241,7 @@ onMounted(() => {
     if (props.auth?.user) {
         form.value.customer_name = props.auth.user.name || '';
         form.value.customer_phone = props.auth.user.phone || '';
+        form.value.customer_email = props.auth.user.email || '';
     }
 });
 

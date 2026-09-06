@@ -40,12 +40,18 @@
                     <div class="space-y-2.5 text-sm">
                         <div class="flex justify-between"><span class="text-brand-400">Name</span><span class="font-medium text-brand-900">{{ order.customer_name }}</span></div>
                         <div class="flex justify-between"><span class="text-brand-400">Phone</span><span class="font-medium text-brand-900">{{ order.customer_phone }}</span></div>
+                        <div v-if="order.customer_email" class="flex justify-between gap-3"><span class="text-brand-400">Email</span><span class="font-medium text-brand-900 text-right break-all">{{ order.customer_email }}</span></div>
                         <div v-if="order.customer_address" class="flex justify-between"><span class="text-brand-400">Address</span><span class="font-medium text-brand-900 text-right">{{ order.customer_address }}</span></div>
                         <div class="flex justify-between"><span class="text-brand-400">Delivery</span><span class="font-medium text-brand-900">{{ order.delivery_type === 'pickup' ? 'Pickup' : 'Home Delivery' }}</span></div>
                         <div class="flex justify-between"><span class="text-brand-400">Branch</span><span class="font-medium text-brand-900">{{ order.branch?.name }}</span></div>
                         <div v-if="order.delivery_area" class="flex justify-between"><span class="text-brand-400">Area</span><span class="font-medium text-brand-900">{{ order.delivery_area?.name }}</span></div>
-                        <div class="flex justify-between"><span class="text-brand-400">Payment</span><span class="font-medium text-brand-900">{{ order.payment_method === 'advance_payment' ? 'Advance Payment' : 'Cash on Delivery' }}</span></div>
+                        <div class="flex justify-between"><span class="text-brand-400">Payment</span><span class="font-medium text-brand-900">Cash on Delivery</span></div>
                     </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm border border-brand-100 p-6">
+                    <h3 class="font-serif font-bold text-brand-900 text-lg mb-4">Order Discount</h3>
+                    <p class="text-xs text-brand-400 mb-3">Apply a manual discount after the order is created. The total will recalculate automatically.</p>
+                    <div class="flex gap-2"><input v-model="discount" type="number" min="0" step="0.01" class="flex-1 rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-200 bg-cream-50 px-4 py-3 text-brand-900 outline-none" /><button @click="updateDiscount" class="rounded-xl bg-gold-500 text-brand-950 px-4 py-3 font-bold hover:bg-gold-400">Apply</button></div>
                 </div>
                 <div class="bg-white rounded-2xl shadow-sm border border-brand-100 p-6">
                     <h3 class="font-serif font-bold text-brand-900 text-lg mb-4">Order Status</h3>
@@ -56,17 +62,6 @@
                 </div>
                 <div class="bg-white rounded-2xl shadow-sm border border-brand-100 p-6">
                     <h3 class="font-serif font-bold text-brand-900 text-lg mb-4">Payment Status</h3>
-                    <!-- Advance Payment Info -->
-                    <div v-if="order.payment_method === 'advance_payment'" class="bg-gold-50 border border-gold-200 rounded-xl p-3 mb-3 space-y-1.5 text-sm">
-                        <div class="flex justify-between"><span class="text-brand-400">Method</span><span class="font-bold text-brand-900">Advance Payment</span></div>
-                        <div class="flex justify-between"><span class="text-brand-400">Advance Amount</span><span class="font-bold text-green-600">৳{{ order.advance_amount || 0 }}</span></div>
-                        <div class="flex justify-between"><span class="text-brand-400">Remaining (COD)</span><span class="font-bold text-brand-900">৳{{ Math.max(0, (order.total || 0) - (order.advance_amount || 0)) }}</span></div>
-                        <div class="flex justify-between"><span class="text-brand-400">Transaction ID</span><span class="font-mono font-bold text-brand-900">{{ order.transaction_id || 'N/A' }}</span></div>
-                        <div class="flex justify-between"><span class="text-brand-400">Verified</span><span :class="order.payment_verified ? 'text-green-600' : 'text-red-600'" class="font-bold">{{ order.payment_verified ? 'Yes' : 'No' }}</span></div>
-                    </div>
-                    <div v-if="order.payment_method === 'advance_payment' && !order.payment_verified" class="mb-3">
-                        <button @click="verifyPayment" class="w-full bg-green-500 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-green-600 transition">Verify Payment</button>
-                    </div>
                     <div class="flex gap-2 mb-3">
                         <button @click="updatePayment('unpaid')" :class="order.payment_status === 'unpaid' ? 'bg-red-500 text-white' : 'bg-red-50 text-red-600'" class="flex-1 py-2.5 rounded-xl font-bold text-sm transition">Unpaid</button>
                         <button @click="updatePayment('paid')" :class="order.payment_status === 'paid' ? 'bg-green-500 text-white' : 'bg-green-50 text-green-600'" class="flex-1 py-2.5 rounded-xl font-bold text-sm transition">Paid</button>
@@ -100,6 +95,7 @@ const props = defineProps({ order: Object, deliveryMen: Array });
 const statuses = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered', 'cancelled'];
 const status = ref(props.order.status);
 const deliveryManId = ref(props.order.delivery_man_id || '');
+const discount = ref(Number(props.order.discount || 0));
 
 const updateStatus = () => router.patch(route('admin.orders.status', props.order.id), { status: status.value });
 const updatePayment = (paymentStatus) => {
@@ -108,7 +104,7 @@ const updatePayment = (paymentStatus) => {
     });
 };
 const assignDeliveryMan = () => router.patch(route('admin.orders.delivery-man', props.order.id), { delivery_man_id: deliveryManId.value });
-const verifyPayment = () => router.patch(route('admin.orders.verify-payment', props.order.id), {}, {
-    onSuccess: () => { props.order.payment_verified = true; props.order.payment_status = 'paid'; },
+const updateDiscount = () => router.patch(route('admin.orders.discount', props.order.id), { discount: discount.value }, {
+    onSuccess: () => { props.order.discount = Number(discount.value); props.order.total = Math.max(0, Number(props.order.subtotal) + Number(props.order.delivery_charge) - Number(discount.value)); },
 });
 </script>

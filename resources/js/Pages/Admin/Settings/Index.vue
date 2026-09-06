@@ -33,6 +33,45 @@
                                 <button type="button" @click="heroImages.push('')" class="text-sm text-gold-600 font-bold hover:text-gold-700 transition">+ Add Image</button>
                             </div>
 
+                            <div v-else-if="setting.key === 'mail_mailer'">
+                                <label class="block text-sm font-medium text-brand-700 mb-1.5">Mail transport</label>
+                                <select v-model="settingValues[setting.key]" class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-2 focus:ring-gold-200 bg-cream-50 px-4 py-3 text-brand-900 transition outline-none">
+                                    <option value="smtp">SMTP</option>
+                                    <option value="log">Log only (testing)</option>
+                                </select>
+                            </div>
+
+                            <div v-else-if="setting.key === 'mail_scheme'">
+                                <label class="block text-sm font-medium text-brand-700 mb-1.5">SMTP encryption</label>
+                                <select v-model="settingValues[setting.key]" class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-2 focus:ring-gold-200 bg-cream-50 px-4 py-3 text-brand-900 transition outline-none">
+                                    <option value="smtps">SSL / SMTPS (port 465)</option>
+                                    <option value="smtp">TLS / SMTP (port 587)</option>
+                                </select>
+                            </div>
+
+                            <div v-else-if="setting.key === 'mail_password'">
+                                <label class="block text-sm font-medium text-brand-700 mb-1.5">SMTP password</label>
+                                <input v-model="settingValues[setting.key]" type="password" autocomplete="new-password" placeholder="Leave blank to keep the saved password" class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-2 focus:ring-gold-200 bg-cream-50 px-4 py-3 text-brand-900 transition outline-none" />
+                                <p class="text-xs text-brand-400 mt-1">The password is encrypted before it is stored.</p>
+                            </div>
+
+                            <div v-else-if="setting.key === 'mail_order_recipients'">
+                                <label class="block text-sm font-medium text-brand-700 mb-1.5">Order notification recipients</label>
+                                <p class="text-xs text-brand-400 mb-3">Every address below receives new order and custom cake notifications.</p>
+                                <div v-for="(email, i) in recipientEmails" :key="i" class="flex gap-2 mb-2">
+                                    <input v-model="recipientEmails[i]" type="email" placeholder="name@example.com" class="flex-1 rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-2 focus:ring-gold-200 bg-cream-50 px-4 py-2.5 text-brand-900 transition outline-none text-sm" />
+                                    <button type="button" @click="recipientEmails.splice(i, 1)" class="rounded-xl px-3 text-red-500 hover:bg-red-50">×</button>
+                                </div>
+                                <button type="button" @click="recipientEmails.push('')" class="text-sm text-gold-600 font-bold hover:text-gold-700">+ Add email address</button>
+                            </div>
+
+                            <div v-else-if="['mail_order_notifications', 'mail_customer_notifications'].includes(setting.key)" class="flex items-center gap-3">
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" :checked="settingValues[setting.key] === '1' || settingValues[setting.key] === true" @change="settingValues[setting.key] = $event.target.checked ? '1' : '0'" class="w-5 h-5 rounded text-gold-500 focus:ring-gold-400" />
+                                    <span class="ml-2 text-sm font-medium text-brand-700">{{ setting.key === 'mail_order_notifications' ? 'Email new orders to the admin recipients' : 'Send confirmation to customers who provide an email' }}</span>
+                                </label>
+                            </div>
+
                             <!-- Boolean settings: Toggle -->
                             <div v-else-if="setting.key === 'promo_banner_active'" class="flex items-center gap-3">
                                 <label class="flex items-center cursor-pointer">
@@ -85,6 +124,17 @@
                     </button>
                 </div>
             </form>
+
+            <div v-if="activeTab === 'mailer'" class="mt-6 bg-brand-950 text-cream-50 rounded-2xl p-6">
+                <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                    <div><h3 class="font-serif font-bold text-lg">Send a test email</h3><p class="text-sm text-brand-200 mt-1">Save the SMTP settings first, then verify delivery to any mailbox.</p></div>
+                    <form @submit.prevent="testMail" class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                        <input v-model="testEmail" type="email" required placeholder="test@example.com" class="rounded-xl border-0 bg-white text-brand-900 px-4 py-2.5 text-sm outline-none w-full sm:w-64" />
+                        <button type="submit" :disabled="testingMail" class="rounded-xl bg-gold-500 text-brand-950 px-4 py-2.5 text-sm font-bold hover:bg-gold-400 disabled:opacity-60">{{ testingMail ? 'Sending...' : 'Send test' }}</button>
+                    </form>
+                </div>
+                <p v-if="$page.props.errors?.mail_test" class="text-red-300 text-sm mt-3">{{ $page.props.errors.mail_test }}</p>
+            </div>
         </div>
     </AdminLayout>
 </template>
@@ -111,6 +161,7 @@ const tabLabels = {
     homepage: 'Homepage',
     social: 'Social & Contact',
     delivery: 'Delivery',
+    mailer: 'Mailer',
 };
 
 const tabIcons = {
@@ -125,6 +176,7 @@ const tabDescriptions = {
     homepage: 'Hero section, banner images and homepage content',
     social: 'Social media links and contact numbers',
     delivery: 'Delivery charges and minimum order amounts',
+    mailer: 'SMTP sender, order recipients, and customer email confirmations',
 };
 
 const settingHints = {
@@ -149,6 +201,7 @@ const shortTextFields = [
     'site_name', 'site_tagline', 'opening_hours', 'hero_title', 'hero_subtitle',
     'facebook_url', 'instagram_url', 'whatsapp_number',
     'featured_section_title', 'featured_section_subtitle', 'promo_banner_text',
+    'mail_host', 'mail_username', 'mail_from_address', 'mail_from_name', 'mail_reply_to',
 ];
 
 const groupMap = {
@@ -160,10 +213,17 @@ const groupMap = {
     facebook_url: 'social', instagram_url: 'social', whatsapp_number: 'social',
     min_order_amount: 'delivery', min_order_pickup: 'delivery',
     min_order_sadar: 'delivery', min_order_outside: 'delivery',
+    mail_mailer: 'mailer', mail_host: 'mailer', mail_port: 'mailer', mail_scheme: 'mailer',
+    mail_username: 'mailer', mail_password: 'mailer', mail_from_address: 'mailer',
+    mail_from_name: 'mailer', mail_reply_to: 'mailer', mail_order_recipients: 'mailer',
+    mail_order_notifications: 'mailer', mail_customer_notifications: 'mailer',
 };
 
 const settingValues = ref({});
 const heroImages = ref([]);
+const recipientEmails = ref([]);
+const testEmail = ref('metasoftinfo@gmail.com');
+const testingMail = ref(false);
 
 const initValues = () => {
     if (props.settings) {
@@ -175,6 +235,12 @@ const initValues = () => {
                         if (!heroImages.value.length) heroImages.value = [''];
                     } catch {
                         heroImages.value = [''];
+                    }
+                } else if (setting.key === 'mail_order_recipients') {
+                    try {
+                        recipientEmails.value = JSON.parse(setting.value || '[]');
+                    } catch {
+                        recipientEmails.value = [];
                     }
                 } else {
                     settingValues.value[setting.key] = setting.value || '';
@@ -191,10 +257,16 @@ const activeTab = ref(Object.keys(groupedSettings.value)[0] || 'general');
 const saveSettings = () => {
     // Save hero images as JSON
     settingValues.value['hero_images'] = JSON.stringify(heroImages.value.filter(u => u.trim()));
+    settingValues.value['mail_order_recipients'] = JSON.stringify(recipientEmails.value.map(email => email.trim()).filter(Boolean));
 
     const settingsArray = Object.entries(settingValues.value).map(([key, value]) => ({
         key, value, group: groupMap[key] || 'general',
     }));
     router.post(route('admin.settings.update'), { settings: settingsArray });
+};
+
+const testMail = () => {
+    testingMail.value = true;
+    router.post(route('admin.settings.test-mail'), { email: testEmail.value }, { onFinish: () => testingMail.value = false });
 };
 </script>

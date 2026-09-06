@@ -48,7 +48,9 @@
             </div>
         </section>
 
-        <section class="bg-cream-100 border-y border-brand-100"><div class="section-shell"><div class="flex items-end justify-between gap-5"><div><p class="eyebrow">Most loved</p><h2 class="section-title text-left">Our bestsellers</h2><p class="section-copy text-left">The bakes customers keep coming back for.</p></div><Link :href="route('products.index')" class="hidden sm:inline-flex text-sm font-bold text-brand-600 hover:text-brand-500">View all <span class="ml-2">→</span></Link></div><div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mt-10"><ProductCard v-for="product in featuredProducts" :key="product.id" :product="product" @add="addToCart" /></div><div class="text-center sm:hidden mt-8"><Link :href="route('products.index')" class="btn-outline">View all products</Link></div></div></section>
+        <section class="bg-cream-100 border-y border-brand-100"><div class="section-shell"><div class="flex items-end justify-between gap-5"><div><p class="eyebrow">Most loved</p><h2 class="section-title text-left">Our bestsellers</h2><p class="section-copy text-left">The bakes customers keep coming back for.</p></div><Link :href="route('products.index')" class="hidden sm:inline-flex text-sm font-bold text-brand-600 hover:text-brand-500">View all <span class="ml-2">→</span></Link></div><div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mt-10"><ProductCard v-for="product in bestSellingProducts" :key="product.id" :product="product" @add="addToCart" /></div><div class="text-center sm:hidden mt-8"><Link :href="route('products.index')" class="btn-outline">View all products</Link></div></div></section>
+
+        <section class="section-shell"><div class="flex items-end justify-between gap-5"><div><p class="eyebrow">Fresh counter</p><h2 class="section-title text-left">All products</h2><p class="section-copy text-left">Explore the full selection available at your outlet.</p></div><Link :href="route('products.index')" class="text-sm font-bold text-brand-600 hover:text-brand-500">Shop all <span class="ml-2">→</span></Link></div><div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mt-10"><ProductCard v-for="product in allProducts" :key="product.id" :product="product" @add="addToCart" /></div></section>
 
         <section class="section-shell"><div class="grid lg:grid-cols-2 gap-10 items-center"><div class="relative min-h-[330px] sm:min-h-[430px]"><div class="absolute inset-0 w-[72%] rounded-[3rem_0_3rem_0] overflow-hidden bg-brand-200"><img v-if="heroImage(3)" :src="heroImage(3)" class="w-full h-full object-cover" alt="Lake View bakery"/><div v-else class="w-full h-full flex items-center justify-center text-8xl">🧁</div></div><div class="absolute right-0 bottom-0 w-[45%] h-[47%] rounded-[0_2rem_0_2rem] border-8 border-cream-50 overflow-hidden bg-gold-100 shadow-card"><img v-if="heroImage(4)" :src="heroImage(4)" class="w-full h-full object-cover" alt="Lake View sweets"/><div v-else class="w-full h-full flex items-center justify-center text-6xl">🍪</div></div></div><div><p class="eyebrow">Made with intention</p><h2 class="section-title text-left">A little sweetness for every kind of day.</h2><p class="section-copy text-left mt-5">{{ settings.about_text || 'We believe the best memories often start with something warm from the oven. Our bakers prepare every bite with honest ingredients, time and a whole lot of love.' }}</p><div class="grid grid-cols-2 gap-3 mt-7"><div class="rounded-2xl bg-brand-50 border border-brand-100 p-4"><div class="font-serif text-2xl font-bold text-brand-600">7+</div><div class="text-xs text-brand-500 mt-1">local outlets</div></div><div class="rounded-2xl bg-gold-50 border border-gold-100 p-4"><div class="font-serif text-2xl font-bold text-brand-600">100+</div><div class="text-xs text-brand-500 mt-1">fresh products</div></div></div><Link :href="route('about')" class="inline-flex items-center gap-2 mt-7 text-sm font-bold text-brand-600 hover:text-brand-500">Our story <span>→</span></Link></div></div></section>
 
@@ -64,11 +66,13 @@ import ProductCard from '@/Components/ProductCard.vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
-defineProps({ categories: Array, featuredProducts: Array, branches: Array, selectedBranch: Object });
+defineProps({ categories: Array, featuredProducts: Array, bestSellingProducts: Array, allProducts: Array, branches: Array, selectedBranch: Object });
 const page = usePage();
 const settings = computed(() => page.props.settings || {});
 const selectedBranch = computed(() => page.props.selectedBranch || null);
 const featuredProducts = computed(() => page.props.featuredProducts || []);
+const bestSellingProducts = computed(() => page.props.bestSellingProducts || featuredProducts.value);
+const allProducts = computed(() => page.props.allProducts || []);
 const categories = computed(() => page.props.categories || []);
 const branches = computed(() => page.props.branches || []);
 const toast = ref({ show: false, product: null });

@@ -42,6 +42,10 @@
                             <input v-model="form.customer_phone" type="tel" required placeholder="01XXXXXXXXX" class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition" />
                         </div>
                     </div>
+                    <div>
+                        <label class="block text-sm font-medium text-brand-700 mb-1.5">Email <span class="text-brand-400 font-normal">(optional)</span></label>
+                        <input v-model="form.customer_email" type="email" placeholder="Only if you want email confirmation" class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition" />
+                    </div>
 
                 </div>
 
@@ -151,7 +155,7 @@ const settings = computed(() => page.props.settings || {});
 const processing = ref(false);
 const form = ref({
     branch_id: props.selectedBranchId || '', delivery_type: 'pickup', delivery_area_id: '',
-    customer_name: '', customer_phone: '', customer_address: '',
+    customer_name: '', customer_phone: '', customer_email: '', customer_address: '',
     cake_type: '', cake_size: '', cake_flavor: '', message_on_cake: '',
     delivery_date: '', delivery_time: '', notes: '',
 });
@@ -160,6 +164,7 @@ const form = ref({
 if (props.auth?.user) {
     form.value.customer_name = props.auth.user.name || '';
     form.value.customer_phone = props.auth.user.phone || '';
+    form.value.customer_email = props.auth.user.email || '';
 }
 
 const designImage = ref(null);
