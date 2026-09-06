@@ -11,7 +11,12 @@ class AdminSettingController extends Controller
 {
     public function index()
     {
-        $settings = Setting::all()->groupBy('group')->map(fn ($items) => $items->values());
+        // Advance payment is disabled for now. Keep its database values for a future
+        // re-enable, but do not expose the controls in the active admin UI.
+        $settings = Setting::whereNotIn('key', ['merchant_number', 'merchant_name', 'payment_instructions'])
+            ->get()
+            ->groupBy('group')
+            ->map(fn ($items) => $items->values());
         return Inertia::render('Admin/Settings/Index', ['settings' => $settings]);
     }
 

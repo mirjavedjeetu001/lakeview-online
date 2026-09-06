@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class CheckoutController extends Controller
@@ -39,14 +40,12 @@ class CheckoutController extends Controller
         $validated = $request->validate([
             'branch_id' => 'required|exists:branches,id',
             'delivery_type' => 'required|in:pickup,home_delivery',
-            'delivery_area_id' => 'nullable|exists:delivery_areas,id',
+            'delivery_area_id' => ['nullable', 'required_if:delivery_type,home_delivery', Rule::exists('delivery_areas', 'id')->where('is_active', true)],
             'customer_name' => 'required|string|max:255',
             'customer_phone' => 'required|string|max:20',
-            'customer_address' => 'nullable|string|max:500',
+            'customer_address' => 'nullable|required_if:delivery_type,home_delivery|string|max:500',
             'notes' => 'nullable|string|max:500',
-            'payment_method' => 'nullable|in:cash_on_delivery,advance_payment',
-            'advance_amount' => 'nullable|numeric|min:0',
-            'transaction_id' => 'nullable|string|max:255',
+            'payment_method' => 'nullable|in:cash_on_delivery',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
@@ -91,6 +90,10 @@ class CheckoutController extends Controller
                 'quantity' => $item['quantity'],
                 'total' => $itemTotal,
             ];
+        }
+
+        if ($validated['delivery_type'] === 'pickup') {
+            $validated['delivery_area_id'] = null;
         }
 
         $deliveryCharge = 0;
@@ -165,9 +168,9 @@ class CheckoutController extends Controller
             'delivery_charge' => $deliveryCharge,
             'discount' => $discount,
             'total' => $total,
-            'payment_method' => $validated['payment_method'] ?? 'cash_on_delivery',
-            'advance_amount' => $validated['advance_amount'] ?? 0,
-            'transaction_id' => $validated['transaction_id'] ?? null,
+            'payment_method' => 'cash_on_delivery',
+            'advance_amount' => 0,
+            'transaction_id' => null,
             'payment_verified' => false,
             'status' => 'pending',
             'notes' => $validated['notes'] ?? null,

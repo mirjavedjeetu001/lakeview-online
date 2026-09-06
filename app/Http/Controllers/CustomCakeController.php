@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class CustomCakeController extends Controller
@@ -30,10 +31,10 @@ class CustomCakeController extends Controller
         $validated = $request->validate([
             'branch_id' => 'required|exists:branches,id',
             'delivery_type' => 'required|in:pickup,home_delivery',
-            'delivery_area_id' => 'nullable|exists:delivery_areas,id',
+            'delivery_area_id' => ['nullable', 'required_if:delivery_type,home_delivery', Rule::exists('delivery_areas', 'id')->where('is_active', true)],
             'customer_name' => 'required|string|max:255',
             'customer_phone' => 'required|string|max:20',
-            'customer_address' => 'nullable|string|max:500',
+            'customer_address' => 'nullable|required_if:delivery_type,home_delivery|string|max:500',
             'cake_type' => 'nullable|string|max:255',
             'cake_size' => 'nullable|string|max:255',
             'cake_flavor' => 'nullable|string|max:255',
@@ -50,6 +51,10 @@ class CustomCakeController extends Controller
 
         if (!$branch) {
             return redirect()->back()->withErrors(['branch_id' => 'Please select an active branch.'])->withInput();
+        }
+
+        if ($validated['delivery_type'] === 'pickup') {
+            $validated['delivery_area_id'] = null;
         }
 
         $deliveryCharge = 0;

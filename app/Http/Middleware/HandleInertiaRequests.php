@@ -40,6 +40,9 @@ class HandleInertiaRequests extends Middleware
         if ($request->session()->get('branch_id')) {
             $selectedBranch = $branches->firstWhere('id', (int) $request->session()->get('branch_id'));
         }
+        $mainBranch = $branches->first(
+            fn ($branch) => str_contains(strtolower((string) $branch->name), 'main')
+        ) ?: $branches->first();
 
         return [
             ...parent::share($request),
@@ -55,6 +58,7 @@ class HandleInertiaRequests extends Middleware
             'settings' => \App\Models\Setting::getAllByGroup(),
             'branches' => fn () => $branches,
             'selectedBranch' => $selectedBranch,
+            'mainBranch' => $mainBranch,
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),

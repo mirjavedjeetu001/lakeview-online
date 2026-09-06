@@ -49,6 +49,23 @@
                             Delivery Details
                         </h2>
 
+                        <!-- Delivery Type -->
+                        <div>
+                            <label class="block text-sm font-medium text-brand-700 mb-1.5">Delivery Type</label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <label :class="form.delivery_type === 'pickup' ? 'border-gold-400 bg-gold-50 text-brand-900' : 'border-brand-100 bg-cream-50 text-brand-600'" class="cursor-pointer border-2 rounded-xl p-4 text-center transition">
+                                    <input type="radio" v-model="form.delivery_type" value="pickup" class="hidden" />
+                                    <div class="text-2xl mb-1">🏪</div>
+                                    <div class="text-sm font-medium">Pickup</div>
+                                </label>
+                                <label :class="form.delivery_type === 'home_delivery' ? 'border-gold-400 bg-gold-50 text-brand-900' : 'border-brand-100 bg-cream-50 text-brand-600'" class="cursor-pointer border-2 rounded-xl p-4 text-center transition">
+                                    <input type="radio" v-model="form.delivery_type" value="home_delivery" class="hidden" />
+                                    <div class="text-2xl mb-1">🛵</div>
+                                    <div class="text-sm font-medium">Home Delivery</div>
+                                </label>
+                            </div>
+                        </div>
+
                         <!-- Branch selector (both pickup and home delivery) -->
                         <div>
                             <label class="block text-sm font-medium text-brand-700 mb-1.5">
@@ -65,11 +82,11 @@
                             <label class="block text-sm font-medium text-brand-700 mb-1.5">Select Your Area</label>
                             <select v-model="form.delivery_area_id" required class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition">
                                 <option value="">Choose your area...</option>
-                                <optgroup label="📍 Satkhira Sadar (৳100)">
-                                    <option v-for="area in sadarAreas" :key="area.id" :value="area.id">{{ area.name }}</option>
+                                <optgroup label="📍 Satkhira Sadar areas">
+                                    <option v-for="area in sadarAreas" :key="area.id" :value="area.id">{{ area.name }} (৳{{ area.delivery_charge }})</option>
                                 </optgroup>
-                                <optgroup label="🛵 Outside Sadar - Upazilas (৳200)">
-                                    <option v-for="area in outsideAreas" :key="area.id" :value="area.id">{{ area.name }}</option>
+                                <optgroup label="🛵 Outside Sadar / Upazila areas">
+                                    <option v-for="area in outsideAreas" :key="area.id" :value="area.id">{{ area.name }} (৳{{ area.delivery_charge }})</option>
                                 </optgroup>
                             </select>
                             <div v-if="selectedArea" class="mt-2 bg-cream-100 rounded-lg px-3 py-2 text-sm text-brand-600">
@@ -84,23 +101,6 @@
                         <!-- Validation errors -->
                         <div v-if="Object.keys(errors).length" class="bg-red-50 border border-red-200 rounded-xl px-4 py-3 space-y-1">
                             <div v-for="(error, key) in errors" :key="key" class="text-sm text-red-600">{{ error }}</div>
-                        </div>
-
-                        <!-- Delivery Type -->
-                        <div>
-                            <label class="block text-sm font-medium text-brand-700 mb-1.5">Delivery Type</label>
-                            <div class="grid grid-cols-2 gap-3">
-                                <label :class="form.delivery_type === 'pickup' ? 'border-gold-400 bg-gold-50 text-brand-900' : 'border-brand-100 bg-cream-50 text-brand-600'" class="cursor-pointer border-2 rounded-xl p-4 text-center transition">
-                                    <input type="radio" v-model="form.delivery_type" value="pickup" class="hidden" />
-                                    <div class="text-2xl mb-1">🏪</div>
-                                    <div class="text-sm font-medium">Pickup</div>
-                                </label>
-                                <label :class="form.delivery_type === 'home_delivery' ? 'border-gold-400 bg-gold-50 text-brand-900' : 'border-brand-100 bg-cream-50 text-brand-600'" class="cursor-pointer border-2 rounded-xl p-4 text-center transition">
-                                    <input type="radio" v-model="form.delivery_type" value="home_delivery" class="hidden" />
-                                    <div class="text-2xl mb-1">🛵</div>
-                                    <div class="text-sm font-medium">Home Delivery</div>
-                                </label>
-                            </div>
                         </div>
 
                         <!-- Name & Phone -->
@@ -125,46 +125,6 @@
                         <div>
                             <label class="block text-sm font-medium text-brand-700 mb-1.5">Notes (optional)</label>
                             <textarea v-model="form.notes" rows="2" placeholder="Any special instructions..." class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition"></textarea>
-                        </div>
-
-                        <!-- Payment Method -->
-                        <div class="border-t border-brand-100 pt-4">
-                            <label class="block text-sm font-medium text-brand-700 mb-1.5">Payment Method</label>
-                            <div class="grid grid-cols-2 gap-3">
-                                <label :class="form.payment_method === 'cash_on_delivery' ? 'border-gold-400 bg-gold-50' : 'border-brand-100 bg-cream-50'" class="cursor-pointer border-2 rounded-xl p-3 text-center transition">
-                                    <input type="radio" v-model="form.payment_method" value="cash_on_delivery" class="hidden" />
-                                    <div class="text-xl mb-1">💵</div>
-                                    <div class="text-xs font-medium text-brand-900">Cash on Delivery</div>
-                                </label>
-                                <label :class="form.payment_method === 'advance_payment' ? 'border-gold-400 bg-gold-50' : 'border-brand-100 bg-cream-50'" class="cursor-pointer border-2 rounded-xl p-3 text-center transition">
-                                    <input type="radio" v-model="form.payment_method" value="advance_payment" class="hidden" />
-                                    <div class="text-xl mb-1">💳</div>
-                                    <div class="text-xs font-medium text-brand-900">Advance Payment</div>
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Advance Payment Details -->
-                        <div v-if="form.payment_method === 'advance_payment'" class="bg-gold-50 border-2 border-gold-200 rounded-2xl p-4 space-y-4">
-                            <div class="text-center">
-                                <h4 class="font-serif font-bold text-brand-900 text-base mb-1">Advance Payment</h4>
-                                <p class="text-xs text-brand-500">{{ settings.payment_instructions || 'Send money to our merchant number and enter the transaction ID below.' }}</p>
-                            </div>
-                            <div class="bg-white rounded-xl p-3 text-center border border-gold-200">
-                                <p class="text-xs text-brand-400 mb-1">Send Money To (Merchant)</p>
-                                <p class="font-bold text-brand-900 text-lg">{{ settings.merchant_number || '01722554400' }}</p>
-                                <p class="text-xs text-brand-500">{{ settings.merchant_name || 'Lake View Sweets & Bakery' }}</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-brand-700 mb-1.5">Advance Amount (৳)</label>
-                                <input v-model="form.advance_amount" type="number" min="0" :max="total" placeholder="Enter advance amount" class="w-full rounded-xl border-2 border-gold-200 focus:border-gold-400 focus:ring-2 focus:ring-gold-200 bg-white px-4 py-3 text-brand-900 transition outline-none" />
-                                <p class="text-xs text-brand-400 mt-1">Pay partial or full amount in advance. Remaining will be cash on delivery.</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-brand-700 mb-1.5">Transaction ID</label>
-                                <input v-model="form.transaction_id" type="text" placeholder="Enter transaction ID" class="w-full rounded-xl border-2 border-gold-200 focus:border-gold-400 focus:ring-2 focus:ring-gold-200 bg-white px-4 py-3 text-brand-900 transition outline-none" />
-                                <p class="text-xs text-brand-400 mt-1">Enter the transaction ID from your payment confirmation.</p>
-                            </div>
                         </div>
 
                         <!-- Coupon -->
@@ -210,16 +170,12 @@
                         <div class="bg-cream-100 rounded-xl p-4 mb-4">
                             <div class="flex items-center gap-3 mb-2">
                                 <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                                    <span class="text-xl">{{ form.payment_method === 'advance_payment' ? '💳' : '💵' }}</span>
+                                    <span class="text-xl">💵</span>
                                 </div>
                                 <div>
-                                    <div class="text-sm font-medium text-brand-900">{{ form.payment_method === 'advance_payment' ? 'Advance Payment' : 'Cash on Delivery' }}</div>
-                                    <div class="text-xs text-brand-400">{{ form.payment_method === 'advance_payment' ? 'Pay in advance' : 'Pay when you receive' }}</div>
+                                    <div class="text-sm font-medium text-brand-900">Cash on Delivery</div>
+                                    <div class="text-xs text-brand-400">Pay when you receive</div>
                                 </div>
-                            </div>
-                            <div v-if="form.payment_method === 'advance_payment' && form.advance_amount" class="border-t border-brand-200 pt-2 mt-2 space-y-1 text-xs">
-                                <div class="flex justify-between"><span class="text-brand-500">Advance Paid</span><span class="font-bold text-green-600">৳{{ form.advance_amount }}</span></div>
-                                <div class="flex justify-between"><span class="text-brand-500">Remaining (COD)</span><span class="font-bold text-brand-900">৳{{ Math.max(0, total - parseFloat(form.advance_amount || 0)) }}</span></div>
                             </div>
                         </div>
 
@@ -239,7 +195,7 @@
 <script setup>
 import CustomerLayout from '@/Layouts/CustomerLayout.vue';
 import { Link, router } from '@inertiajs/vue3';
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 
 const props = defineProps({ branches: Array, deliveryAreas: Array, auth: Object, minOrder: Object, selectedBranchId: [Number, String] });
 
@@ -255,9 +211,6 @@ const form = ref({
     customer_address: '',
     notes: '',
     coupon_code: '',
-    payment_method: 'cash_on_delivery',
-    advance_amount: '',
-    transaction_id: '',
 });
 const discount = ref(0);
 const couponMessage = ref('');
@@ -292,6 +245,10 @@ const allDeliveryAreas = computed(() => props.deliveryAreas || []);
 const sadarAreas = computed(() => allDeliveryAreas.value.filter(a => a.zone_type === 'sadar'));
 const outsideAreas = computed(() => allDeliveryAreas.value.filter(a => a.zone_type === 'outside_sadar'));
 const selectedArea = computed(() => allDeliveryAreas.value.find(a => a.id == form.value.delivery_area_id));
+
+watch(() => form.value.delivery_type, (deliveryType) => {
+    if (deliveryType === 'pickup') form.value.delivery_area_id = '';
+});
 
 const subtotal = computed(() => cartItems.value.reduce((sum, item) => sum + item.price * item.quantity, 0));
 const deliveryCharge = computed(() => {

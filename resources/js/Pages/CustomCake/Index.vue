@@ -48,11 +48,11 @@
                         <label class="block text-sm font-medium text-brand-700 mb-1.5">Select Your Area</label>
                         <select v-model="form.delivery_area_id" required class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition">
                             <option value="">Choose your area...</option>
-                            <optgroup label="📍 Satkhira Sadar (৳100)">
-                                <option v-for="area in sadarAreas" :key="area.id" :value="area.id">{{ area.name }}</option>
+                            <optgroup label="📍 Satkhira Sadar areas">
+                                <option v-for="area in sadarAreas" :key="area.id" :value="area.id">{{ area.name }} (৳{{ area.delivery_charge }})</option>
                             </optgroup>
-                            <optgroup label="🛵 Outside Sadar - Upazilas (৳200)">
-                                <option v-for="area in outsideAreas" :key="area.id" :value="area.id">{{ area.name }}</option>
+                            <optgroup label="🛵 Outside Sadar / Upazila areas">
+                                <option v-for="area in outsideAreas" :key="area.id" :value="area.id">{{ area.name }} (৳{{ area.delivery_charge }})</option>
                             </optgroup>
                         </select>
                         <div v-if="selectedArea" class="mt-2 bg-cream-100 rounded-lg px-3 py-2 text-sm text-brand-600">
@@ -176,7 +176,7 @@
 <script setup>
 import CustomerLayout from '@/Layouts/CustomerLayout.vue';
 import { router, usePage } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 
 const props = defineProps({ branches: Array, deliveryAreas: Array, auth: Object, selectedBranchId: [Number, String] });
 const page = usePage();
@@ -209,6 +209,10 @@ const allDeliveryAreas = computed(() => props.deliveryAreas || []);
 const sadarAreas = computed(() => allDeliveryAreas.value.filter(a => a.zone_type === 'sadar'));
 const outsideAreas = computed(() => allDeliveryAreas.value.filter(a => a.zone_type === 'outside_sadar'));
 const selectedArea = computed(() => allDeliveryAreas.value.find(a => a.id == form.value.delivery_area_id));
+
+watch(() => form.value.delivery_type, (deliveryType) => {
+    if (deliveryType === 'pickup') form.value.delivery_area_id = '';
+});
 
 const handleFile = (e) => {
     const file = e.target.files?.[0] || null;

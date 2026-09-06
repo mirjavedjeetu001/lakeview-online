@@ -136,9 +136,6 @@ const settingHints = {
     min_order_pickup: 'Minimum order for pickup (0 = no minimum)',
     min_order_sadar: 'Minimum order for Sadar area delivery (in Taka)',
     min_order_outside: 'Minimum order for Outside Sadar delivery (in Taka)',
-    merchant_number: 'Mobile banking merchant number for advance payment',
-    merchant_name: 'Name shown on merchant account',
-    payment_instructions: 'Instructions shown to customer during advance payment',
     about_text: 'About us text shown on the About page',
     custom_cake_info: 'Instructions shown on the Custom Cake order page',
     opening_hours: 'e.g. Open Daily 9:00 AM - 11:00 PM',
@@ -163,7 +160,6 @@ const groupMap = {
     facebook_url: 'social', instagram_url: 'social', whatsapp_number: 'social',
     min_order_amount: 'delivery', min_order_pickup: 'delivery',
     min_order_sadar: 'delivery', min_order_outside: 'delivery',
-    merchant_number: 'delivery', merchant_name: 'delivery', payment_instructions: 'delivery',
 };
 
 const settingValues = ref({});
