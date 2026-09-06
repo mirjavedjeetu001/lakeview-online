@@ -12,7 +12,7 @@
 
             <!-- Table -->
             <div class="bg-white rounded-2xl shadow-sm border border-brand-100 overflow-hidden">
-                <table class="w-full">
+                <div class="overflow-x-auto"><table class="w-full min-w-[760px]">
                     <thead class="bg-cream-50">
                         <tr>
                             <th class="px-4 py-3 text-left text-xs font-bold text-brand-500 uppercase">Name</th>
@@ -41,7 +41,7 @@
                             <td colspan="5" class="px-4 py-8 text-center text-brand-400 text-sm">No delivery men added yet.</td>
                         </tr>
                     </tbody>
-                </table>
+                </table></div>
             </div>
         </div>
 

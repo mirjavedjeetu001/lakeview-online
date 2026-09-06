@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class Product extends Model
@@ -36,6 +38,42 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
+    public function branches()
+    {
+        return $this->belongsToMany(Branch::class, 'branch_product')
+            ->withPivot(['price', 'discount_price', 'is_available', 'stock'])
+            ->withTimestamps();
+    }
+
+    public function scopeForBranch(Builder $query, int $branchId): Builder
+    {
+        return $query
+            ->join('branch_product', function ($join) use ($branchId) {
+                $join->on('branch_product.product_id', '=', 'products.id')
+                    ->where('branch_product.branch_id', '=', $branchId);
+            })
+            ->where('branch_product.is_available', true)
+            ->where('products.is_available', true)
+            ->select('products.*')
+            ->addSelect([
+                'branch_price' => DB::table('branch_product')
+                    ->select('price')
+                    ->whereColumn('branch_product.product_id', 'products.id')
+                    ->where('branch_product.branch_id', $branchId)
+                    ->limit(1),
+                'branch_discount_price' => DB::table('branch_product')
+                    ->select('discount_price')
+                    ->whereColumn('branch_product.product_id', 'products.id')
+                    ->where('branch_product.branch_id', $branchId)
+                    ->limit(1),
+                'branch_stock' => DB::table('branch_product')
+                    ->select('stock')
+                    ->whereColumn('branch_product.product_id', 'products.id')
+                    ->where('branch_product.branch_id', $branchId)
+                    ->limit(1),
+            ]);
+    }
+
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
@@ -43,6 +81,11 @@ class Product extends Model
 
     public function getEffectivePriceAttribute()
     {
-        return $this->discount_price ?? $this->price;
+        $discountPrice = $this->attributes['branch_discount_price'] ?? $this->discount_price;
+        $price = $this->attributes['branch_price'] ?? $this->price;
+
+        return $discountPrice !== null && (float) $discountPrice > 0
+            ? $discountPrice
+            : $price;
     }
 }

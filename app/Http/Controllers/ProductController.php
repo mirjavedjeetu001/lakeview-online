@@ -11,7 +11,7 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Product::with('category')->where('is_available', true);
+        $query = Product::forBranch((int) session('branch_id'))->with('category');
 
         if ($request->has('category') && $request->category) {
             $query->whereHas('category', function ($q) use ($request) {
@@ -35,11 +35,11 @@ class ProductController extends Controller
 
     public function show($slug)
     {
-        $product = Product::with('category')->where('slug', $slug)->firstOrFail();
-        $related = Product::with('category')
+        $branchId = (int) session('branch_id');
+        $product = Product::forBranch($branchId)->with('category')->where('slug', $slug)->firstOrFail();
+        $related = Product::forBranch($branchId)->with('category')
             ->where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
-            ->where('is_available', true)
             ->take(4)
             ->get();
 

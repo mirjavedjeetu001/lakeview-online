@@ -134,7 +134,7 @@
                             </div>
                             <div v-else class="text-brand-400">
                                 <div class="text-4xl mb-2">📸</div>
-                                <div class="text-sm">Click to upload your cake design (max 5MB)</div>
+                                <div class="text-sm">Click to upload your cake design (max 2MB)</div>
                             </div>
                         </div>
                     </div>
@@ -178,13 +178,13 @@ import CustomerLayout from '@/Layouts/CustomerLayout.vue';
 import { router, usePage } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 
-const props = defineProps({ branches: Array, deliveryAreas: Array, auth: Object });
+const props = defineProps({ branches: Array, deliveryAreas: Array, auth: Object, selectedBranchId: [Number, String] });
 const page = usePage();
 const settings = computed(() => page.props.settings || {});
 
 const processing = ref(false);
 const form = ref({
-    branch_id: '', delivery_type: 'pickup', delivery_area_id: '',
+    branch_id: props.selectedBranchId || '', delivery_type: 'pickup', delivery_area_id: '',
     customer_name: '', customer_phone: '', customer_address: '',
     cake_type: '', cake_size: '', cake_flavor: '', message_on_cake: '',
     delivery_date: '', delivery_time: '', notes: '',
@@ -210,7 +210,16 @@ const sadarAreas = computed(() => allDeliveryAreas.value.filter(a => a.zone_type
 const outsideAreas = computed(() => allDeliveryAreas.value.filter(a => a.zone_type === 'outside_sadar'));
 const selectedArea = computed(() => allDeliveryAreas.value.find(a => a.id == form.value.delivery_area_id));
 
-const handleFile = (e) => { designImage.value = e.target.files[0]; };
+const handleFile = (e) => {
+    const file = e.target.files?.[0] || null;
+    if (file && file.size > 2 * 1024 * 1024) {
+        designImage.value = null;
+        e.target.value = '';
+        window.alert('Please choose an image smaller than 2MB.');
+        return;
+    }
+    designImage.value = file;
+};
 
 const submitOrder = () => {
     processing.value = true;

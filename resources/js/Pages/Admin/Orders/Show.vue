@@ -4,7 +4,7 @@
             <div class="lg:col-span-2 space-y-6">
                 <div class="bg-white rounded-2xl shadow-sm border border-brand-100 p-6">
                     <h3 class="font-serif font-bold text-brand-900 text-lg mb-4">Order Items</h3>
-                    <table class="w-full">
+                    <div class="overflow-x-auto"><table class="w-full min-w-[560px]">
                         <thead class="bg-cream-50">
                             <tr>
                                 <th class="px-3 py-2.5 text-left text-xs font-bold text-brand-500 uppercase">Product</th>
@@ -21,7 +21,7 @@
                                 <td class="px-3 py-3 text-sm font-medium text-brand-900">৳{{ item.total }}</td>
                             </tr>
                         </tbody>
-                    </table>
+                    </table></div>
                     <div class="mt-4 space-y-1.5 text-sm border-t border-brand-100 pt-4">
                         <div class="flex justify-between"><span class="text-brand-500">Subtotal</span><span class="font-medium text-brand-900">৳{{ order.subtotal }}</span></div>
                         <div class="flex justify-between"><span class="text-brand-500">Delivery Charge</span><span class="font-medium text-brand-900">৳{{ order.delivery_charge }}</span></div>

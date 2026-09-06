@@ -241,13 +241,13 @@ import CustomerLayout from '@/Layouts/CustomerLayout.vue';
 import { Link, router } from '@inertiajs/vue3';
 import { ref, computed, onMounted } from 'vue';
 
-const props = defineProps({ branches: Array, deliveryAreas: Array, auth: Object, minOrder: Object });
+const props = defineProps({ branches: Array, deliveryAreas: Array, auth: Object, minOrder: Object, selectedBranchId: [Number, String] });
 
 const cartItems = ref([]);
 const processing = ref(false);
 const errors = ref({});
 const form = ref({
-    branch_id: '',
+    branch_id: props.selectedBranchId || '',
     delivery_type: 'pickup',
     delivery_area_id: '',
     customer_name: '',

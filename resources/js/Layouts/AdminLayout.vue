@@ -132,7 +132,7 @@
 
                 <!-- Footer Credit -->
                 <div class="text-center py-4 text-xs text-brand-400 border-t border-brand-50">
-                    Developed By <span class="text-gold-600 font-medium">Mir Javed Jeetu</span> | Contact: <span class="text-gold-600 font-medium">01811480222</span>
+                    Powered by <span class="text-gold-600 font-medium">Mir Javed Jeetu</span> | <span class="text-gold-600 font-medium">Metasoft Info Solutions</span> | <span class="text-gold-600 font-medium">01811480222</span>
                 </div>
             </div>
         </div>

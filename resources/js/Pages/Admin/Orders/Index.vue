@@ -8,7 +8,7 @@
                     <option v-for="s in statuses" :key="s" :value="s">{{ s.replace(/_/g, ' ') }}</option>
                 </select>
             </div>
-            <table class="w-full">
+            <div class="overflow-x-auto"><table class="w-full min-w-[760px]">
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order #</th>
@@ -29,7 +29,7 @@
                         <td class="px-4 py-3 text-sm"><Link :href="route('admin.orders.show', order.id)" class="text-brand-600 hover:text-brand-700">View</Link></td>
                     </tr>
                 </tbody>
-            </table>
+            </table></div>
             <div v-if="orders.links && orders.links.length > 1" class="p-4 flex justify-center gap-2">
                 <Link v-for="(link, i) in orders.links" :key="i" :href="link.url || '#'" :class="link.active ? 'bg-brand-600 text-white' : 'bg-white text-gray-700 border'" class="px-3 py-1.5 rounded-lg text-sm" v-html="link.label" :preserve-scroll="true"></Link>
             </div>

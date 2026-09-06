@@ -5,7 +5,7 @@
                 <h2 class="font-bold text-gray-900">Coupons</h2>
                 <button @click="openModal()" class="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700">Add Coupon</button>
             </div>
-            <table class="w-full">
+            <div class="overflow-x-auto"><table class="w-full min-w-[820px]">
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Code</th>
@@ -31,7 +31,7 @@
                         </td>
                     </tr>
                 </tbody>
-            </table>
+            </table></div>
             <div v-if="coupons.links && coupons.links.length > 1" class="p-4 flex justify-center gap-2">
                 <Link v-for="(link, i) in coupons.links" :key="i" :href="link.url || '#'" :class="link.active ? 'bg-brand-600 text-white' : 'bg-white text-gray-700 border'" class="px-3 py-1.5 rounded-lg text-sm" v-html="link.label" :preserve-scroll="true"></Link>
             </div>

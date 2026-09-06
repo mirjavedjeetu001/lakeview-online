@@ -1,245 +1,92 @@
 <template>
     <CustomerLayout>
-        <!-- Hero Slider -->
-        <section class="relative h-[400px] sm:h-[500px] overflow-hidden">
-            <div v-for="(slide, i) in slides" :key="i"
-                v-show="currentSlide === i"
-                class="absolute inset-0 transition-opacity duration-700"
-                :class="slide.bg || ''"
-                :style="slide.image ? `background: linear-gradient(rgba(26,15,0,0.6), rgba(26,15,0,0.7)), url('${slide.image}') center/cover;` : ''">
-                <div class="absolute inset-0 opacity-10" v-if="slide.emoji1">
-                    <div class="absolute top-10 left-10 text-9xl">{{ slide.emoji1 }}</div>
-                    <div class="absolute bottom-10 right-10 text-9xl">{{ slide.emoji2 }}</div>
-                </div>
-                <div class="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center">
-                    <div class="text-white max-w-2xl">
-                        <span class="text-gold-400 text-sm tracking-widest uppercase font-medium">{{ slide.tag }}</span>
-                        <h1 class="font-serif text-3xl sm:text-5xl lg:text-6xl font-bold mt-3 mb-4 text-cream-50 leading-tight">{{ slide.title }}</h1>
-                        <p class="text-base sm:text-lg text-brand-200 mb-8 leading-relaxed">{{ slide.subtitle }}</p>
-                        <div class="flex flex-col sm:flex-row gap-4">
-                            <Link :href="route('products.index')" class="bg-gold-500 text-brand-950 px-8 py-3.5 rounded-full font-bold hover:bg-gold-400 transition shadow-lg text-center">
-                                {{ slide.btn1 }}
-                            </Link>
-                            <Link :href="route('custom-cake.index')" class="border-2 border-gold-400 text-gold-400 px-8 py-3.5 rounded-full font-bold hover:bg-gold-400 hover:text-brand-950 transition text-center">
-                                {{ slide.btn2 }}
-                            </Link>
+        <section class="relative overflow-hidden bg-cream-100 border-b border-brand-100">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 lg:py-20">
+                <div class="grid lg:grid-cols-[1fr_1.15fr] items-center gap-10 lg:gap-14">
+                    <div class="relative z-10 text-center lg:text-left">
+                        <p class="eyebrow justify-center lg:justify-start">Fresh from {{ selectedBranch?.name || 'our bakery' }}</p>
+                        <h1 class="font-serif text-[clamp(2.8rem,7vw,5.8rem)] leading-[.94] tracking-[-.04em] font-bold text-brand-900 mt-5">Sweet moments,<br><span class="text-brand-500 italic">baked fresh.</span></h1>
+                        <p class="max-w-lg mx-auto lg:mx-0 text-base sm:text-lg text-brand-600 leading-8 mt-6">{{ settings.hero_subtitle || 'From everyday breads to celebration cakes, discover something delicious for every kind of day.' }}</p>
+                        <div class="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mt-8">
+                            <Link :href="route('products.index')" class="btn-primary">Explore the bakery <span>→</span></Link>
+                            <Link :href="route('custom-cake.index')" class="btn-outline">Make a custom cake</Link>
+                        </div>
+                        <div class="flex flex-wrap justify-center lg:justify-start gap-5 mt-8 text-xs text-brand-500 font-medium">
+                            <span class="inline-flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-sage-400"></span>Freshly baked daily</span>
+                            <span class="inline-flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-gold-500"></span>Pickup & delivery</span>
                         </div>
                     </div>
+
+                    <div class="relative min-h-[360px] sm:min-h-[500px] lg:min-h-[580px]">
+                        <div class="absolute top-0 right-0 w-[54%] h-[58%] rounded-[2rem_2rem_2rem_5rem] overflow-hidden bg-brand-200 shadow-card rotate-2">
+                            <img v-if="heroImage(0)" :src="heroImage(0)" class="w-full h-full object-cover" alt="Fresh bakery selection" />
+                            <div v-else class="w-full h-full flex items-center justify-center bg-brand-200 text-7xl">🥐</div>
+                        </div>
+                        <div class="absolute bottom-0 left-0 w-[50%] h-[48%] rounded-[2rem_5rem_2rem_2rem] overflow-hidden bg-gold-100 shadow-card -rotate-2">
+                            <img v-if="heroImage(1)" :src="heroImage(1)" class="w-full h-full object-cover" alt="Lake View bakery product" />
+                            <div v-else class="w-full h-full flex items-center justify-center bg-gold-100 text-7xl">🍰</div>
+                        </div>
+                        <div class="absolute left-[30%] top-[28%] w-[42%] h-[48%] rounded-[5rem_0_5rem_0] overflow-hidden border-[10px] border-cream-100 bg-brand-100 shadow-card z-10">
+                            <img v-if="heroImage(2)" :src="heroImage(2)" class="w-full h-full object-cover" alt="Baked fresh at Lake View" />
+                            <div v-else class="w-full h-full flex items-center justify-center bg-brand-100 text-7xl">🍞</div>
+                        </div>
+                        <div class="absolute -bottom-1 right-[2%] z-20 rounded-2xl bg-white px-4 py-3 shadow-card border border-brand-100"><div class="text-[10px] uppercase tracking-[.18em] text-brand-500">Shopping from</div><div class="mt-1 max-w-[140px] truncate text-sm font-bold text-brand-800">{{ selectedBranch?.name }}</div></div>
+                    </div>
                 </div>
             </div>
-            <!-- Slider dots -->
-            <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-                <button v-for="(slide, i) in slides" :key="i" @click="currentSlide = i"
-                    :class="currentSlide === i ? 'w-8 bg-gold-500' : 'w-2 bg-white/50'"
-                    class="h-2 rounded-full transition-all"></button>
-            </div>
-            <!-- Arrows -->
-            <button @click="prevSlide" class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center text-white transition z-10">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-            </button>
-            <button @click="nextSlide" class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center text-white transition z-10">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            </button>
         </section>
 
-        <!-- Categories -->
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-            <div class="text-center mb-10">
-                <span class="text-gold-600 text-sm tracking-widest uppercase font-medium">Explore</span>
-                <h2 class="font-serif text-3xl font-bold text-brand-900 mt-2">Our Categories</h2>
-                <div class="w-20 h-1 bg-gold-500 mx-auto mt-4 rounded-full"></div>
-            </div>
-            <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
-                <Link v-for="cat in categories" :key="cat.id" :href="route('products.index', { category: cat.slug })"
-                    class="bg-white rounded-2xl overflow-hidden card-shadow card-shadow-hover transition border border-brand-100 group">
-                    <div class="aspect-square bg-gradient-to-br from-brand-100 to-brand-200 flex items-center justify-center relative overflow-hidden">
-                        <img v-if="cat.image" :src="'/storage/' + cat.image" :alt="cat.name" class="w-full h-full object-cover group-hover:scale-110 transition duration-300" />
-                        <div v-else class="text-5xl group-hover:scale-110 transition duration-300">{{ categoryEmoji(cat.name) }}</div>
-                    </div>
-                    <div class="p-3 text-center">
-                        <div class="text-sm font-medium text-brand-800 group-hover:text-gold-600 transition">{{ cat.name }}</div>
-                    </div>
+        <div class="overflow-hidden bg-brand-700 text-cream-50 border-y border-brand-600"><div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-center gap-x-8 gap-y-1 text-xs sm:text-sm font-semibold tracking-wide"><span>Freshly baked daily ✦</span><span>Handcrafted with care ✦</span><span>Pickup & delivery ✦</span><span>Happiness in every bite</span></div></div>
+
+        <section class="section-shell">
+            <div class="text-center max-w-xl mx-auto"><p class="eyebrow justify-center">Explore the bakery</p><h2 class="section-title">Something for every craving</h2><p class="section-copy">Browse our handcrafted selection, prepared for {{ selectedBranch?.name }}.</p></div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 sm:gap-4 mt-10">
+                <Link v-for="cat in categories" :key="cat.id" :href="route('products.index', { category: cat.slug })" class="group rounded-2xl border border-brand-100 bg-white p-3 text-center shadow-soft hover:-translate-y-1 hover:shadow-card transition">
+                    <div class="aspect-square rounded-xl bg-brand-50 overflow-hidden flex items-center justify-center"><img v-if="cat.image" :src="assetUrl(cat.image)" :alt="cat.name" class="w-full h-full object-cover group-hover:scale-105 transition"/><span v-else class="text-4xl group-hover:scale-110 transition">{{ categoryEmoji(cat.name) }}</span></div>
+                    <span class="block mt-3 text-xs sm:text-sm font-semibold text-brand-700 group-hover:text-brand-500">{{ cat.name }}</span>
                 </Link>
             </div>
         </section>
 
-        <!-- Featured Products -->
-        <section class="bg-cream-100 py-16">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex items-center justify-between mb-10">
-                    <div>
-                        <span class="text-gold-600 text-sm tracking-widest uppercase font-medium">Bestsellers</span>
-                        <h2 class="font-serif text-3xl font-bold text-brand-900 mt-2">Featured Products</h2>
-                        <div class="w-20 h-1 bg-gold-500 mt-4 rounded-full"></div>
-                    </div>
-                    <Link :href="route('products.index')" class="text-brand-700 font-medium hover:text-gold-600 transition hidden sm:block">View All →</Link>
-                </div>
-                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
-                    <div v-for="product in featuredProducts" :key="product.id"
-                        class="bg-white rounded-2xl card-shadow card-shadow-hover transition overflow-hidden group">
-                        <Link :href="route('products.show', product.slug)">
-                            <div class="aspect-square bg-brand-50 flex items-center justify-center overflow-hidden">
-                                <img v-if="product.image" :src="'/storage/' + product.image" :alt="product.name" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
-                                <div v-else class="text-5xl text-brand-200 group-hover:scale-110 transition duration-300">{{ categoryEmoji(product.category?.name) }}</div>
-                            </div>
-                        </Link>
-                        <div class="p-4">
-                            <Link :href="route('products.show', product.slug)">
-                                <h3 class="font-medium text-brand-900 text-sm mb-1 line-clamp-1 group-hover:text-gold-600 transition">{{ product.name }}</h3>
-                            </Link>
-                            <div class="text-xs text-brand-400 mb-3">{{ product.category?.name }}</div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-brand-700 font-bold text-lg font-serif">৳{{ product.effective_price }}</span>
-                                <button @click="addToCart(product)" class="bg-brand-700 text-white px-3 py-2 rounded-lg text-sm hover:bg-gold-500 transition font-medium">
-                                    Add to Cart
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="text-center mt-8 sm:hidden">
-                    <Link :href="route('products.index')" class="text-brand-700 font-medium hover:text-gold-600">View All →</Link>
-                </div>
-            </div>
-        </section>
+        <section class="bg-cream-100 border-y border-brand-100"><div class="section-shell"><div class="flex items-end justify-between gap-5"><div><p class="eyebrow">Most loved</p><h2 class="section-title text-left">Our bestsellers</h2><p class="section-copy text-left">The bakes customers keep coming back for.</p></div><Link :href="route('products.index')" class="hidden sm:inline-flex text-sm font-bold text-brand-600 hover:text-brand-500">View all <span class="ml-2">→</span></Link></div><div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mt-10"><ProductCard v-for="product in featuredProducts" :key="product.id" :product="product" @add="addToCart" /></div><div class="text-center sm:hidden mt-8"><Link :href="route('products.index')" class="btn-outline">View all products</Link></div></div></section>
 
-        <!-- Branches -->
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-            <div class="text-center mb-10">
-                <span class="text-gold-600 text-sm tracking-widest uppercase font-medium">Visit Us</span>
-                <h2 class="font-serif text-3xl font-bold text-brand-900 mt-2">Our Branches</h2>
-                <div class="w-20 h-1 bg-gold-500 mx-auto mt-4 rounded-full"></div>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                <div v-for="branch in branches" :key="branch.id" class="bg-white rounded-2xl p-6 card-shadow card-shadow-hover transition border border-brand-100">
-                    <div class="flex items-start gap-4">
-                        <div class="w-12 h-12 bg-brand-50 rounded-full flex items-center justify-center flex-shrink-0">
-                            <svg class="w-6 h-6 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        </div>
-                        <div>
-                            <h3 class="font-serif font-bold text-brand-900 text-base mb-1">{{ branch.name }}</h3>
-                            <div v-if="branch.phones" class="mt-1">
-                                <a v-for="phone in branch.phones" :key="phone" :href="'tel:' + phone" class="text-sm text-gold-600 block hover:text-gold-500">{{ phone }}</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+        <section class="section-shell"><div class="grid lg:grid-cols-2 gap-10 items-center"><div class="relative min-h-[330px] sm:min-h-[430px]"><div class="absolute inset-0 w-[72%] rounded-[3rem_0_3rem_0] overflow-hidden bg-brand-200"><img v-if="heroImage(3)" :src="heroImage(3)" class="w-full h-full object-cover" alt="Lake View bakery"/><div v-else class="w-full h-full flex items-center justify-center text-8xl">🧁</div></div><div class="absolute right-0 bottom-0 w-[45%] h-[47%] rounded-[0_2rem_0_2rem] border-8 border-cream-50 overflow-hidden bg-gold-100 shadow-card"><img v-if="heroImage(4)" :src="heroImage(4)" class="w-full h-full object-cover" alt="Lake View sweets"/><div v-else class="w-full h-full flex items-center justify-center text-6xl">🍪</div></div></div><div><p class="eyebrow">Made with intention</p><h2 class="section-title text-left">A little sweetness for every kind of day.</h2><p class="section-copy text-left mt-5">{{ settings.about_text || 'We believe the best memories often start with something warm from the oven. Our bakers prepare every bite with honest ingredients, time and a whole lot of love.' }}</p><div class="grid grid-cols-2 gap-3 mt-7"><div class="rounded-2xl bg-brand-50 border border-brand-100 p-4"><div class="font-serif text-2xl font-bold text-brand-600">7+</div><div class="text-xs text-brand-500 mt-1">local outlets</div></div><div class="rounded-2xl bg-gold-50 border border-gold-100 p-4"><div class="font-serif text-2xl font-bold text-brand-600">100+</div><div class="text-xs text-brand-500 mt-1">fresh products</div></div></div><Link :href="route('about')" class="inline-flex items-center gap-2 mt-7 text-sm font-bold text-brand-600 hover:text-brand-500">Our story <span>→</span></Link></div></div></section>
 
-        <!-- Custom Cake Banner -->
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-            <div class="hero-gradient rounded-3xl p-10 sm:p-14 text-white text-center relative overflow-hidden">
-                <div class="absolute top-0 right-0 text-9xl opacity-10">🎂</div>
-                <div class="absolute bottom-0 left-0 text-8xl opacity-10">🍰</div>
-                <div class="relative">
-                    <span class="text-gold-400 text-sm tracking-widest uppercase font-medium">Made to Order</span>
-                    <h2 class="font-serif text-3xl sm:text-4xl font-bold mb-3 mt-2">Order Your Custom Cake</h2>
-                    <p class="text-brand-200 mb-8 max-w-2xl mx-auto leading-relaxed">{{ settings.custom_cake_info }}</p>
-                    <Link :href="route('custom-cake.index')" class="bg-gold-500 text-brand-950 px-8 py-3.5 rounded-full font-bold hover:bg-gold-400 transition inline-block shadow-lg">
-                        Order Now
-                    </Link>
-                </div>
-            </div>
-        </section>
+        <section class="bg-brand-950 text-cream-50"><div class="section-shell py-16 sm:py-20"><div class="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-5"><div><p class="eyebrow text-gold-300">Find us near you</p><h2 class="font-serif text-3xl sm:text-4xl font-bold mt-3">Our outlets</h2><p class="text-brand-200 mt-3 max-w-xl">Choose an outlet above and we’ll keep your shopping experience local.</p></div><Link :href="route('contact')" class="btn-light">See all locations</Link></div><div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-10"><div v-for="branch in branches" :key="branch.id" class="rounded-2xl border border-brand-700 bg-brand-900/60 p-5"><div class="flex items-start gap-3"><span class="outlet-icon">⌖</span><div><h3 class="font-semibold text-cream-50">{{ branch.name }}</h3><p class="text-xs text-brand-200 mt-2 leading-5">{{ branch.address || 'Lake View Sweets & Bakery outlet' }}</p><a v-if="branch.phones?.[0]" :href="'tel:' + branch.phones[0]" class="inline-block mt-3 text-xs text-gold-300">{{ branch.phones[0] }}</a></div></div></div></div></div></section>
 
-        <!-- Add to Cart Toast -->
-        <Transition name="toast">
-            <div v-if="toast.show" class="fixed bottom-6 right-6 z-[100] bg-white rounded-2xl shadow-2xl border-2 border-gold-400 p-4 flex items-center gap-4 max-w-sm">
-                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <svg class="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                </div>
-                <div>
-                    <div class="font-bold text-brand-900 text-sm">{{ toast.message }}</div>
-                    <div class="text-xs text-brand-500">{{ toast.product?.name }} - ৳{{ toast.product?.effective_price }}</div>
-                </div>
-                <Link :href="route('checkout.index')" class="ml-2 bg-gold-500 text-brand-950 px-4 py-2 rounded-lg text-sm font-bold hover:bg-gold-400 transition whitespace-nowrap">View Cart</Link>
-            </div>
-        </Transition>
+        <Transition name="toast"><div v-if="toast.show" class="fixed bottom-6 right-4 z-[80] max-w-sm rounded-2xl bg-white border border-gold-300 shadow-card p-4 flex items-center gap-3"><span class="w-10 h-10 rounded-full bg-sage-50 text-sage-600 flex items-center justify-center">✓</span><div class="min-w-0"><div class="font-bold text-sm text-brand-900">Added to your bag</div><div class="text-xs text-brand-500 truncate">{{ toast.product?.name }}</div></div><Link :href="route('checkout.index')" class="ml-auto btn-mini">View bag</Link></div></Transition>
     </CustomerLayout>
 </template>
 
 <script setup>
 import CustomerLayout from '@/Layouts/CustomerLayout.vue';
+import ProductCard from '@/Components/ProductCard.vue';
 import { Link, usePage } from '@inertiajs/vue3';
-import { computed, ref, onMounted, onUnmounted } from 'vue';
+import { computed, ref } from 'vue';
 
-const props = defineProps({
-    categories: Array,
-    featuredProducts: Array,
-    branches: Array,
-});
-
+defineProps({ categories: Array, featuredProducts: Array, branches: Array, selectedBranch: Object });
 const page = usePage();
 const settings = computed(() => page.props.settings || {});
+const selectedBranch = computed(() => page.props.selectedBranch || null);
+const featuredProducts = computed(() => page.props.featuredProducts || []);
+const categories = computed(() => page.props.categories || []);
+const branches = computed(() => page.props.branches || []);
+const toast = ref({ show: false, product: null });
+let toastTimer;
 
-// Hero Slider - merge settings with default slides
+const assetUrl = (path) => path?.startsWith('http') ? path : '/storage/' + path;
 const heroImages = computed(() => {
-    try {
-        const imgs = JSON.parse(settings.value.hero_images || '[]');
-        return imgs.filter(u => u.trim());
-    } catch { return []; }
+    try { return JSON.parse(settings.value.hero_images || '[]').filter(Boolean); } catch { return []; }
 });
-
-const slides = computed(() => {
-    const defaultSlides = [
-        { bg: 'hero-gradient', tag: 'Premium Quality Since 2023', title: settings.value.hero_title || 'Lake View Sweets & Bakery', subtitle: settings.value.hero_subtitle || 'The finest sweets and bakery in Satkhira', btn1: 'Browse Products', btn2: 'Custom Cake Order', emoji1: '🍰', emoji2: '🧁' },
-        { bg: 'bg-gradient-to-br from-brand-900 to-brand-700', tag: 'Fresh Daily', title: 'Baked Fresh Every Morning', subtitle: 'Bread, cookies, toast and pastries - made fresh every single day with the finest ingredients', btn1: 'Order Now', btn2: 'View Menu', emoji1: '🍞', emoji2: '🍪' },
-        { bg: 'bg-gradient-to-br from-brand-800 to-brand-600', tag: 'Custom Cakes', title: 'Your Dream Cake, Our Recipe', subtitle: 'Upload your design and we will create the cake exactly as you want it. Perfect for any occasion!', btn1: 'Order Custom Cake', btn2: 'Browse Products', emoji1: '🎂', emoji2: '🎁' },
-    ];
-    if (heroImages.value.length > 0) {
-        return heroImages.value.map((img, i) => ({
-            bg: '', image: img,
-            tag: i === 0 ? (settings.value.site_tagline || 'Premium Quality') : '',
-            title: i === 0 ? (settings.value.hero_title || 'Lake View Sweets & Bakery') : '',
-            subtitle: i === 0 ? (settings.value.hero_subtitle || '') : '',
-            btn1: 'Browse Products', btn2: 'Custom Cake Order',
-            emoji1: '', emoji2: '',
-        }));
-    }
-    return defaultSlides;
-});
-const currentSlide = ref(0);
-let slideTimer = null;
-const nextSlide = () => currentSlide.value = (currentSlide.value + 1) % slides.value.length;
-const prevSlide = () => currentSlide.value = (currentSlide.value - 1 + slides.value.length) % slides.value.length;
-onMounted(() => { slideTimer = setInterval(nextSlide, 5000); });
-onUnmounted(() => { if (slideTimer) clearInterval(slideTimer); });
-
-const categoryEmoji = (name) => {
-    const map = { 'Cake': '🎂', 'Bread': '🍞', 'Cookies': '🍪', 'Sweets': '🍬', 'Fast Food': '🍔', 'Toast': '🥪', 'Dessert': '🍮', 'Order Cake': '🎂' };
-    return map[name] || '🍰';
-};
-
-// Add to cart with toast
-const toast = ref({ show: false, message: '', product: null });
-let toastTimer = null;
-const showToast = (product) => {
-    toast.value = { show: true, message: 'Added to cart!', product };
-    if (toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { toast.value.show = false; }, 3000);
-};
-
+const heroImage = (index) => heroImages.value[index] || featuredProducts.value[index % Math.max(featuredProducts.value.length, 1)]?.image && assetUrl(featuredProducts.value[index % featuredProducts.value.length].image);
+const categoryEmoji = (name) => ({ Cake: '🎂', Bread: '🍞', Cookies: '🍪', Sweets: '🍬', 'Fast Food': '🥪', Toast: '🥨', Dessert: '🍮', 'Order Cake': '🎂' }[name] || '🍰');
 const addToCart = (product) => {
     let cart = [];
-    try {
-        cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    } catch {
-        cart = [];
-    }
+    try { cart = JSON.parse(localStorage.getItem('cart') || '[]'); } catch { cart = []; }
     const existing = cart.find(item => item.product_id === product.id);
-    if (existing) {
-        existing.quantity += 1;
-    } else {
-        cart.push({
-            product_id: product.id,
-            name: product.name,
-            price: product.effective_price,
-            quantity: 1,
-        });
-    }
-    localStorage.setItem('cart', JSON.stringify(cart));
-    window.dispatchEvent(new Event('cart-updated'));
-    showToast(product);
+    if (existing) existing.quantity += 1;
+    else cart.push({ product_id: product.id, name: product.name, price: Number(product.effective_price), quantity: 1 });
+    localStorage.setItem('cart', JSON.stringify(cart)); window.dispatchEvent(new Event('cart-updated'));
+    toast.value = { show: true, product }; clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.value.show = false, 2800);
 };
 </script>

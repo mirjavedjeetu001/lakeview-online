@@ -16,18 +16,19 @@ class CustomCakeController extends Controller
 {
     public function index()
     {
-        $branches = Branch::where('is_active', true)->orderBy('sort_order')->get();
+        $branches = Branch::activeList();
         $deliveryAreas = DeliveryArea::where('is_active', true)->orderBy('zone_type')->orderBy('name')->get();
         return Inertia::render('CustomCake/Index', [
             'branches' => $branches,
             'deliveryAreas' => $deliveryAreas,
+            'selectedBranchId' => (int) session('branch_id'),
         ]);
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'branch_id' => 'nullable|exists:branches,id',
+            'branch_id' => 'required|exists:branches,id',
             'delivery_type' => 'required|in:pickup,home_delivery',
             'delivery_area_id' => 'nullable|exists:delivery_areas,id',
             'customer_name' => 'required|string|max:255',
@@ -39,20 +40,16 @@ class CustomCakeController extends Controller
             'message_on_cake' => 'nullable|string|max:255',
             'delivery_date' => 'required|date|after:today',
             'delivery_time' => 'nullable|string',
-            'design_image' => 'nullable|image|max:5120',
+            'design_image' => 'nullable|image|max:2048',
             'notes' => 'nullable|string|max:1000',
         ]);
 
-        // For home delivery, auto-assign branch from delivery area
-        if ($validated['delivery_type'] === 'home_delivery' && !empty($validated['delivery_area_id'])) {
-            $area = DeliveryArea::find($validated['delivery_area_id']);
-            if ($area) {
-                $validated['branch_id'] = $area->branch_id;
-            }
-        }
+        $branch = Branch::whereKey($validated['branch_id'])
+            ->where('is_active', true)
+            ->first();
 
-        if (empty($validated['branch_id'])) {
-            return redirect()->back()->withErrors(['branch_id' => 'Please select a branch or delivery area.']);
+        if (!$branch) {
+            return redirect()->back()->withErrors(['branch_id' => 'Please select an active branch.'])->withInput();
         }
 
         $deliveryCharge = 0;

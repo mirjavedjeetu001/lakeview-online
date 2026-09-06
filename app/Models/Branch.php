@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class Branch extends Model
@@ -24,6 +25,17 @@ class Branch extends Model
                 $branch->slug = Str::slug($branch->name) . '-' . Str::random(5);
             }
         });
+        static::saved(fn () => Cache::forget('branches.active.v3'));
+        static::deleted(fn () => Cache::forget('branches.active.v3'));
+    }
+
+    public static function activeList()
+    {
+        return static::hydrate(Cache::remember('branches.active.v3', now()->addMinutes(5), function () {
+            return static::where('is_active', true)->orderBy('sort_order')->get()
+                ->map(fn (self $branch) => $branch->getAttributes())
+                ->all();
+        }));
     }
 
     public function deliveryAreas()
@@ -39,5 +51,12 @@ class Branch extends Model
     public function customCakeOrders()
     {
         return $this->hasMany(CustomCakeOrder::class);
+    }
+
+    public function products()
+    {
+        return $this->belongsToMany(Product::class, 'branch_product')
+            ->withPivot(['price', 'discount_price', 'is_available', 'stock'])
+            ->withTimestamps();
     }
 }

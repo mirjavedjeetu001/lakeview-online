@@ -19,12 +19,14 @@ class CheckoutController extends Controller
 {
     public function index()
     {
-        $branches = Branch::with('deliveryAreas')->where('is_active', true)->orderBy('sort_order')->get();
+        $selectedBranchId = (int) session('branch_id');
+        $branches = Branch::activeList();
         $deliveryAreas = DeliveryArea::where('is_active', true)->orderBy('zone_type')->orderBy('name')->get();
         $settings = \App\Models\Setting::getAllByGroup();
         return Inertia::render('Checkout/Index', [
             'branches' => $branches,
             'deliveryAreas' => $deliveryAreas,
+            'selectedBranchId' => $selectedBranchId,
             'minOrder' => [
                 'sadar' => (float) ($settings['min_order_sadar'] ?? 500),
                 'outside' => (float) ($settings['min_order_outside'] ?? 1000),
@@ -35,7 +37,7 @@ class CheckoutController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'branch_id' => 'nullable|exists:branches,id',
+            'branch_id' => 'required|exists:branches,id',
             'delivery_type' => 'required|in:pickup,home_delivery',
             'delivery_area_id' => 'nullable|exists:delivery_areas,id',
             'customer_name' => 'required|string|max:255',
@@ -51,8 +53,15 @@ class CheckoutController extends Controller
             'coupon_code' => 'nullable|string',
         ]);
 
-        // For home delivery, branch_id comes from customer selection
-        // Delivery areas are now global (not per-branch), so charge is based on zone type
+        $branch = Branch::whereKey($validated['branch_id'])
+            ->where('is_active', true)
+            ->first();
+
+        if (!$branch) {
+            return redirect()->back()->withErrors(['branch_id' => 'Please select an active branch.'])->withInput();
+        }
+
+        // Prices and availability are always re-read from the selected branch on the server.
 
         // For pickup, branch_id is required
         if ($validated['delivery_type'] === 'pickup' && empty($validated['branch_id'])) {
@@ -62,7 +71,16 @@ class CheckoutController extends Controller
         $subtotal = 0;
         $itemsData = [];
         foreach ($validated['items'] as $item) {
-            $product = Product::find($item['product_id']);
+            $product = Product::forBranch($branch->id)
+                ->where('products.id', $item['product_id'])
+                ->first();
+
+            if (!$product) {
+                return redirect()->back()->withErrors([
+                    'items' => 'One or more products are not available at the selected branch.',
+                ])->withInput();
+            }
+
             $price = $product->effective_price;
             $itemTotal = $price * $item['quantity'];
             $subtotal += $itemTotal;

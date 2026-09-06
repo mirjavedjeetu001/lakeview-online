@@ -35,6 +35,12 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $branches = \App\Models\Branch::activeList();
+        $selectedBranch = null;
+        if ($request->session()->get('branch_id')) {
+            $selectedBranch = $branches->firstWhere('id', (int) $request->session()->get('branch_id'));
+        }
+
         return [
             ...parent::share($request),
             'auth' => [
@@ -47,6 +53,8 @@ class HandleInertiaRequests extends Middleware
                 ] : null,
             ],
             'settings' => \App\Models\Setting::getAllByGroup(),
+            'branches' => fn () => $branches,
+            'selectedBranch' => $selectedBranch,
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),

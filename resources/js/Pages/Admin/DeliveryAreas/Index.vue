@@ -8,7 +8,7 @@
                 </div>
                 <button @click="openModal()" class="bg-gold-500 text-brand-950 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-gold-400 transition">+ Add Area</button>
             </div>
-            <table class="w-full">
+            <div class="overflow-x-auto"><table class="w-full min-w-[680px]">
                 <thead class="bg-cream-50">
                     <tr>
                         <th class="px-5 py-3 text-left text-xs font-medium text-brand-500 uppercase">Area</th>
@@ -32,7 +32,7 @@
                         </td>
                     </tr>
                 </tbody>
-            </table>
+            </table></div>
         </div>
 
         <div v-if="showModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" @click.self="showModal = false">

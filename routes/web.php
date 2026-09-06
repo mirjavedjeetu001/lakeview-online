@@ -11,29 +11,35 @@ use App\Http\Controllers\Admin\AdminOrderController;
 use App\Http\Controllers\Admin\AdminProductController;
 use App\Http\Controllers\Admin\AdminSettingController;
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\BranchSelectionController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\CustomCakeController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
-// Customer routes
+Route::get('/select-branch', [BranchSelectionController::class, 'index'])->name('branch.select');
+Route::post('/select-branch', [BranchSelectionController::class, 'store'])->name('branch.select.store');
 Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/about', [HomeController::class, 'about'])->name('about');
-Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
 
-Route::get('/products', [ProductController::class, 'index'])->name('products.index');
-Route::get('/products/{slug}', [ProductController::class, 'show'])->name('products.show');
+// Customer routes require an active branch so every catalog/order operation is scoped.
+Route::middleware(['branch.selected'])->group(function () {
+    Route::get('/about', [HomeController::class, 'about'])->name('about');
+    Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
 
-Route::get('/custom-cake', [CustomCakeController::class, 'index'])->name('custom-cake.index');
-Route::post('/custom-cake', [CustomCakeController::class, 'store'])->name('custom-cake.store');
-Route::get('/custom-cake/success/{order}', [CustomCakeController::class, 'success'])->name('custom-cake.success');
+    Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+    Route::get('/products/{slug}', [ProductController::class, 'show'])->name('products.show');
 
-Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
-Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
-Route::get('/checkout/success/{order}', [CheckoutController::class, 'success'])->name('checkout.success');
-Route::get('/track-order', [CheckoutController::class, 'trackOrder'])->name('checkout.track');
-Route::post('/apply-coupon', [CheckoutController::class, 'applyCoupon'])->name('checkout.apply-coupon');
+    Route::get('/custom-cake', [CustomCakeController::class, 'index'])->name('custom-cake.index');
+    Route::post('/custom-cake', [CustomCakeController::class, 'store'])->name('custom-cake.store');
+    Route::get('/custom-cake/success/{order}', [CustomCakeController::class, 'success'])->name('custom-cake.success');
+
+    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+    Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+    Route::get('/checkout/success/{order}', [CheckoutController::class, 'success'])->name('checkout.success');
+    Route::get('/track-order', [CheckoutController::class, 'trackOrder'])->name('checkout.track');
+    Route::post('/apply-coupon', [CheckoutController::class, 'applyCoupon'])->name('checkout.apply-coupon');
+});
 
 // Auth routes
 Route::get('/login', function () {

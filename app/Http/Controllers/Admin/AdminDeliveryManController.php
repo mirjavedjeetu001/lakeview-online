@@ -13,7 +13,7 @@ class AdminDeliveryManController extends Controller
     public function index()
     {
         $deliveryMen = DeliveryMan::with('branch')->latest()->get();
-        $branches = Branch::where('is_active', true)->orderBy('sort_order')->get();
+        $branches = Branch::activeList();
         return Inertia::render('Admin/DeliveryMen/Index', [
             'deliveryMen' => $deliveryMen,
             'branches' => $branches,

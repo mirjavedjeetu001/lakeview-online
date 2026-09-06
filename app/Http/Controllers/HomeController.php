@@ -13,18 +13,21 @@ class HomeController extends Controller
     public function index()
     {
         $categories = Category::where('is_active', true)->orderBy('sort_order')->get();
-        $featuredProducts = Product::with('category')
-            ->where('is_available', true)
+        $branchId = (int) session('branch_id');
+        $featuredProducts = ($branchId ? Product::forBranch($branchId) : Product::query())
+            ->with('category')
+            ->where('products.is_available', true)
             ->where('is_featured', true)
             ->orderBy('sort_order')
             ->take(8)
             ->get();
-        $branches = Branch::where('is_active', true)->orderBy('sort_order')->get();
+        $branches = Branch::activeList();
 
         return Inertia::render('Home', [
             'categories' => $categories,
             'featuredProducts' => $featuredProducts,
             'branches' => $branches,
+            'selectedBranch' => $branches->firstWhere('id', $branchId),
         ]);
     }
 
@@ -35,7 +38,7 @@ class HomeController extends Controller
 
     public function contact()
     {
-        $branches = Branch::where('is_active', true)->orderBy('sort_order')->get();
+        $branches = Branch::activeList();
         return Inertia::render('Contact', [
             'branches' => $branches,
         ]);

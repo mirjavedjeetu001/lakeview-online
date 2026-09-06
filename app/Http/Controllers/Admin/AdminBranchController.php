@@ -12,7 +12,7 @@ class AdminBranchController extends Controller
 {
     public function index()
     {
-        $branches = Branch::withCount(['deliveryAreas', 'orders'])->orderBy('sort_order')->get();
+        $branches = Branch::withCount(['deliveryAreas', 'orders', 'products'])->orderBy('sort_order')->get();
         return Inertia::render('Admin/Branches/Index', ['branches' => $branches]);
     }
 

@@ -213,6 +213,10 @@ class DatabaseSeeder extends Seeder
 
         $allBranches = Branch::all();
         foreach ($allBranches as $branch) {
+            $branch->products()->syncWithPivotValues(Product::pluck('id'), [
+                'is_available' => true,
+            ]);
+
             DeliveryArea::create([
                 'branch_id' => $branch->id,
                 'name' => 'Satkhira Sadar',

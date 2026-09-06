@@ -17,6 +17,7 @@
 /public/fonts-manifest.dev.json
 /public/hot
 /public/storage
+/lakeviex_lakeviewonline.sql
 /storage/*.key
 /storage/pail
 _ide_helper.php

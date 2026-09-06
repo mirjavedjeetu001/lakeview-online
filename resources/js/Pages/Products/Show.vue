@@ -1,71 +1,30 @@
 <template>
     <CustomerLayout>
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div>
-                    <div class="aspect-square bg-gray-100 rounded-xl flex items-center justify-center">
-                        <img v-if="product.image" :src="'/storage/' + product.image" :alt="product.name" class="w-full h-full object-cover rounded-xl" />
-                        <div v-else class="text-8xl text-gray-300">🍰</div>
-                    </div>
-                </div>
-                <div>
-                    <div class="text-sm text-gray-500 mb-2">{{ product.category?.name }}</div>
-                    <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ product.name }}</h1>
-                    <div class="flex items-center gap-3 mb-6">
-                        <span class="text-3xl text-brand-600 font-bold">৳{{ product.effective_price }}</span>
-                        <span v-if="product.discount_price" class="text-xl text-gray-400 line-through">৳{{ product.price }}</span>
-                    </div>
-                    <p v-if="product.description" class="text-gray-600 mb-6">{{ product.description }}</p>
-
-                    <div class="flex items-center gap-4 mb-6">
-                        <div class="flex items-center border rounded-lg">
-                            <button @click="quantity > 1 && quantity--" class="px-4 py-2 text-gray-600 hover:bg-gray-100">-</button>
-                            <span class="px-4 py-2 font-medium">{{ quantity }}</span>
-                            <button @click="quantity++" class="px-4 py-2 text-gray-600 hover:bg-gray-100">+</button>
-                        </div>
-                        <button @click="addToCart" class="flex-1 bg-brand-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-brand-700 transition">Add to Cart</button>
-                    </div>
-                    <Link :href="route('checkout.index')" class="block w-full text-center border-2 border-brand-600 text-brand-600 px-6 py-3 rounded-lg font-bold hover:bg-brand-50 transition">Go to Checkout</Link>
-                </div>
+        <section class="section-shell pt-8 sm:pt-14">
+            <div class="text-xs text-brand-400 mb-6"><Link :href="route('products.index')" class="hover:text-brand-600">Shop</Link><span class="mx-2">/</span>{{ product.category?.name }}</div>
+            <div class="grid lg:grid-cols-2 gap-10 lg:gap-16 items-start">
+                <div class="rounded-[2rem] overflow-hidden bg-brand-50 border border-brand-100 shadow-soft aspect-square flex items-center justify-center"><img v-if="product.image" :src="assetUrl(product.image)" :alt="product.name" class="w-full h-full object-cover"/><span v-else class="text-9xl">🍰</span></div>
+                <div class="pt-2"><p class="eyebrow">{{ product.category?.name || 'From the bakery' }}</p><h1 class="font-serif text-4xl sm:text-5xl font-bold tracking-tight text-brand-900 mt-4">{{ product.name }}</h1><div class="flex items-end gap-3 mt-6"><span class="font-serif font-bold text-3xl text-brand-600">৳{{ money(product.effective_price) }}</span><span v-if="hasDiscount" class="text-base text-brand-300 line-through mb-1">৳{{ money(product.branch_price || product.price) }}</span></div><p v-if="product.description" class="text-brand-600 leading-8 mt-6">{{ product.description }}</p><div class="mt-8 p-4 rounded-2xl bg-brand-50 border border-brand-100 text-sm text-brand-700"><div class="flex items-center gap-2 font-semibold"><span class="w-2 h-2 rounded-full bg-sage-400"></span>Available at {{ selectedBranch?.name }}</div><p class="text-xs text-brand-500 mt-2">Freshness and availability are shown for your selected outlet.</p></div><div class="flex items-center gap-3 mt-7"><div class="flex items-center rounded-full border border-brand-200 bg-white p-1"><button @click="quantity > 1 && quantity--" class="w-9 h-9 rounded-full text-brand-600 hover:bg-brand-100">−</button><span class="w-9 text-center text-sm font-bold">{{ quantity }}</span><button @click="quantity++" class="w-9 h-9 rounded-full text-brand-600 hover:bg-brand-100">+</button></div><button @click="addToCart" class="btn-primary flex-1">Add to bag <span>→</span></button></div><Link :href="route('checkout.index')" class="btn-outline w-full mt-3">Go to checkout</Link></div>
             </div>
-
-            <div v-if="related.length" class="mt-12">
-                <h2 class="text-xl font-bold text-gray-900 mb-4">Related Products</h2>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <div v-for="item in related" :key="item.id" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <Link :href="route('products.show', item.slug)">
-                            <div class="aspect-square bg-gray-100 flex items-center justify-center">
-                                <img v-if="item.image" :src="'/storage/' + item.image" :alt="item.name" class="w-full h-full object-cover" />
-                                <div v-else class="text-4xl text-gray-300">🍰</div>
-                            </div>
-                        </Link>
-                        <div class="p-3">
-                            <h3 class="font-medium text-gray-900 text-sm mb-1 line-clamp-1">{{ item.name }}</h3>
-                            <span class="text-brand-600 font-bold">৳{{ item.effective_price }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+            <div v-if="related.length" class="mt-20"><div class="flex items-end justify-between gap-4"><div><p class="eyebrow">You may also like</p><h2 class="section-title text-left text-3xl">More from this collection</h2></div><Link :href="route('products.index')" class="text-sm font-bold text-brand-600">View all →</Link></div><div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 mt-8"><ProductCard v-for="item in related" :key="item.id" :product="item" @add="quickAdd" /></div></div>
+        </section>
     </CustomerLayout>
 </template>
 
 <script setup>
 import CustomerLayout from '@/Layouts/CustomerLayout.vue';
-import { Link } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import ProductCard from '@/Components/ProductCard.vue';
+import { Link, usePage } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 
 const props = defineProps({ product: Object, related: Array });
+const page = usePage();
+const selectedBranch = computed(() => page.props.selectedBranch || null);
 const quantity = ref(1);
-
-const addToCart = () => {
-    let cart = [];
-    try { cart = JSON.parse(localStorage.getItem('cart') || '[]'); } catch { cart = []; }
-    const existing = cart.find(item => item.product_id === props.product.id);
-    if (existing) { existing.quantity += quantity.value; }
-    else { cart.push({ product_id: props.product.id, name: props.product.name, price: props.product.effective_price, quantity: quantity.value }); }
-    localStorage.setItem('cart', JSON.stringify(cart));
-    window.dispatchEvent(new Event('cart-updated'));
-    alert('Added to cart!');
-};
+const assetUrl = (path) => path?.startsWith('http') ? path : '/storage/' + path;
+const money = (value) => Number(value || 0).toLocaleString('en-BD', { maximumFractionDigits: 0 });
+const hasDiscount = computed(() => props.product.branch_discount_price !== null && props.product.branch_discount_price !== undefined ? Number(props.product.branch_discount_price) > 0 : Number(props.product.discount_price) > 0);
+const save = (product, amount = 1) => { let cart = []; try { cart = JSON.parse(localStorage.getItem('cart') || '[]'); } catch {} const item = cart.find(i => i.product_id === product.id); if (item) item.quantity += amount; else cart.push({ product_id: product.id, name: product.name, price: Number(product.effective_price), quantity: amount }); localStorage.setItem('cart', JSON.stringify(cart)); window.dispatchEvent(new Event('cart-updated')); };
+const addToCart = () => { save(props.product, quantity.value); alert('Added to your bag'); };
+const quickAdd = (product) => save(product);
 </script>
