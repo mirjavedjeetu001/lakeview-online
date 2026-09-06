@@ -198,13 +198,14 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Adjacent to Land Office', 'phones' => ['01968-101984'], 'sort_order' => 4],
             ['name' => 'Adjacent to Govt Girls School', 'phones' => ['01958611946'], 'sort_order' => 5],
             ['name' => 'Old Satkhira Hatkhola Mor', 'phones' => ['01958216723'], 'sort_order' => 6],
-            ['name' => 'Lake View Cafe & Restaurant (Main)', 'phones' => ['+8801722554400'], 'sort_order' => 7],
+            ['name' => 'Lake View Cafe & Restaurant (Main)', 'address' => 'Lake View Sweets & Bakery outlet', 'phones' => ['+8801722554400'], 'sort_order' => 7],
         ];
 
         foreach ($branches as $branch) {
             Branch::create([
                 'name' => $branch['name'],
                 'slug' => Str::slug($branch['name']) . '-' . Str::random(5),
+                'address' => $branch['address'] ?? null,
                 'phones' => $branch['phones'],
                 'is_active' => true,
                 'sort_order' => $branch['sort_order'],

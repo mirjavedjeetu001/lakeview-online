@@ -84,8 +84,11 @@ const addToCart = (product) => {
     let cart = [];
     try { cart = JSON.parse(localStorage.getItem('cart') || '[]'); } catch { cart = []; }
     const existing = cart.find(item => item.product_id === product.id);
-    if (existing) existing.quantity += 1;
-    else cart.push({ product_id: product.id, name: product.name, price: Number(product.effective_price), quantity: 1 });
+    if (existing) {
+        existing.quantity += 1;
+        existing.allow_pickup = product.allow_pickup !== false;
+        existing.allow_home_delivery = product.allow_home_delivery !== false;
+    } else cart.push({ product_id: product.id, name: product.name, price: Number(product.effective_price), quantity: 1, allow_pickup: product.allow_pickup !== false, allow_home_delivery: product.allow_home_delivery !== false });
     localStorage.setItem('cart', JSON.stringify(cart)); window.dispatchEvent(new Event('cart-updated'));
     toast.value = { show: true, product }; clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.value.show = false, 2800);
 };

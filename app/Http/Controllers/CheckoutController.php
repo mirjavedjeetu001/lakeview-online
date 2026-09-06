@@ -71,12 +71,25 @@ class CheckoutController extends Controller
         $itemsData = [];
         foreach ($validated['items'] as $item) {
             $product = Product::forBranch($branch->id)
+                ->with('category')
                 ->where('products.id', $item['product_id'])
                 ->first();
 
             if (!$product) {
                 return redirect()->back()->withErrors([
                     'items' => 'One or more products are not available at the selected branch.',
+                ])->withInput();
+            }
+
+            if ($validated['delivery_type'] === 'home_delivery' && !$product->allow_home_delivery) {
+                return redirect()->back()->withErrors([
+                    'items' => "{$product->name} is available for pickup only. Please choose Pickup for this order.",
+                ])->withInput();
+            }
+
+            if ($validated['delivery_type'] === 'pickup' && !$product->allow_pickup) {
+                return redirect()->back()->withErrors([
+                    'items' => "{$product->name} is available for home delivery only. Please choose Home Delivery for this order.",
                 ])->withInput();
             }
 

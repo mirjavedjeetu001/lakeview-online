@@ -17,6 +17,7 @@
                             <tr>
                                 <th class="table-head">Category</th>
                                 <th class="table-head">Products</th>
+                                <th class="table-head">Delivery</th>
                                 <th class="table-head">Status</th>
                                 <th class="table-head">Actions</th>
                             </tr>
@@ -36,13 +37,14 @@
                                     </div>
                                 </td>
                                 <td class="table-cell font-semibold text-brand-700">{{ cat.products_count || 0 }}</td>
+                                <td class="table-cell text-xs font-semibold text-brand-600">{{ deliveryLabel(cat.delivery_mode) }}</td>
                                 <td class="table-cell"><span :class="cat.is_active ? 'status-success' : 'status-danger'">{{ cat.is_active ? 'Active' : 'Hidden' }}</span></td>
                                 <td class="table-cell whitespace-nowrap">
                                     <button @click="openModal(cat)" class="text-brand-600 hover:text-brand-500 font-semibold text-sm mr-4">Edit</button>
                                     <button @click="deleteCategory(cat)" class="text-red-500 hover:text-red-700 font-semibold text-sm">Delete</button>
                                 </td>
                             </tr>
-                            <tr v-if="!categories?.length"><td colspan="4" class="p-12 text-center text-sm text-brand-500">No categories found.</td></tr>
+                            <tr v-if="!categories?.length"><td colspan="5" class="p-12 text-center text-sm text-brand-500">No categories found.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -60,6 +62,7 @@
                     <label class="field-label">Description<textarea v-model="form.description" rows="3" class="field-input"></textarea></label>
                     <label class="field-label">Category image<input @change="handleFile" type="file" accept="image/*" class="field-input file:mr-3 file:rounded-full file:border-0 file:bg-brand-100 file:px-3 file:py-1 file:text-xs file:font-bold file:text-brand-700" /><span class="block mt-1 text-xs font-normal text-brand-400">JPG, PNG or WEBP · maximum 2MB</span></label>
                     <div v-if="fileError" class="rounded-xl bg-red-50 px-3 py-2 text-xs text-red-700">{{ fileError }}</div>
+                    <label class="field-label">Delivery options<select v-model="form.delivery_mode" class="field-input"><option value="both">Pickup & Home Delivery</option><option value="pickup">Pickup only</option><option value="home_delivery">Home Delivery only</option></select><span class="block mt-1 text-xs font-normal text-brand-400">Products set to “Use category setting” will follow this.</span></label>
                     <div class="grid sm:grid-cols-2 gap-4">
                         <label class="field-label">Sort order<input v-model="form.sort_order" type="number" min="0" class="field-input" /></label>
                         <label class="inline-flex items-center gap-2 self-end pb-3 text-sm font-semibold text-brand-700"><input v-model="form.is_active" type="checkbox" class="rounded border-brand-300 text-brand-600" /> Active category</label>
@@ -84,15 +87,15 @@ const showModal = ref(false);
 const editing = ref(null);
 const saving = ref(false);
 const fileError = ref('');
-const form = ref({ name: '', description: '', sort_order: 0, is_active: true, image: null });
+const form = ref({ name: '', description: '', sort_order: 0, delivery_mode: 'both', is_active: true, image: null });
 const assetUrl = (path) => path?.startsWith('http') ? path : '/storage/' + path;
 
 const openModal = (cat = null) => {
     editing.value = cat;
     fileError.value = '';
     form.value = cat
-        ? { name: cat.name, description: cat.description || '', sort_order: cat.sort_order || 0, is_active: !!cat.is_active, image: null }
-        : { name: '', description: '', sort_order: 0, is_active: true, image: null };
+        ? { name: cat.name, description: cat.description || '', sort_order: cat.sort_order || 0, delivery_mode: cat.delivery_mode || 'both', is_active: !!cat.is_active, image: null }
+        : { name: '', description: '', sort_order: 0, delivery_mode: 'both', is_active: true, image: null };
     showModal.value = true;
 };
 
@@ -109,6 +112,7 @@ const saveCategory = () => {
     data.append('name', form.value.name);
     data.append('description', form.value.description || '');
     data.append('sort_order', form.value.sort_order ?? 0);
+    data.append('delivery_mode', form.value.delivery_mode || 'both');
     data.append('is_active', form.value.is_active ? '1' : '0');
     if (form.value.image) data.append('image', form.value.image);
     if (editing.value) {
@@ -120,4 +124,5 @@ const saveCategory = () => {
 };
 
 const deleteCategory = (cat) => { if (confirm('Delete this category?')) router.delete(route('admin.categories.destroy', cat.id)); };
+const deliveryLabel = (mode) => ({ pickup: 'Pickup only', home_delivery: 'Home delivery', both: 'Pickup + delivery' }[mode] || 'Pickup + delivery');
 </script>

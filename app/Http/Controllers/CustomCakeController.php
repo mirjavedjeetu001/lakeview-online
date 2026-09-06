@@ -30,7 +30,7 @@ class CustomCakeController extends Controller
     {
         $validated = $request->validate([
             'branch_id' => 'required|exists:branches,id',
-            'delivery_type' => 'required|in:pickup,home_delivery',
+            'delivery_type' => 'required|in:pickup',
             'delivery_area_id' => ['nullable', 'required_if:delivery_type,home_delivery', Rule::exists('delivery_areas', 'id')->where('is_active', true)],
             'customer_name' => 'required|string|max:255',
             'customer_phone' => 'required|string|max:20',

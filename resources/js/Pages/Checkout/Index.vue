@@ -52,18 +52,19 @@
                         <!-- Delivery Type -->
                         <div>
                             <label class="block text-sm font-medium text-brand-700 mb-1.5">Delivery Type</label>
-                            <div class="grid grid-cols-2 gap-3">
-                                <label :class="form.delivery_type === 'pickup' ? 'border-gold-400 bg-gold-50 text-brand-900' : 'border-brand-100 bg-cream-50 text-brand-600'" class="cursor-pointer border-2 rounded-xl p-4 text-center transition">
+                            <div class="grid gap-3" :class="pickupAllowed && homeDeliveryAllowed ? 'grid-cols-2' : 'grid-cols-1'">
+                                <label v-if="pickupAllowed" :class="form.delivery_type === 'pickup' ? 'border-gold-400 bg-gold-50 text-brand-900' : 'border-brand-100 bg-cream-50 text-brand-600'" class="cursor-pointer border-2 rounded-xl p-4 text-center transition">
                                     <input type="radio" v-model="form.delivery_type" value="pickup" class="hidden" />
                                     <div class="text-2xl mb-1">🏪</div>
                                     <div class="text-sm font-medium">Pickup</div>
                                 </label>
-                                <label :class="form.delivery_type === 'home_delivery' ? 'border-gold-400 bg-gold-50 text-brand-900' : 'border-brand-100 bg-cream-50 text-brand-600'" class="cursor-pointer border-2 rounded-xl p-4 text-center transition">
+                                <label v-if="homeDeliveryAllowed" :class="form.delivery_type === 'home_delivery' ? 'border-gold-400 bg-gold-50 text-brand-900' : 'border-brand-100 bg-cream-50 text-brand-600'" class="cursor-pointer border-2 rounded-xl p-4 text-center transition">
                                     <input type="radio" v-model="form.delivery_type" value="home_delivery" class="hidden" />
                                     <div class="text-2xl mb-1">🛵</div>
                                     <div class="text-sm font-medium">Home Delivery</div>
                                 </label>
                             </div>
+                            <div v-if="deliveryModeMessage" class="mt-2 rounded-xl bg-gold-50 border border-gold-200 px-3 py-2 text-xs text-brand-700">{{ deliveryModeMessage }}</div>
                         </div>
 
                         <!-- Branch selector (both pickup and home delivery) -->
@@ -245,9 +246,22 @@ const allDeliveryAreas = computed(() => props.deliveryAreas || []);
 const sadarAreas = computed(() => allDeliveryAreas.value.filter(a => a.zone_type === 'sadar'));
 const outsideAreas = computed(() => allDeliveryAreas.value.filter(a => a.zone_type === 'outside_sadar'));
 const selectedArea = computed(() => allDeliveryAreas.value.find(a => a.id == form.value.delivery_area_id));
+const pickupAllowed = computed(() => cartItems.value.length > 0 && cartItems.value.every(item => item.allow_pickup !== false));
+const homeDeliveryAllowed = computed(() => cartItems.value.length > 0 && cartItems.value.every(item => item.allow_home_delivery !== false));
+const deliveryModeMessage = computed(() => {
+    if (!cartItems.value.length) return '';
+    if (pickupAllowed.value && !homeDeliveryAllowed.value) return 'This cart contains a pickup-only product. Please collect it from your selected branch.';
+    if (!pickupAllowed.value && homeDeliveryAllowed.value) return 'This cart is available for home delivery only.';
+    if (!pickupAllowed.value && !homeDeliveryAllowed.value) return 'Please remove an item with no active delivery option.';
+    return '';
+});
 
 watch(() => form.value.delivery_type, (deliveryType) => {
     if (deliveryType === 'pickup') form.value.delivery_area_id = '';
+});
+watch([pickupAllowed, homeDeliveryAllowed], ([pickup, homeDelivery]) => {
+    if (form.value.delivery_type === 'pickup' && !pickup && homeDelivery) form.value.delivery_type = 'home_delivery';
+    if (form.value.delivery_type === 'home_delivery' && !homeDelivery && pickup) form.value.delivery_type = 'pickup';
 });
 
 const subtotal = computed(() => cartItems.value.reduce((sum, item) => sum + item.price * item.quantity, 0));

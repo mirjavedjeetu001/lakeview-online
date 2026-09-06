@@ -40,7 +40,7 @@
                         <div v-if="$page.props.auth?.user" class="relative hidden md:block">
                             <button @click="profileOpen = !profileOpen" class="icon-button flex items-center gap-2 px-2">
                                 <span class="avatar">{{ $page.props.auth.user.name?.charAt(0)?.toUpperCase() }}</span>
-                                <span class="hidden xl:block max-w-[90px] truncate text-xs font-semibold">{{ $page.props.auth.user.name }}</span>
+                                <span class="hidden md:block max-w-[140px] truncate text-xs font-semibold text-brand-800">{{ $page.props.auth.user.name }}</span>
                             </button>
                             <div v-if="profileOpen" class="absolute right-0 top-full mt-3 w-56 rounded-2xl bg-white shadow-card border border-brand-100 p-2 z-50">
                                 <div class="px-3 py-2.5 border-b border-brand-100 mb-1">
@@ -89,7 +89,7 @@
                     </div>
                     <div><h3 class="footer-heading">Explore</h3><div class="space-y-3 text-sm"><Link :href="route('home')" class="footer-link">Home</Link><Link :href="route('products.index')" class="footer-link">Shop all</Link><Link :href="route('custom-cake.index')" class="footer-link">Custom cake</Link></div></div>
                     <div><h3 class="footer-heading">Need help?</h3><div class="space-y-3 text-sm"><Link :href="route('contact')" class="footer-link">Contact us</Link><Link :href="route('checkout.track')" class="footer-link">Track order</Link><button @click="branchPickerOpen = true" class="footer-link text-left">Change outlet</button></div></div>
-                    <div><h3 class="footer-heading">Main branch</h3><p class="text-sm leading-7 text-brand-200">{{ mainBranch?.name || 'Lake View Sweets & Bakery' }}<br>{{ mainBranch?.address || 'Satkhira, Khulna, Bangladesh' }}</p><a v-if="mainBranch?.phones?.length" :href="'tel:' + mainBranch.phones[0]" class="inline-flex mt-3 text-sm text-brand-100 hover:text-gold-300">{{ mainBranch.phones.join(' / ') }}</a></div>
+                    <div><h3 class="footer-heading">Main branch</h3><p class="text-sm leading-7 text-brand-200">{{ mainBranch?.name || 'Lake View Cafe & Restaurant (Main)' }}<br>{{ mainBranch?.address || 'Lake View Sweets & Bakery outlet' }}</p><a v-if="mainBranch?.phones?.length" :href="'tel:' + mainBranch.phones[0]" class="inline-flex mt-3 text-sm text-brand-100 hover:text-gold-300">{{ mainBranch.phones.join(' / ') }}</a><a v-else href="tel:+8801722554400" class="inline-flex mt-3 text-sm text-brand-100 hover:text-gold-300">+8801722554400</a></div>
                 </div>
                 <div class="mt-12 pt-5 border-t border-brand-800 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-brand-300"><span>© {{ new Date().getFullYear() }} Lake View Sweets & Bakery</span><span>Powered by Mir Javed Jeetu | Metasoft Info Solutions | 01811480222</span></div>
             </div>

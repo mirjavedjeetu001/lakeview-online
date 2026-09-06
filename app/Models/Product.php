@@ -14,14 +14,14 @@ class Product extends Model
 
     protected $fillable = [
         'category_id', 'name', 'slug', 'description', 'price', 'discount_price',
-        'image', 'gallery', 'is_available', 'is_featured', 'sort_order'
+        'image', 'gallery', 'delivery_mode', 'is_available', 'is_featured', 'sort_order'
     ];
 
     protected $casts = [
         'gallery' => 'array',
     ];
 
-    protected $appends = ['effective_price'];
+    protected $appends = ['effective_price', 'effective_delivery_mode', 'allow_pickup', 'allow_home_delivery'];
 
     protected static function boot()
     {
@@ -87,5 +87,24 @@ class Product extends Model
         return $discountPrice !== null && (float) $discountPrice > 0
             ? $discountPrice
             : $price;
+    }
+
+    public function getEffectiveDeliveryModeAttribute(): string
+    {
+        $mode = $this->delivery_mode && $this->delivery_mode !== 'inherit'
+            ? $this->delivery_mode
+            : ($this->category?->delivery_mode ?: 'both');
+
+        return in_array($mode, ['pickup', 'home_delivery', 'both'], true) ? $mode : 'both';
+    }
+
+    public function getAllowPickupAttribute(): bool
+    {
+        return in_array($this->effective_delivery_mode, ['pickup', 'both'], true);
+    }
+
+    public function getAllowHomeDeliveryAttribute(): bool
+    {
+        return in_array($this->effective_delivery_mode, ['home_delivery', 'both'], true);
     }
 }

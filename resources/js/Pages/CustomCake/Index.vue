@@ -17,47 +17,18 @@
                         Delivery Details
                     </h2>
 
-                    <!-- Delivery Type -->
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-brand-700 mb-1.5">Delivery Type</label>
-                        <div class="grid grid-cols-2 gap-3">
-                            <label :class="form.delivery_type === 'pickup' ? 'border-gold-400 bg-gold-50 text-brand-900' : 'border-brand-100 bg-cream-50 text-brand-600'" class="cursor-pointer border-2 rounded-xl p-4 text-center transition">
-                                <input type="radio" v-model="form.delivery_type" value="pickup" class="hidden" />
-                                <div class="text-2xl mb-1">🏪</div>
-                                <div class="text-sm font-medium">Pickup</div>
-                            </label>
-                            <label :class="form.delivery_type === 'home_delivery' ? 'border-gold-400 bg-gold-50 text-brand-900' : 'border-brand-100 bg-cream-50 text-brand-600'" class="cursor-pointer border-2 rounded-xl p-4 text-center transition">
-                                <input type="radio" v-model="form.delivery_type" value="home_delivery" class="hidden" />
-                                <div class="text-2xl mb-1">🛵</div>
-                                <div class="text-sm font-medium">Home Delivery</div>
-                            </label>
-                        </div>
+                    <div class="mb-4 rounded-2xl border border-gold-200 bg-gold-50 px-4 py-3 text-sm text-brand-700">
+                        <div class="font-bold text-brand-900">🏪 Branch pickup only</div>
+                        <p class="mt-1 text-xs text-brand-600">Custom cakes are prepared for collection from your selected Lake View outlet.</p>
                     </div>
 
                     <!-- Branch for pickup -->
-                    <div v-if="form.delivery_type === 'pickup'" class="mb-4">
+                    <div class="mb-4">
                         <label class="block text-sm font-medium text-brand-700 mb-1.5">Select Branch for Pickup</label>
                         <select v-model="form.branch_id" required class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition">
                             <option value="">Choose a branch...</option>
                             <option v-for="branch in branches" :key="branch.id" :value="branch.id">{{ branch.name }}</option>
                         </select>
-                    </div>
-
-                    <!-- Delivery area for home delivery -->
-                    <div v-if="form.delivery_type === 'home_delivery'" class="mb-4">
-                        <label class="block text-sm font-medium text-brand-700 mb-1.5">Select Your Area</label>
-                        <select v-model="form.delivery_area_id" required class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition">
-                            <option value="">Choose your area...</option>
-                            <optgroup label="📍 Satkhira Sadar areas">
-                                <option v-for="area in sadarAreas" :key="area.id" :value="area.id">{{ area.name }} (৳{{ area.delivery_charge }})</option>
-                            </optgroup>
-                            <optgroup label="🛵 Outside Sadar / Upazila areas">
-                                <option v-for="area in outsideAreas" :key="area.id" :value="area.id">{{ area.name }} (৳{{ area.delivery_charge }})</option>
-                            </optgroup>
-                        </select>
-                        <div v-if="selectedArea" class="mt-2 bg-cream-100 rounded-lg px-3 py-2 text-sm text-brand-600">
-                            Delivery to: <strong>{{ selectedArea.name }}</strong> — Charge: ৳{{ selectedArea.delivery_charge }}
-                        </div>
                     </div>
 
                     <!-- Name & Phone -->
@@ -72,11 +43,6 @@
                         </div>
                     </div>
 
-                    <!-- Address for home delivery -->
-                    <div v-if="form.delivery_type === 'home_delivery'" class="mb-4">
-                        <label class="block text-sm font-medium text-brand-700 mb-1.5">Delivery Address</label>
-                        <textarea v-model="form.customer_address" required rows="2" placeholder="Enter your full address" class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition"></textarea>
-                    </div>
                 </div>
 
                 <!-- Cake Details -->

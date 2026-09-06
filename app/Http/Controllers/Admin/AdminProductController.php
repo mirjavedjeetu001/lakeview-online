@@ -7,6 +7,7 @@ use App\Models\Branch;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -37,9 +38,15 @@ class AdminProductController extends Controller
     public function store(Request $request)
     {
         $validated = $this->validateProduct($request);
+        $gallery = $this->storeGallery($request);
+        unset($validated['gallery'], $validated['remove_gallery']);
 
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('products', 'public');
+        }
+        $validated['gallery'] = $gallery;
+        if (!$request->hasFile('image') && $gallery) {
+            $validated['image'] = $gallery[0];
         }
 
         $validated['slug'] = Str::slug($validated['name']) . '-' . Str::random(5);
@@ -52,9 +59,21 @@ class AdminProductController extends Controller
     public function update(Request $request, Product $product)
     {
         $validated = $this->validateProduct($request);
+        $currentGallery = $product->gallery ?: [];
+        $removeGallery = json_decode($request->input('remove_gallery', '[]'), true) ?: [];
+        $remainingGallery = array_values(array_diff($currentGallery, $removeGallery));
+        foreach (array_diff($currentGallery, $remainingGallery) as $oldImage) {
+            Storage::disk('public')->delete($oldImage);
+        }
+        $newGallery = $this->storeGallery($request);
+        unset($validated['gallery'], $validated['remove_gallery']);
 
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('products', 'public');
+        }
+        $validated['gallery'] = array_values(array_merge($remainingGallery, $newGallery));
+        if (!$product->image && !$request->hasFile('image') && $newGallery) {
+            $validated['image'] = $newGallery[0];
         }
 
         $product->update($validated);
@@ -82,10 +101,23 @@ class AdminProductController extends Controller
             'price' => 'required|numeric|min:0',
             'discount_price' => 'nullable|numeric|min:0',
             'image' => 'nullable|image|max:2048',
+            'gallery' => 'nullable|array',
+            'gallery.*' => 'image|max:4096',
+            'remove_gallery' => 'nullable|json',
+            'delivery_mode' => 'required|in:inherit,both,pickup,home_delivery',
             'is_available' => 'boolean',
             'is_featured' => 'boolean',
             'sort_order' => 'integer|min:0',
         ]);
+    }
+
+    private function storeGallery(Request $request): array
+    {
+        return collect($request->file('gallery', []))
+            ->filter()
+            ->map(fn ($file) => $file->store('products/gallery', 'public'))
+            ->values()
+            ->all();
     }
 
     private function branchAssignments(Request $request): array
