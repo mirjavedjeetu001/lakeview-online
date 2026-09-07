@@ -84,16 +84,15 @@ const heroImages = computed(() => {
 });
 const heroImage = (index) => heroImages.value[index] || featuredProducts.value[index % Math.max(featuredProducts.value.length, 1)]?.image && assetUrl(featuredProducts.value[index % featuredProducts.value.length].image);
 const categoryEmoji = (name) => ({ Cake: '🎂', Bread: '🍞', Cookies: '🍪', Sweets: '🍬', 'Fast Food': '🥪', Toast: '🥨', Dessert: '🍮', 'Order Cake': '🎂' }[name] || '🍰');
-const addToCart = (product) => {
+const addToCart = (product, amount = 1) => {
     let cart = [];
     try { cart = JSON.parse(localStorage.getItem('cart') || '[]'); } catch { cart = []; }
     const existing = cart.find(item => item.product_id === product.id);
     if (existing) {
-        existing.quantity += 1;
+        existing.quantity += amount;
         existing.allow_pickup = product.allow_pickup !== false;
         existing.allow_home_delivery = product.allow_home_delivery !== false;
-    } else cart.push({ product_id: product.id, name: product.name, price: Number(product.effective_price), quantity: 1, allow_pickup: product.allow_pickup !== false, allow_home_delivery: product.allow_home_delivery !== false });
+    } else cart.push({ product_id: product.id, name: product.name, price: Number(product.effective_price), quantity: amount, allow_pickup: product.allow_pickup !== false, allow_home_delivery: product.allow_home_delivery !== false });
     localStorage.setItem('cart', JSON.stringify(cart)); window.dispatchEvent(new Event('cart-updated'));
-    toast.value = { show: true, product }; clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.value.show = false, 2800);
 };
 </script>
