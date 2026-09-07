@@ -50,6 +50,10 @@
                     <div class="grid sm:grid-cols-2 gap-4"><label class="field-label">Phone <span class="font-normal text-brand-400">(optional)</span><input v-model="form.phone" type="tel" class="field-input" /></label><label class="field-label">Email <span class="font-normal text-brand-400">(optional)</span><input v-model="form.email" type="email" class="field-input" /></label></div>
                     <label class="field-label">Password <span class="font-normal text-brand-400">{{ editing ? '(leave blank to keep current)' : '' }}</span><input v-model="form.password" type="password" :required="!editing" minlength="6" class="field-input" /></label>
                     <div class="grid sm:grid-cols-2 gap-4"><label class="field-label">Role<select v-model="form.role" class="field-input"><option value="customer">Customer</option><option value="admin">Admin</option><option value="super_admin">Super admin</option></select></label><label class="flex items-center gap-2 text-sm font-semibold text-brand-700 sm:pt-7"><input v-model="form.is_active" type="checkbox" class="rounded border-brand-300 text-brand-600" /> Active account</label></div>
+                    <div v-if="formError || Object.keys(errors).length" class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                        <div v-if="formError">{{ formError }}</div>
+                        <div v-for="(messages, key) in errors" :key="key">{{ Array.isArray(messages) ? messages[0] : messages }}</div>
+                    </div>
                     <p class="rounded-xl bg-brand-50 px-4 py-3 text-xs text-brand-600">Inactive users cannot log in. Admin and Super admin users can access the admin panel.</p>
                     <div class="flex gap-3 pt-2"><button type="submit" :disabled="saving" class="flex-1 rounded-full bg-brand-700 py-3 text-sm font-bold text-white hover:bg-brand-600 disabled:opacity-60">{{ saving ? 'Saving...' : editing ? 'Save changes' : 'Create user' }}</button><button type="button" @click="showModal = false" class="rounded-full border border-brand-200 px-6 py-3 text-sm font-bold text-brand-700 hover:bg-white">Cancel</button></div>
                 </form>
@@ -60,13 +64,16 @@
 
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import { Link, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { Link, router, usePage } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 
 const props = defineProps({ users: Object, filters: Object });
+const page = usePage();
 const showModal = ref(false);
 const editing = ref(null);
 const saving = ref(false);
+const formError = ref('');
+const errors = computed(() => page.props.errors || {});
 const search = ref(props.filters?.search || '');
 const roleFilter = ref(props.filters?.role || '');
 let debounceTimer;
@@ -76,7 +83,7 @@ const form = ref(blankForm());
 const roleLabel = (role) => ({ customer: 'Customer', admin: 'Admin', super_admin: 'Super admin' }[role] || role);
 const doFilter = () => router.get(route('admin.users.index'), { search: search.value, role: roleFilter.value }, { preserveState: true, preserveScroll: true });
 const debouncedSearch = () => { clearTimeout(debounceTimer); debounceTimer = setTimeout(doFilter, 350); };
-const openModal = (user = null) => { editing.value = user; form.value = user ? { name: user.name, phone: user.phone || '', email: user.email || '', password: '', role: user.role, is_active: !!user.is_active } : blankForm(); showModal.value = true; };
-const saveUser = () => { saving.value = true; const options = { onFinish: () => saving.value = false, onSuccess: () => showModal.value = false }; if (editing.value) router.put(route('admin.users.update', editing.value.id), form.value, options); else router.post(route('admin.users.store'), form.value, options); };
+const openModal = (user = null) => { editing.value = user; formError.value = ''; form.value = user ? { name: user.name, phone: user.phone || '', email: user.email || '', password: '', role: user.role, is_active: !!user.is_active } : blankForm(); showModal.value = true; };
+const saveUser = () => { formError.value = ''; if (!form.value.phone.trim() && !form.value.email.trim()) { formError.value = 'Please provide at least a phone number or an email address.'; return; } saving.value = true; const options = { onFinish: () => saving.value = false, onSuccess: () => showModal.value = false }; if (editing.value) router.put(route('admin.users.update', editing.value.id), form.value, options); else router.post(route('admin.users.store'), form.value, options); };
 const deleteUser = (user) => { if (confirm('Delete ' + user.name + '? This cannot be undone.')) router.delete(route('admin.users.destroy', user.id)); };
 </script>

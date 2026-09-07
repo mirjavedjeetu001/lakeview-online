@@ -17,18 +17,44 @@
                         Delivery Details
                     </h2>
 
-                    <div class="mb-4 rounded-2xl border border-gold-200 bg-gold-50 px-4 py-3 text-sm text-brand-700">
+                    <div v-if="!homeDeliveryAllowed || !pickupAllowed" class="mb-4 rounded-2xl border border-gold-200 bg-gold-50 px-4 py-3 text-sm text-brand-700">
                         <div class="font-bold text-brand-900">🏪 Branch pickup only</div>
                         <p class="mt-1 text-xs text-brand-600">Custom cakes are prepared for collection from your selected Lake View outlet.</p>
                     </div>
 
+                    <div v-if="pickupAllowed && homeDeliveryAllowed" class="grid grid-cols-2 gap-3 mb-4">
+                        <label :class="form.delivery_type === 'pickup' ? 'border-gold-400 bg-gold-50 text-brand-900' : 'border-brand-100 bg-cream-50 text-brand-600'" class="cursor-pointer border-2 rounded-xl p-4 text-center transition">
+                            <input type="radio" v-model="form.delivery_type" value="pickup" class="hidden" />
+                            <div class="text-2xl mb-1">🏪</div><div class="text-sm font-medium">Pickup</div>
+                        </label>
+                        <label :class="form.delivery_type === 'home_delivery' ? 'border-gold-400 bg-gold-50 text-brand-900' : 'border-brand-100 bg-cream-50 text-brand-600'" class="cursor-pointer border-2 rounded-xl p-4 text-center transition">
+                            <input type="radio" v-model="form.delivery_type" value="home_delivery" class="hidden" />
+                            <div class="text-2xl mb-1">🛵</div><div class="text-sm font-medium">Home Delivery</div>
+                        </label>
+                    </div>
+
                     <!-- Branch for pickup -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-brand-700 mb-1.5">Select Branch for Pickup</label>
+                        <label class="block text-sm font-medium text-brand-700 mb-1.5">{{ form.delivery_type === 'pickup' ? 'Select Branch for Pickup' : 'Select Outlet for Delivery' }}</label>
                         <select v-model="form.branch_id" required class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition">
-                            <option value="">Choose a branch...</option>
+                            <option value="">Choose an outlet...</option>
                             <option v-for="branch in branches" :key="branch.id" :value="branch.id">{{ branch.name }}</option>
                         </select>
+                    </div>
+
+                    <div v-if="form.delivery_type === 'home_delivery'" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-brand-700 mb-1.5">Delivery Area</label>
+                            <select v-model="form.delivery_area_id" required class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition">
+                                <option value="">Choose your area...</option>
+                                <optgroup label="📍 Satkhira Sadar areas"><option v-for="area in sadarAreas" :key="area.id" :value="area.id">{{ area.name }} (৳{{ area.delivery_charge }})</option></optgroup>
+                                <optgroup label="🛵 Outside Sadar / Upazila areas"><option v-for="area in outsideAreas" :key="area.id" :value="area.id">{{ area.name }} (৳{{ area.delivery_charge }})</option></optgroup>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-brand-700 mb-1.5">Delivery Address</label>
+                            <textarea v-model="form.customer_address" required rows="2" placeholder="Enter your full address" class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition"></textarea>
+                        </div>
                     </div>
 
                     <!-- Name & Phone -->
@@ -148,13 +174,13 @@ import CustomerLayout from '@/Layouts/CustomerLayout.vue';
 import { router, usePage } from '@inertiajs/vue3';
 import { ref, computed, watch } from 'vue';
 
-const props = defineProps({ branches: Array, deliveryAreas: Array, auth: Object, selectedBranchId: [Number, String] });
+const props = defineProps({ branches: Array, deliveryAreas: Array, auth: Object, selectedBranchId: [Number, String], deliveryMode: String });
 const page = usePage();
 const settings = computed(() => page.props.settings || {});
 
 const processing = ref(false);
 const form = ref({
-    branch_id: props.selectedBranchId || '', delivery_type: 'pickup', delivery_area_id: '',
+    branch_id: props.selectedBranchId || '', delivery_type: props.deliveryMode === 'home_delivery' ? 'home_delivery' : 'pickup', delivery_area_id: '',
     customer_name: '', customer_phone: '', customer_email: '', customer_address: '',
     cake_type: '', cake_size: '', cake_flavor: '', message_on_cake: '',
     delivery_date: '', delivery_time: '', notes: '',
@@ -180,6 +206,8 @@ const allDeliveryAreas = computed(() => props.deliveryAreas || []);
 const sadarAreas = computed(() => allDeliveryAreas.value.filter(a => a.zone_type === 'sadar'));
 const outsideAreas = computed(() => allDeliveryAreas.value.filter(a => a.zone_type === 'outside_sadar'));
 const selectedArea = computed(() => allDeliveryAreas.value.find(a => a.id == form.value.delivery_area_id));
+const pickupAllowed = computed(() => ['pickup', 'both'].includes(props.deliveryMode || 'pickup'));
+const homeDeliveryAllowed = computed(() => ['home_delivery', 'both'].includes(props.deliveryMode || 'pickup'));
 
 watch(() => form.value.delivery_type, (deliveryType) => {
     if (deliveryType === 'pickup') form.value.delivery_area_id = '';
