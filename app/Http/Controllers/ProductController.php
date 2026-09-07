@@ -38,8 +38,8 @@ class ProductController extends Controller
         $branchId = (int) session('branch_id');
         $product = Product::forBranch($branchId)->with('category')->where('slug', $slug)->firstOrFail();
         $related = Product::forBranch($branchId)->with('category')
-            ->where('category_id', $product->category_id)
-            ->where('id', '!=', $product->id)
+            ->where('products.category_id', $product->category_id)
+            ->where('products.id', '!=', $product->id)
             ->take(4)
             ->get();
 

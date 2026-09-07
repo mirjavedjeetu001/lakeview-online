@@ -68,6 +68,11 @@
             <div v-if="mobileMenuOpen" class="lg:hidden border-t border-brand-100 bg-cream-50 px-4 py-4 shadow-soft">
                 <div class="grid grid-cols-2 gap-2">
                     <Link v-for="item in mobileLinks" :key="item.label" :href="item.href" class="mobile-nav-link" @click="mobileMenuOpen = false">{{ item.label }}</Link>
+                    <Link v-if="!$page.props.auth?.user" :href="route('login')" class="mobile-nav-link" @click="mobileMenuOpen = false">Login</Link>
+                    <Link v-if="!$page.props.auth?.user" :href="route('register')" class="mobile-nav-link" @click="mobileMenuOpen = false">Create account</Link>
+                    <Link v-if="$page.props.auth?.user" :href="route('profile')" class="mobile-nav-link" @click="mobileMenuOpen = false">My profile</Link>
+                    <Link v-if="$page.props.auth?.user && ['admin', 'super_admin'].includes($page.props.auth.user.role)" :href="route('admin.dashboard')" class="mobile-nav-link" @click="mobileMenuOpen = false">Admin panel</Link>
+                    <button v-if="$page.props.auth?.user" type="button" class="mobile-nav-link text-left" @click="logout">Sign out</button>
                 </div>
                 <button @click="branchPickerOpen = true; mobileMenuOpen = false" class="mt-3 w-full flex items-center justify-between rounded-xl bg-brand-100 px-4 py-3 text-sm font-semibold text-brand-800">
                     <span>Shopping from {{ selectedBranch?.name || 'an outlet' }}</span><span class="text-brand-500">Change →</span>
@@ -101,6 +106,7 @@
                 <Link :href="route('products.index')" class="bottom-nav-item" :class="isActive('products') && 'bottom-nav-active'"><span>◌</span><small>Shop</small></Link>
                 <Link :href="route('custom-cake.index')" class="bottom-nav-item" :class="isActive('custom-cake') && 'bottom-nav-active'"><span>✦</span><small>Cake</small></Link>
                 <Link :href="route('checkout.index')" class="bottom-nav-item relative"><span>◇<b v-if="cartCount" class="cart-count cart-count-small">{{ cartCount }}</b></span><small>Bag</small></Link>
+                <button type="button" class="bottom-nav-item" :class="mobileMenuOpen && 'bottom-nav-active'" @click="mobileMenuOpen = true"><span>☰</span><small>More</small></button>
             </div>
         </nav>
 
