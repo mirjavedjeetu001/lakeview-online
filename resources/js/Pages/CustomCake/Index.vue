@@ -1,169 +1,18 @@
 <template>
     <CustomerLayout>
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <!-- Header -->
-            <div class="mb-8 text-center">
-                <span class="text-gold-600 text-sm tracking-widest uppercase font-medium">Made to Order</span>
-                <h1 class="font-serif text-3xl font-bold text-brand-900 mt-2">Custom Cake Order</h1>
-                <div class="w-20 h-1 bg-gold-500 mx-auto mt-4 rounded-full"></div>
-                <p class="text-brand-500 mt-4 max-w-2xl mx-auto">{{ settings.custom_cake_info || 'Upload your design and we will create the cake exactly as you want it.' }}</p>
-            </div>
+        <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+            <div class="mb-8 grid gap-6 lg:grid-cols-[1.25fr_.75fr] lg:items-end"><div><p class="eyebrow">Made just for you</p><h1 class="mt-3 font-serif text-3xl font-bold tracking-tight text-brand-900 sm:text-5xl">Your idea, our oven.</h1><p class="mt-4 max-w-2xl text-sm leading-7 text-brand-500">Share the occasion, flavour and design you have in mind. Our cake team will review it and call you to confirm the final price.</p></div><div class="rounded-[1.5rem] border border-gold-200 bg-gold-50 p-4 text-sm text-brand-700"><div class="flex items-center gap-3"><span class="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-gold-600"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M12 3 5 6v5c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6l-7-3Zm-3 9 2 2 4-4"/></svg></span><div><p class="font-bold text-brand-900">A personal cake consultation</p><p class="mt-1 text-xs leading-5 text-brand-600">{{ settings.custom_cake_info || 'We will confirm availability, decoration and price with you.' }}</p></div></div></div></div>
 
-            <form @submit.prevent="submitOrder" class="bg-white rounded-2xl card-shadow border border-brand-100 p-6 sm:p-8 space-y-6">
-                <!-- Delivery Info -->
-                <div>
-                    <h2 class="font-serif font-bold text-brand-900 text-lg mb-4 flex items-center gap-2">
-                        <span class="w-8 h-8 bg-brand-100 rounded-full flex items-center justify-center text-sm">1</span>
-                        Delivery Details
-                    </h2>
+            <form id="custom-cake-form" @submit.prevent="submitOrder" class="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(300px,.65fr)]">
+                <div class="space-y-5">
+                    <section class="rounded-[1.6rem] border border-brand-100 bg-white p-5 shadow-soft sm:p-7"><div class="mb-6 flex items-start gap-3"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-100 text-sm font-bold text-brand-700">1</span><div><h2 class="font-serif text-2xl font-bold text-brand-900">How should we prepare it?</h2><p class="mt-1 text-sm text-brand-500">Select an outlet and your preferred handover method.</p></div></div><div v-if="deliveryMode === 'both'" class="mb-5 grid gap-3 sm:grid-cols-2"><label :class="form.delivery_type === 'pickup' ? 'border-brand-600 bg-brand-50 ring-2 ring-brand-100' : 'border-brand-200 bg-white hover:border-brand-400'" class="cursor-pointer rounded-2xl border-2 p-4 transition"><input v-model="form.delivery_type" type="radio" value="pickup" class="sr-only" /><div class="flex items-center justify-between"><span class="flex h-10 w-10 items-center justify-center rounded-xl bg-gold-50 text-gold-600"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M4 20h16M6 20V9l6-4 6 4v11M9 20v-6h6v6M3 9h18"/></svg></span><span v-if="form.delivery_type === 'pickup'" class="text-brand-600">✓</span></div><p class="mt-4 text-sm font-bold text-brand-900">Branch pickup</p><p class="mt-1 text-xs leading-5 text-brand-500">Collect the cake from your selected Lake View outlet.</p></label><label :class="form.delivery_type === 'home_delivery' ? 'border-brand-600 bg-brand-50 ring-2 ring-brand-100' : 'border-brand-200 bg-white hover:border-brand-400'" class="cursor-pointer rounded-2xl border-2 p-4 transition"><input v-model="form.delivery_type" type="radio" value="home_delivery" class="sr-only" /><div class="flex items-center justify-between"><span class="flex h-10 w-10 items-center justify-center rounded-xl bg-sage-50 text-sage-600"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M3 7h11v10H3V7Zm11 4h3l3 3v3h-6v-6Zm-7 6a2 2 0 1 1-4 0m13 0a2 2 0 1 1-4 0"/></svg></span><span v-if="form.delivery_type === 'home_delivery'" class="text-brand-600">✓</span></div><p class="mt-4 text-sm font-bold text-brand-900">Home delivery</p><p class="mt-1 text-xs leading-5 text-brand-500">We’ll deliver to your selected area.</p></label></div><div class="mb-5 flex items-start gap-3 rounded-2xl bg-brand-50 px-4 py-3 text-xs leading-5 text-brand-600"><svg class="mt-0.5 h-4 w-4 shrink-0 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg><span><strong class="text-brand-800">{{ pickupAllowed ? (form.delivery_type === 'pickup' ? 'Pickup from our outlet' : 'Prepared by our outlet') : 'Home delivery available' }}</strong><br>{{ pickupAllowed && homeDeliveryAllowed ? 'You can change this choice anytime before submitting.' : pickupAllowed ? 'This cake is currently available for branch pickup.' : 'This cake is currently available for home delivery.' }}</span></div><label class="field-label">{{ form.delivery_type === 'pickup' ? 'Pickup branch' : 'Serving outlet' }}<select v-model="form.branch_id" required class="field-input"><option value="">Choose an outlet</option><option v-for="branch in branches" :key="branch.id" :value="branch.id">{{ branch.name }}</option></select></label><div v-if="selectedBranch" class="mt-3 rounded-2xl border border-brand-100 bg-cream-50 px-4 py-3 text-xs leading-5 text-brand-600"><strong class="text-brand-800">{{ selectedBranch.name }}</strong><br>{{ selectedBranch.address || 'Lake View outlet' }}<span v-if="selectedBranch.phones?.[0]"> · {{ selectedBranch.phones[0] }}</span></div><div v-if="form.delivery_type === 'home_delivery'" class="mt-4 grid gap-4 sm:grid-cols-2"><label class="field-label">Delivery area<select v-model="form.delivery_area_id" required class="field-input"><option value="">Choose your area</option><optgroup v-if="sadarAreas.length" label="Satkhira Sadar"><option v-for="area in sadarAreas" :key="area.id" :value="area.id">{{ area.name }} · {{ money(area.delivery_charge) }}</option></optgroup><optgroup v-if="outsideAreas.length" label="Outside Sadar / Upazila"><option v-for="area in outsideAreas" :key="area.id" :value="area.id">{{ area.name }} · {{ money(area.delivery_charge) }}</option></optgroup></select></label><div v-if="selectedArea" class="rounded-2xl bg-sage-50 p-4 text-xs leading-5 text-sage-700"><p class="font-bold">Delivery to {{ selectedArea.name }}</p><p class="mt-1">Charge: {{ money(selectedArea.delivery_charge) }}</p></div></div><label v-if="form.delivery_type === 'home_delivery'" class="field-label mt-4">Full delivery address<textarea v-model="form.customer_address" required rows="3" placeholder="House, road, area and a nearby landmark" class="field-input"></textarea></label></section>
 
-                    <div v-if="!homeDeliveryAllowed || !pickupAllowed" class="mb-4 rounded-2xl border border-gold-200 bg-gold-50 px-4 py-3 text-sm text-brand-700">
-                        <div class="font-bold text-brand-900">🏪 Branch pickup only</div>
-                        <p class="mt-1 text-xs text-brand-600">Custom cakes are prepared for collection from your selected Lake View outlet.</p>
-                    </div>
+                    <section class="rounded-[1.6rem] border border-brand-100 bg-white p-5 shadow-soft sm:p-7"><div class="mb-6 flex items-start gap-3"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-100 text-sm font-bold text-brand-700">2</span><div><h2 class="font-serif text-2xl font-bold text-brand-900">Tell us about the cake</h2><p class="mt-1 text-sm text-brand-500">These details help our baker understand your vision.</p></div></div><div class="grid gap-4 sm:grid-cols-3"><label class="field-label">Occasion<input v-model="form.cake_type" type="text" placeholder="Birthday, wedding..." class="field-input" /></label><label class="field-label">Cake size<select v-model="form.cake_size" class="field-input"><option value="">Choose size</option><option>1/2 kg</option><option>1 kg</option><option>1.5 kg</option><option>2 kg</option><option>2.5 kg</option><option>3 kg</option></select></label><label class="field-label">Flavour<select v-model="form.cake_flavor" class="field-input"><option value="">Choose flavour</option><option>Vanilla</option><option>Chocolate</option><option>Strawberry</option><option>Black Forest</option><option>White Forest</option><option>Red Velvet</option><option>Blueberry</option><option>Lemon</option><option>Orange</option></select></label></div><label class="field-label mt-4">Message on cake <span class="font-normal text-brand-400">(optional)</span><input v-model="form.message_on_cake" type="text" placeholder="e.g. Happy Birthday John!" class="field-input" /></label><div class="mt-4 grid gap-4 sm:grid-cols-2"><label class="field-label">Preferred date<input v-model="form.delivery_date" type="date" required :min="minDate" class="field-input" /></label><label class="field-label">Preferred time <span class="font-normal text-brand-400">(optional)</span><input v-model="form.delivery_time" type="time" class="field-input" /></label></div><div class="mt-5"><div class="mb-2 flex items-end justify-between gap-3"><label class="field-label">Design reference <span class="font-normal text-brand-400">(optional)</span></label><span class="text-[11px] text-brand-400">JPG, PNG · max 2MB</span></div><input ref="fileInput" @change="handleFile" type="file" accept="image/*" class="sr-only" /><button type="button" @click="$refs.fileInput.click()" class="group w-full rounded-2xl border-2 border-dashed border-brand-200 bg-cream-50 p-5 text-left transition hover:border-gold-400"><div v-if="designPreview" class="flex items-center gap-4"><img :src="designPreview" alt="Cake design preview" class="h-20 w-20 rounded-xl object-cover" /><span class="min-w-0 flex-1"><strong class="block truncate text-sm text-brand-800">{{ designImage.name }}</strong><small class="mt-1 block text-xs text-brand-400">Click to replace this image</small></span><span class="text-xs font-bold text-brand-600">Change</span></div><div v-else class="flex items-center gap-4"><span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-brand-500"><svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M4 16 8.5 11l3 3 2.5-3 6 7M5 19h14a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v12Z"/></svg></span><span><strong class="block text-sm text-brand-800">Upload an inspiration image</strong><small class="mt-1 block text-xs text-brand-400">A clear reference helps us match your expectations.</small></span></div></button><div v-if="fileError" class="mt-2 rounded-xl bg-red-50 px-3 py-2 text-xs font-semibold text-red-600">{{ fileError }}</div></div><label class="field-label mt-5">Additional notes <span class="font-normal text-brand-400">(optional)</span><textarea v-model="form.notes" rows="3" placeholder="Colour theme, decoration, allergies or anything else..." class="field-input"></textarea></label></section>
 
-                    <div v-if="pickupAllowed && homeDeliveryAllowed" class="grid grid-cols-2 gap-3 mb-4">
-                        <label :class="form.delivery_type === 'pickup' ? 'border-gold-400 bg-gold-50 text-brand-900' : 'border-brand-100 bg-cream-50 text-brand-600'" class="cursor-pointer border-2 rounded-xl p-4 text-center transition">
-                            <input type="radio" v-model="form.delivery_type" value="pickup" class="hidden" />
-                            <div class="text-2xl mb-1">🏪</div><div class="text-sm font-medium">Pickup</div>
-                        </label>
-                        <label :class="form.delivery_type === 'home_delivery' ? 'border-gold-400 bg-gold-50 text-brand-900' : 'border-brand-100 bg-cream-50 text-brand-600'" class="cursor-pointer border-2 rounded-xl p-4 text-center transition">
-                            <input type="radio" v-model="form.delivery_type" value="home_delivery" class="hidden" />
-                            <div class="text-2xl mb-1">🛵</div><div class="text-sm font-medium">Home Delivery</div>
-                        </label>
-                    </div>
-
-                    <!-- Branch for pickup -->
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-brand-700 mb-1.5">{{ form.delivery_type === 'pickup' ? 'Select Branch for Pickup' : 'Select Outlet for Delivery' }}</label>
-                        <select v-model="form.branch_id" required class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition">
-                            <option value="">Choose an outlet...</option>
-                            <option v-for="branch in branches" :key="branch.id" :value="branch.id">{{ branch.name }}</option>
-                        </select>
-                    </div>
-
-                    <div v-if="form.delivery_type === 'home_delivery'" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label class="block text-sm font-medium text-brand-700 mb-1.5">Delivery Area</label>
-                            <select v-model="form.delivery_area_id" required class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition">
-                                <option value="">Choose your area...</option>
-                                <optgroup label="📍 Satkhira Sadar areas"><option v-for="area in sadarAreas" :key="area.id" :value="area.id">{{ area.name }} (৳{{ area.delivery_charge }})</option></optgroup>
-                                <optgroup label="🛵 Outside Sadar / Upazila areas"><option v-for="area in outsideAreas" :key="area.id" :value="area.id">{{ area.name }} (৳{{ area.delivery_charge }})</option></optgroup>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-brand-700 mb-1.5">Delivery Address</label>
-                            <textarea v-model="form.customer_address" required rows="2" placeholder="Enter your full address" class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition"></textarea>
-                        </div>
-                    </div>
-
-                    <!-- Name & Phone -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label class="block text-sm font-medium text-brand-700 mb-1.5">Your Name</label>
-                            <input v-model="form.customer_name" type="text" required placeholder="Enter your name" class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition" />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-brand-700 mb-1.5">Phone Number</label>
-                            <input v-model="form.customer_phone" type="tel" required placeholder="01XXXXXXXXX" class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition" />
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-brand-700 mb-1.5">Email <span class="text-brand-400 font-normal">(optional)</span></label>
-                        <input v-model="form.customer_email" type="email" placeholder="Only if you want email confirmation" class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition" />
-                    </div>
-
+                    <div v-if="Object.keys(errors).length" class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3"><p class="text-xs font-bold uppercase tracking-wide text-red-700">Please check your details</p><p v-for="(error, key) in errors" :key="key" class="mt-1 text-sm text-red-600">{{ error }}</p></div>
                 </div>
 
-                <!-- Cake Details -->
-                <div class="border-t border-brand-100 pt-6">
-                    <h2 class="font-serif font-bold text-brand-900 text-lg mb-4 flex items-center gap-2">
-                        <span class="w-8 h-8 bg-brand-100 rounded-full flex items-center justify-center text-sm">2</span>
-                        Cake Details
-                    </h2>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-                        <div>
-                            <label class="block text-sm font-medium text-brand-700 mb-1.5">Cake Type</label>
-                            <input v-model="form.cake_type" type="text" placeholder="e.g. Birthday" class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition" />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-brand-700 mb-1.5">Cake Size</label>
-                            <select v-model="form.cake_size" class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition">
-                                <option value="">Select size...</option>
-                                <option>1/2 kg</option><option>1 kg</option><option>1.5 kg</option><option>2 kg</option><option>2.5 kg</option><option>3 kg</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-brand-700 mb-1.5">Flavor</label>
-                            <select v-model="form.cake_flavor" class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition">
-                                <option value="">Select flavor...</option>
-                                <option>Vanilla</option><option>Chocolate</option><option>Strawberry</option><option>Black Forest</option><option>White Forest</option><option>Red Velvet</option><option>Blueberry</option><option>Lemon</option><option>Orange</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-brand-700 mb-1.5">Message on Cake</label>
-                        <input v-model="form.message_on_cake" type="text" placeholder="e.g. Happy Birthday John!" class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition" />
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label class="block text-sm font-medium text-brand-700 mb-1.5">Delivery Date</label>
-                            <input v-model="form.delivery_date" type="date" required :min="minDate" class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition" />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-brand-700 mb-1.5">Preferred Time</label>
-                            <input v-model="form.delivery_time" type="time" class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition" />
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-brand-700 mb-1.5">Upload Design Image</label>
-                        <div class="border-2 border-dashed border-brand-200 rounded-xl p-6 text-center hover:border-gold-400 transition cursor-pointer" @click="$refs.fileInput.click()">
-                            <input ref="fileInput" @change="handleFile" type="file" accept="image/*" class="hidden" />
-                            <div v-if="designImage" class="text-brand-700">
-                                <div class="text-3xl mb-2">✅</div>
-                                <div class="text-sm font-medium">{{ designImage.name }}</div>
-                                <div class="text-xs text-brand-400 mt-1">Click to change</div>
-                            </div>
-                            <div v-else class="text-brand-400">
-                                <div class="text-4xl mb-2">📸</div>
-                                <div class="text-sm">Click to upload your cake design (max 2MB)</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-brand-700 mb-1.5">Additional Notes</label>
-                        <textarea v-model="form.notes" rows="3" placeholder="Any special instructions..." class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition"></textarea>
-                    </div>
-                </div>
-
-                <!-- Summary -->
-                <div class="border-t border-brand-100 pt-6">
-                    <div class="bg-cream-100 rounded-xl p-4 flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                            <span class="text-xl">💵</span>
-                        </div>
-                        <div>
-                            <div class="text-sm font-medium text-brand-900">Cash on Delivery</div>
-                            <div class="text-xs text-brand-400">Price will be confirmed by our team after reviewing your design</div>
-                        </div>
-                    </div>
-
-                    <div v-if="form.delivery_type === 'home_delivery' && selectedArea" class="flex justify-between text-sm mb-2">
-                        <span class="text-brand-500">Delivery Charge</span>
-                        <span class="font-medium text-brand-900">৳{{ selectedArea.delivery_charge }}</span>
-                    </div>
-
-                    <button type="submit" :disabled="processing" class="w-full bg-gold-500 text-brand-950 py-4 rounded-xl font-bold hover:bg-gold-400 transition shadow-lg disabled:opacity-50">
-                        <span v-if="!processing">Submit Custom Cake Order →</span>
-                        <span v-else>Processing...</span>
-                    </button>
-                    <p class="text-xs text-brand-400 text-center mt-3">An account will be auto-created with your phone number for order tracking.</p>
-                </div>
+                <aside class="lg:sticky lg:top-24 lg:self-start"><div class="rounded-[1.6rem] border border-brand-100 bg-brand-950 p-5 text-cream-50 shadow-card sm:p-6"><p class="text-xs font-bold uppercase tracking-[.18em] text-brand-300">Step 3 · Review</p><h2 class="mt-2 font-serif text-2xl font-bold">Your cake request</h2><div class="mt-6 space-y-4 border-b border-white/10 pb-5 text-sm"><div class="flex items-start justify-between gap-4"><span class="text-brand-300">Delivery</span><span class="text-right font-semibold text-cream-50">{{ form.delivery_type === 'pickup' ? 'Branch pickup' : 'Home delivery' }}</span></div><div class="flex items-start justify-between gap-4"><span class="text-brand-300">Branch</span><span class="max-w-[170px] text-right font-semibold text-cream-50">{{ selectedBranch?.name || 'Choose an outlet' }}</span></div><div class="flex items-start justify-between gap-4"><span class="text-brand-300">Date</span><span class="text-right font-semibold text-cream-50">{{ form.delivery_date || 'Choose a date' }}</span></div><div v-if="form.cake_size || form.cake_flavor" class="flex items-start justify-between gap-4"><span class="text-brand-300">Cake</span><span class="max-w-[170px] text-right font-semibold text-cream-50">{{ [form.cake_size, form.cake_flavor].filter(Boolean).join(' · ') }}</span></div></div><div class="flex items-center justify-between py-5"><span class="text-sm text-brand-300">Delivery charge</span><span class="font-serif text-2xl font-bold text-gold-300">{{ form.delivery_type === 'home_delivery' && selectedArea ? money(selectedArea.delivery_charge) : 'To confirm' }}</span></div><div class="rounded-2xl bg-white/10 p-4 text-xs leading-5 text-brand-200"><div class="flex items-center gap-2 font-bold text-cream-50"><svg class="h-4 w-4 text-gold-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3 5 6v5c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6l-7-3Z"/></svg> Price confirmation</div><p class="mt-2">We’ll review your design and contact you before preparation. Payment is cash on delivery.</p></div><button type="submit" form="custom-cake-form" :disabled="processing" class="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-gold-500 px-5 py-4 text-sm font-bold text-brand-950 transition hover:bg-gold-400 disabled:cursor-not-allowed disabled:opacity-50"><span>{{ processing ? 'Sending request…' : 'Submit cake request' }}</span><span v-if="!processing">→</span></button><p class="mt-4 text-center text-xs leading-5 text-brand-300">We’ll create your customer account with your phone number for order tracking.</p></div><div class="mt-3 rounded-2xl border border-brand-100 bg-white p-4 text-xs leading-5 text-brand-500 shadow-soft"><p class="font-bold text-brand-800">Need a quick answer?</p><p class="mt-1">Send the request first—our cake team will call you to confirm the details.</p></div></aside>
             </form>
         </div>
     </CustomerLayout>
@@ -177,61 +26,25 @@ import { ref, computed, watch } from 'vue';
 const props = defineProps({ branches: Array, deliveryAreas: Array, auth: Object, selectedBranchId: [Number, String], deliveryMode: String });
 const page = usePage();
 const settings = computed(() => page.props.settings || {});
-
+const errors = computed(() => page.props.errors || {});
 const processing = ref(false);
-const form = ref({
-    branch_id: props.selectedBranchId || '', delivery_type: props.deliveryMode === 'home_delivery' ? 'home_delivery' : 'pickup', delivery_area_id: '',
-    customer_name: '', customer_phone: '', customer_email: '', customer_address: '',
-    cake_type: '', cake_size: '', cake_flavor: '', message_on_cake: '',
-    delivery_date: '', delivery_time: '', notes: '',
-});
-
-// Auto-fill name/phone if user is logged in
-if (props.auth?.user) {
-    form.value.customer_name = props.auth.user.name || '';
-    form.value.customer_phone = props.auth.user.phone || '';
-    form.value.customer_email = props.auth.user.email || '';
-}
-
 const designImage = ref(null);
-const minDate = computed(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    return d.toISOString().split('T')[0];
-});
+const designPreview = ref('');
+const fileError = ref('');
+const form = ref({ branch_id: props.selectedBranchId || '', delivery_type: props.deliveryMode === 'home_delivery' ? 'home_delivery' : 'pickup', delivery_area_id: '', customer_name: '', customer_phone: '', customer_email: '', customer_address: '', cake_type: '', cake_size: '', cake_flavor: '', message_on_cake: '', delivery_date: '', delivery_time: '', notes: '' });
 
-// Use global delivery areas
+if (props.auth?.user) { form.value.customer_name = props.auth.user.name || ''; form.value.customer_phone = props.auth.user.phone || ''; form.value.customer_email = props.auth.user.email || ''; }
+const selectedBranch = computed(() => props.branches?.find(branch => branch.id == form.value.branch_id));
 const allDeliveryAreas = computed(() => props.deliveryAreas || []);
-
-const sadarAreas = computed(() => allDeliveryAreas.value.filter(a => a.zone_type === 'sadar'));
-const outsideAreas = computed(() => allDeliveryAreas.value.filter(a => a.zone_type === 'outside_sadar'));
-const selectedArea = computed(() => allDeliveryAreas.value.find(a => a.id == form.value.delivery_area_id));
+const sadarAreas = computed(() => allDeliveryAreas.value.filter(area => area.zone_type === 'sadar'));
+const outsideAreas = computed(() => allDeliveryAreas.value.filter(area => area.zone_type === 'outside_sadar'));
+const selectedArea = computed(() => allDeliveryAreas.value.find(area => area.id == form.value.delivery_area_id));
 const pickupAllowed = computed(() => ['pickup', 'both'].includes(props.deliveryMode || 'pickup'));
 const homeDeliveryAllowed = computed(() => ['home_delivery', 'both'].includes(props.deliveryMode || 'pickup'));
+const minDate = computed(() => { const date = new Date(); date.setDate(date.getDate() + 1); return date.toISOString().split('T')[0]; });
+const money = value => '৳' + Number(value || 0).toLocaleString('en-BD', { maximumFractionDigits: 0 });
 
-watch(() => form.value.delivery_type, (deliveryType) => {
-    if (deliveryType === 'pickup') form.value.delivery_area_id = '';
-});
-
-const handleFile = (e) => {
-    const file = e.target.files?.[0] || null;
-    if (file && file.size > 2 * 1024 * 1024) {
-        designImage.value = null;
-        e.target.value = '';
-        window.alert('Please choose an image smaller than 2MB.');
-        return;
-    }
-    designImage.value = file;
-};
-
-const submitOrder = () => {
-    processing.value = true;
-    const formData = new FormData();
-    Object.keys(form.value).forEach(key => formData.append(key, form.value[key]));
-    if (designImage.value) formData.append('design_image', designImage.value);
-    router.post(route('custom-cake.store'), formData, {
-        forceFormData: true,
-        onFinish: () => { processing.value = false; },
-    });
-};
+watch(() => form.value.delivery_type, type => { if (type === 'pickup') { form.value.delivery_area_id = ''; form.value.customer_address = ''; } });
+const handleFile = event => { const file = event.target.files?.[0] || null; fileError.value = ''; if (file && file.size > 2 * 1024 * 1024) { designImage.value = null; designPreview.value = ''; fileError.value = 'Please choose an image smaller than 2MB.'; event.target.value = ''; return; } designImage.value = file; designPreview.value = file ? URL.createObjectURL(file) : ''; };
+const submitOrder = () => { if (processing.value) return; processing.value = true; const formData = new FormData(); Object.entries(form.value).forEach(([key, value]) => { if (value !== null && value !== undefined) formData.append(key, value); }); if (designImage.value) formData.append('design_image', designImage.value); router.post(route('custom-cake.store'), formData, { forceFormData: true, onFinish: () => { processing.value = false; } }); };
 </script>

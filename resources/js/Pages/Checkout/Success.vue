@@ -1,28 +1,6 @@
 <template>
     <CustomerLayout>
-        <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-            <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-            </div>
-            <h1 class="text-3xl font-bold text-gray-900 mb-3">Order Placed Successfully!</h1>
-            <p class="text-gray-600 mb-2">Your order number is:</p>
-            <p class="text-2xl font-bold text-brand-600 mb-6">{{ order.order_number }}</p>
-
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-left mb-6">
-                <div class="space-y-2 text-sm">
-                    <div class="flex justify-between"><span class="text-gray-500">Branch</span><span class="font-medium">{{ order.branch?.name }}</span></div>
-                    <div class="flex justify-between"><span class="text-gray-500">Delivery Type</span><span class="font-medium">{{ order.delivery_type === 'pickup' ? 'Pickup' : 'Home Delivery' }}</span></div>
-                    <div class="flex justify-between"><span class="text-gray-500">Payment</span><span class="font-medium">Cash on Delivery</span></div>
-                    <div class="flex justify-between"><span class="text-gray-500">Status</span><span class="font-medium capitalize">{{ order.status }}</span></div>
-                    <div class="border-t pt-2 flex justify-between font-bold"><span>Total</span><span>৳{{ order.total }}</span></div>
-                </div>
-            </div>
-
-            <div class="flex gap-4 justify-center">
-                <Link :href="route('checkout.track')" class="bg-brand-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-brand-700 transition">Track Order</Link>
-                <Link :href="route('products.index')" class="border-2 border-brand-600 text-brand-600 px-6 py-3 rounded-lg font-bold hover:bg-brand-50 transition">Continue Shopping</Link>
-            </div>
-        </div>
+        <div class="mx-auto max-w-2xl px-4 py-12 sm:px-6 sm:py-20 lg:px-8"><div class="rounded-[2rem] border border-brand-100 bg-white p-6 text-center shadow-card sm:p-10"><div class="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-sage-50 text-sage-600"><svg class="h-10 w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m5 12 4 4L19 6"/></svg></div><p class="eyebrow mt-7 justify-center">Thank you</p><h1 class="mt-3 font-serif text-3xl font-bold text-brand-900 sm:text-4xl">Your order is on its way.</h1><p class="mx-auto mt-3 max-w-md text-sm leading-6 text-brand-500">We’ve received your order and our team will start preparing it after confirmation.</p><div class="mt-7 rounded-2xl bg-brand-950 px-5 py-4 text-center"><p class="text-xs font-bold uppercase tracking-[.18em] text-brand-300">Order number</p><p class="mt-2 font-serif text-2xl font-bold text-gold-300">{{ order.order_number }}</p></div><div class="mt-5 space-y-3 rounded-2xl border border-brand-100 bg-cream-50 p-5 text-left text-sm"><div class="flex justify-between gap-4"><span class="text-brand-500">Branch</span><strong class="text-right text-brand-800">{{ order.branch?.name }}</strong></div><div class="flex justify-between gap-4"><span class="text-brand-500">Delivery</span><strong class="text-right text-brand-800">{{ order.delivery_type === 'pickup' ? 'Branch pickup' : 'Home delivery' }}</strong></div><div class="flex justify-between gap-4"><span class="text-brand-500">Payment</span><strong class="text-right text-brand-800">Cash on delivery</strong></div><div class="flex justify-between gap-4 border-t border-brand-200 pt-3"><span class="font-bold text-brand-900">Total</span><strong class="font-serif text-lg text-brand-700">৳{{ order.total }}</strong></div></div><div class="mt-7 flex flex-col gap-3 sm:flex-row sm:justify-center"><Link :href="route('checkout.track')" class="btn-primary">Track my order <span>→</span></Link><Link :href="route('products.index')" class="btn-outline">Continue shopping</Link></div></div></div>
     </CustomerLayout>
 </template>
 

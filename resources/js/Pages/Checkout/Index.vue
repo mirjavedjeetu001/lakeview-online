@@ -1,197 +1,28 @@
 <template>
     <CustomerLayout>
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <!-- Header -->
-            <div class="mb-8 text-center">
-                <span class="text-gold-600 text-sm tracking-widest uppercase font-medium">Checkout</span>
-                <h1 class="font-serif text-3xl font-bold text-brand-900 mt-2">Complete Your Order</h1>
-                <div class="w-20 h-1 bg-gold-500 mx-auto mt-4 rounded-full"></div>
+        <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+            <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div><p class="eyebrow">Checkout</p><h1 class="mt-3 font-serif text-3xl font-bold tracking-tight text-brand-900 sm:text-4xl">Let’s get your order ready.</h1><p class="mt-3 max-w-xl text-sm leading-6 text-brand-500">Choose how you want to receive your favourites, then share the details we need to prepare everything fresh.</p></div>
+                <div class="inline-flex items-center gap-2 self-start rounded-full border border-sage-200 bg-sage-50 px-3 py-2 text-xs font-bold text-sage-700 sm:self-auto"><span class="h-2 w-2 rounded-full bg-sage-400"></span> Secure checkout</div>
             </div>
 
-            <!-- Empty Cart -->
-            <div v-if="!cartItems.length" class="bg-white rounded-2xl card-shadow border border-brand-100 p-12 text-center">
-                <div class="text-6xl mb-4">🛒</div>
-                <p class="text-brand-500 text-lg mb-4">Your cart is empty</p>
-                <Link :href="route('products.index')" class="inline-block bg-gold-500 text-brand-950 px-6 py-3 rounded-full font-bold hover:bg-gold-400 transition">Browse Products</Link>
-            </div>
+            <div v-if="!cartItems.length" class="rounded-[2rem] border border-brand-100 bg-white p-10 text-center shadow-soft sm:p-16"><div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-50 text-brand-600"><svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M4 5h2l1.5 10.5h9.8L20 8H7m3 13h.01M17 21h.01M9 18h9a2 2 0 0 0 2-2v-1H8"/></svg></div><h2 class="mt-5 font-serif text-2xl font-bold text-brand-900">Your bag is waiting</h2><p class="mx-auto mt-2 max-w-sm text-sm leading-6 text-brand-500">Add something freshly made from our bakery and come back here when you’re ready.</p><Link :href="route('products.index')" class="btn-primary mt-6">Browse the bakery <span>→</span></Link></div>
 
-            <div v-else class="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                <!-- Left: Form -->
-                <div class="lg:col-span-3 space-y-6">
-                    <!-- Cart Items -->
-                    <div class="bg-white rounded-2xl card-shadow border border-brand-100 p-6">
-                        <h2 class="font-serif font-bold text-brand-900 text-lg mb-4 flex items-center gap-2">
-                            <span class="w-8 h-8 bg-brand-100 rounded-full flex items-center justify-center text-sm">1</span>
-                            Order Items
-                        </h2>
-                        <div v-for="item in cartItems" :key="item.product_id" class="flex items-center gap-3 py-3 border-b border-brand-50 last:border-0">
-                            <div class="w-12 h-12 bg-brand-50 rounded-xl flex items-center justify-center flex-shrink-0 text-2xl">🍰</div>
-                            <div class="flex-1 min-w-0">
-                                <div class="font-medium text-brand-900 text-sm truncate">{{ item.name }}</div>
-                                <div class="text-xs text-brand-400">৳{{ item.price }} × {{ item.quantity }}</div>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <button @click="updateQty(item.product_id, -1)" class="w-7 h-7 bg-brand-50 text-brand-700 rounded-lg hover:bg-brand-100 transition font-bold">−</button>
-                                <span class="w-8 text-center text-sm font-medium text-brand-900">{{ item.quantity }}</span>
-                                <button @click="updateQty(item.product_id, 1)" class="w-7 h-7 bg-brand-50 text-brand-700 rounded-lg hover:bg-brand-100 transition font-bold">+</button>
-                            </div>
-                            <div class="text-right">
-                                <div class="font-bold text-brand-900 text-sm">৳{{ item.price * item.quantity }}</div>
-                                <button @click="removeItem(item.product_id)" class="text-red-400 hover:text-red-600 text-xs">Remove</button>
-                            </div>
-                        </div>
+            <div v-else>
+                <div class="mb-6 grid grid-cols-3 gap-2 rounded-2xl border border-brand-100 bg-white p-2 shadow-soft"><div class="rounded-xl bg-brand-700 px-3 py-3 text-center text-xs font-bold text-white"><span class="mr-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/15">1</span> Bag</div><div class="rounded-xl bg-brand-50 px-3 py-3 text-center text-xs font-bold text-brand-600"><span class="mr-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-white">2</span> Details</div><div class="rounded-xl bg-brand-50 px-3 py-3 text-center text-xs font-bold text-brand-600"><span class="mr-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-white">3</span> Confirm</div></div>
+
+                <div class="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(320px,.8fr)]">
+                    <div class="space-y-5">
+                        <section class="rounded-[1.6rem] border border-brand-100 bg-white p-5 shadow-soft sm:p-6"><div class="mb-5 flex items-start justify-between gap-4"><div><p class="eyebrow">Step 1</p><h2 class="mt-2 font-serif text-2xl font-bold text-brand-900">Your bag</h2></div><Link :href="route('products.index')" class="text-xs font-bold text-brand-600">Add more</Link></div><div class="divide-y divide-brand-100"><div v-for="item in cartItems" :key="item.product_id" class="flex gap-3 py-4 first:pt-0 last:pb-0"><div class="h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-brand-50"><img v-if="item.image" :src="assetUrl(item.image)" :alt="item.name" class="h-full w-full object-cover" /><div v-else class="flex h-full items-center justify-center text-brand-400"><svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="m4 16 4.5-5 3 3 2.5-3 6 7M5 19h14a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v12Z"/></svg></div></div><div class="min-w-0 flex-1"><p class="truncate text-sm font-bold text-brand-900">{{ item.name }}</p><p class="mt-1 text-xs text-brand-400">{{ money(item.price) }} each</p><div class="mt-3 flex items-center justify-between gap-3"><div class="flex items-center rounded-full border border-brand-200 bg-cream-50 p-1"><button type="button" @click="updateQty(item.product_id, -1)" class="h-7 w-7 rounded-full text-brand-600 hover:bg-brand-100" aria-label="Decrease quantity">−</button><span class="w-8 text-center text-xs font-bold text-brand-800">{{ item.quantity }}</span><button type="button" @click="updateQty(item.product_id, 1)" class="h-7 w-7 rounded-full text-brand-600 hover:bg-brand-100" aria-label="Increase quantity">+</button></div><button type="button" @click="removeItem(item.product_id)" class="text-xs font-bold text-red-500 hover:text-red-700">Remove</button></div></div><div class="shrink-0 text-right text-sm font-bold text-brand-700">{{ money(item.price * item.quantity) }}</div></div></div></section>
+
+                        <form id="checkout-details" @submit.prevent="submitOrder" class="space-y-5">
+                            <section class="rounded-[1.6rem] border border-brand-100 bg-white p-5 shadow-soft sm:p-6"><div class="mb-5 flex items-start gap-3"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-100 text-sm font-bold text-brand-700">2</span><div><h2 class="font-serif text-2xl font-bold text-brand-900">How should we get it to you?</h2><p class="mt-1 text-sm text-brand-500">Choose one option for everything in this bag.</p></div></div><div class="grid gap-3 sm:grid-cols-2"><label v-if="pickupAllowed" :class="form.delivery_type === 'pickup' ? 'border-brand-600 bg-brand-50 ring-2 ring-brand-100' : 'border-brand-200 bg-white hover:border-brand-400'" class="group cursor-pointer rounded-2xl border-2 p-4 transition"><input v-model="form.delivery_type" type="radio" value="pickup" class="sr-only" /><div class="flex items-start justify-between gap-3"><span class="flex h-10 w-10 items-center justify-center rounded-xl bg-gold-50 text-gold-600"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M4 20h16M6 20V9l6-4 6 4v11M9 20v-6h6v6M3 9h18"/></svg></span><span v-if="form.delivery_type === 'pickup'" class="text-brand-600">✓</span></div><p class="mt-4 text-sm font-bold text-brand-900">Branch pickup</p><p class="mt-1 text-xs leading-5 text-brand-500">Collect it fresh from your selected outlet.</p></label><label v-if="homeDeliveryAllowed" :class="form.delivery_type === 'home_delivery' ? 'border-brand-600 bg-brand-50 ring-2 ring-brand-100' : 'border-brand-200 bg-white hover:border-brand-400'" class="group cursor-pointer rounded-2xl border-2 p-4 transition"><input v-model="form.delivery_type" type="radio" value="home_delivery" class="sr-only" /><div class="flex items-start justify-between gap-3"><span class="flex h-10 w-10 items-center justify-center rounded-xl bg-sage-50 text-sage-600"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M3 7h11v10H3V7Zm11 4h3l3 3v3h-6v-6Zm-7 6a2 2 0 1 1-4 0m13 0a2 2 0 1 1-4 0"/></svg></span><span v-if="form.delivery_type === 'home_delivery'" class="text-brand-600">✓</span></div><p class="mt-4 text-sm font-bold text-brand-900">Home delivery</p><p class="mt-1 text-xs leading-5 text-brand-500">We’ll bring it to your selected area.</p></label></div><div v-if="deliveryModeMessage" class="mt-4 rounded-2xl border border-gold-200 bg-gold-50 px-4 py-3 text-xs leading-5 text-brand-700">{{ deliveryModeMessage }}</div></section>
+
+                            <section class="rounded-[1.6rem] border border-brand-100 bg-white p-5 shadow-soft sm:p-6"><div class="mb-5 flex items-start gap-3"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-100 text-sm font-bold text-brand-700">3</span><div><h2 class="font-serif text-2xl font-bold text-brand-900">Your details</h2><p class="mt-1 text-sm text-brand-500">Tell us where to prepare and send your order.</p></div></div><div class="space-y-4"><label class="field-label">{{ form.delivery_type === 'pickup' ? 'Pickup branch' : 'Serving outlet' }}<select v-model="form.branch_id" required class="field-input"><option value="">Choose an outlet</option><option v-for="branch in branches" :key="branch.id" :value="branch.id">{{ branch.name }}</option></select></label><div v-if="selectedBranch" class="flex items-start gap-3 rounded-2xl bg-brand-50 px-4 py-3 text-xs text-brand-600"><svg class="mt-0.5 h-4 w-4 shrink-0 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg><span><strong class="text-brand-800">{{ selectedBranch.name }}</strong><br>{{ selectedBranch.address || 'Lake View outlet' }}<span v-if="selectedBranch.phones?.[0]"> · {{ selectedBranch.phones[0] }}</span></span></div><div v-if="form.delivery_type === 'home_delivery'" class="grid gap-4 sm:grid-cols-2"><label class="field-label">Delivery area<select v-model="form.delivery_area_id" required class="field-input"><option value="">Choose your area</option><optgroup v-if="sadarAreas.length" label="Satkhira Sadar"><option v-for="area in sadarAreas" :key="area.id" :value="area.id">{{ area.name }} · {{ money(area.delivery_charge) }}</option></optgroup><optgroup v-if="outsideAreas.length" label="Outside Sadar / Upazila"><option v-for="area in outsideAreas" :key="area.id" :value="area.id">{{ area.name }} · {{ money(area.delivery_charge) }}</option></optgroup></select></label><div v-if="selectedArea" class="rounded-2xl bg-sage-50 p-4 text-xs leading-5 text-sage-700"><p class="font-bold">Delivery to {{ selectedArea.name }}</p><p class="mt-1">Charge: {{ money(selectedArea.delivery_charge) }}</p><p v-if="minOrderError" class="mt-2 font-semibold text-red-600">{{ minOrderError }}</p></div></div><div class="grid gap-4 sm:grid-cols-2"><label class="field-label">Your name<input v-model="form.customer_name" type="text" required placeholder="e.g. Mir Javed Jeetu" class="field-input" /></label><label class="field-label">Phone number<input v-model="form.customer_phone" type="tel" required placeholder="01XXXXXXXXX" class="field-input" /></label></div><label class="field-label">Email <span class="font-normal text-brand-400">(optional)</span><input v-model="form.customer_email" type="email" placeholder="For order updates, if you want" class="field-input" /></label><label v-if="form.delivery_type === 'home_delivery'" class="field-label">Full delivery address<textarea v-model="form.customer_address" required rows="3" placeholder="House, road, area and a nearby landmark" class="field-input"></textarea></label><label class="field-label">Order note <span class="font-normal text-brand-400">(optional)</span><textarea v-model="form.notes" rows="2" placeholder="Any special instruction for our team?" class="field-input"></textarea></label><div class="rounded-2xl border border-brand-200 bg-cream-50 p-4"><div class="flex items-center justify-between gap-3"><label class="field-label flex-1">Have a coupon?</label><span v-if="couponSuccess" class="text-xs font-bold text-sage-700">Applied</span></div><div class="mt-2 flex gap-2"><input v-model="form.coupon_code" type="text" placeholder="Enter coupon code" class="field-input mt-0 flex-1 uppercase" /><button type="button" @click="applyCoupon" class="rounded-xl bg-brand-700 px-4 text-xs font-bold text-white hover:bg-brand-600">Apply</button></div><div v-if="couponMessage" class="mt-2 rounded-xl px-3 py-2 text-xs font-semibold" :class="couponSuccess ? 'bg-sage-50 text-sage-700' : 'bg-red-50 text-red-600'">{{ couponMessage }}</div></div><div v-if="Object.keys(errors).length" class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3"><p class="text-xs font-bold uppercase tracking-wide text-red-700">Please check the highlighted details</p><p v-for="(error, key) in errors" :key="key" class="mt-1 text-sm text-red-600">{{ error }}</p></div></div></section>
+                        </form>
                     </div>
 
-                    <!-- Delivery Details -->
-                    <form @submit.prevent="submitOrder" class="bg-white rounded-2xl card-shadow border border-brand-100 p-6 space-y-5">
-                        <h2 class="font-serif font-bold text-brand-900 text-lg mb-2 flex items-center gap-2">
-                            <span class="w-8 h-8 bg-brand-100 rounded-full flex items-center justify-center text-sm">2</span>
-                            Delivery Details
-                        </h2>
-
-                        <!-- Delivery Type -->
-                        <div>
-                            <label class="block text-sm font-medium text-brand-700 mb-1.5">Delivery Type</label>
-                            <div class="grid gap-3" :class="pickupAllowed && homeDeliveryAllowed ? 'grid-cols-2' : 'grid-cols-1'">
-                                <label v-if="pickupAllowed" :class="form.delivery_type === 'pickup' ? 'border-gold-400 bg-gold-50 text-brand-900' : 'border-brand-100 bg-cream-50 text-brand-600'" class="cursor-pointer border-2 rounded-xl p-4 text-center transition">
-                                    <input type="radio" v-model="form.delivery_type" value="pickup" class="hidden" />
-                                    <div class="text-2xl mb-1">🏪</div>
-                                    <div class="text-sm font-medium">Pickup</div>
-                                </label>
-                                <label v-if="homeDeliveryAllowed" :class="form.delivery_type === 'home_delivery' ? 'border-gold-400 bg-gold-50 text-brand-900' : 'border-brand-100 bg-cream-50 text-brand-600'" class="cursor-pointer border-2 rounded-xl p-4 text-center transition">
-                                    <input type="radio" v-model="form.delivery_type" value="home_delivery" class="hidden" />
-                                    <div class="text-2xl mb-1">🛵</div>
-                                    <div class="text-sm font-medium">Home Delivery</div>
-                                </label>
-                            </div>
-                            <div v-if="deliveryModeMessage" class="mt-2 rounded-xl bg-gold-50 border border-gold-200 px-3 py-2 text-xs text-brand-700">{{ deliveryModeMessage }}</div>
-                        </div>
-
-                        <!-- Branch selector (both pickup and home delivery) -->
-                        <div>
-                            <label class="block text-sm font-medium text-brand-700 mb-1.5">
-                                {{ form.delivery_type === 'pickup' ? 'Select Branch for Pickup' : 'Select Outlet for Delivery' }}
-                            </label>
-                            <select v-model="form.branch_id" required class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition">
-                                <option value="">Choose an outlet...</option>
-                                <option v-for="branch in branches" :key="branch.id" :value="branch.id">{{ branch.name }}</option>
-                            </select>
-                        </div>
-
-                        <!-- Delivery Area (home delivery only) -->
-                        <div v-if="form.delivery_type === 'home_delivery'">
-                            <label class="block text-sm font-medium text-brand-700 mb-1.5">Select Your Area</label>
-                            <select v-model="form.delivery_area_id" required class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition">
-                                <option value="">Choose your area...</option>
-                                <optgroup label="📍 Satkhira Sadar areas">
-                                    <option v-for="area in sadarAreas" :key="area.id" :value="area.id">{{ area.name }} (৳{{ area.delivery_charge }})</option>
-                                </optgroup>
-                                <optgroup label="🛵 Outside Sadar / Upazila areas">
-                                    <option v-for="area in outsideAreas" :key="area.id" :value="area.id">{{ area.name }} (৳{{ area.delivery_charge }})</option>
-                                </optgroup>
-                            </select>
-                            <div v-if="selectedArea" class="mt-2 bg-cream-100 rounded-lg px-3 py-2 text-sm text-brand-600">
-                                Delivery to: <strong>{{ selectedArea.name }}</strong> — Charge: ৳{{ selectedArea.delivery_charge }}
-                            </div>
-                            <!-- Min order warning -->
-                            <div v-if="minOrderError" class="mt-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm text-red-600">
-                                ⚠️ {{ minOrderError }}
-                            </div>
-                        </div>
-
-                        <!-- Validation errors -->
-                        <div v-if="Object.keys(errors).length" class="bg-red-50 border border-red-200 rounded-xl px-4 py-3 space-y-1">
-                            <div v-for="(error, key) in errors" :key="key" class="text-sm text-red-600">{{ error }}</div>
-                        </div>
-
-                        <!-- Name & Phone -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-brand-700 mb-1.5">Your Name</label>
-                                <input v-model="form.customer_name" type="text" required placeholder="Enter your name" class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition" />
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-brand-700 mb-1.5">Phone Number</label>
-                                <input v-model="form.customer_phone" type="tel" required placeholder="01XXXXXXXXX" class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition" />
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-brand-700 mb-1.5">Email <span class="text-brand-400 font-normal">(optional)</span></label>
-                            <input v-model="form.customer_email" type="email" placeholder="Only if you want email confirmation" class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition" />
-                        </div>
-
-                        <!-- Address -->
-                        <div v-if="form.delivery_type === 'home_delivery'">
-                            <label class="block text-sm font-medium text-brand-700 mb-1.5">Delivery Address</label>
-                            <textarea v-model="form.customer_address" required rows="2" placeholder="Enter your full address" class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition"></textarea>
-                        </div>
-
-                        <!-- Notes -->
-                        <div>
-                            <label class="block text-sm font-medium text-brand-700 mb-1.5">Notes (optional)</label>
-                            <textarea v-model="form.notes" rows="2" placeholder="Any special instructions..." class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition"></textarea>
-                        </div>
-
-                        <!-- Coupon -->
-                        <div class="border-t border-brand-100 pt-4">
-                            <label class="block text-sm font-medium text-brand-700 mb-1.5">Coupon Code (optional)</label>
-                            <div class="flex gap-2">
-                                <input v-model="form.coupon_code" type="text" placeholder="Enter coupon code" class="flex-1 rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition" />
-                                <button type="button" @click="applyCoupon" class="bg-brand-700 text-white px-5 py-3 rounded-xl text-sm font-bold hover:bg-brand-800 transition">Apply</button>
-                            </div>
-                            <div v-if="couponMessage" :class="couponSuccess ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'" class="text-sm mt-2 px-3 py-2 rounded-lg">{{ couponMessage }}</div>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Right: Summary -->
-                <div class="lg:col-span-2">
-                    <div class="bg-white rounded-2xl card-shadow border border-brand-100 p-6 sticky top-24">
-                        <h2 class="font-serif font-bold text-brand-900 text-lg mb-4">Order Summary</h2>
-
-                        <div class="space-y-3 mb-4">
-                            <div class="flex justify-between text-sm">
-                                <span class="text-brand-500">Subtotal ({{ cartItems.length }} items)</span>
-                                <span class="font-medium text-brand-900">৳{{ subtotal }}</span>
-                            </div>
-                            <div class="flex justify-between text-sm">
-                                <span class="text-brand-500">Delivery Charge</span>
-                                <span class="font-medium text-brand-900">৳{{ deliveryCharge }}</span>
-                            </div>
-                            <div v-if="discount > 0" class="flex justify-between text-sm text-green-600">
-                                <span>Discount</span>
-                                <span class="font-medium">-৳{{ discount }}</span>
-                            </div>
-                        </div>
-
-                        <div class="border-t border-brand-100 pt-4 mb-4">
-                            <div class="flex justify-between font-bold text-xl">
-                                <span class="text-brand-900">Total</span>
-                                <span class="text-gold-600 font-serif">৳{{ total }}</span>
-                            </div>
-                        </div>
-
-                        <!-- Payment -->
-                        <div class="bg-cream-100 rounded-xl p-4 mb-4">
-                            <div class="flex items-center gap-3 mb-2">
-                                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                                    <span class="text-xl">💵</span>
-                                </div>
-                                <div>
-                                    <div class="text-sm font-medium text-brand-900">Cash on Delivery</div>
-                                    <div class="text-xs text-brand-400">Pay when you receive</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <button @click="submitOrder" :disabled="processing || !!minOrderError" class="w-full bg-gold-500 text-brand-950 py-4 rounded-xl font-bold hover:bg-gold-400 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
-                            <span v-if="!processing">Place Order →</span>
-                            <span v-else>Processing...</span>
-                        </button>
-
-                        <p class="text-xs text-brand-400 text-center mt-3">By placing your order, an account will be auto-created with your phone number for order tracking.</p>
-                    </div>
+                    <aside class="lg:sticky lg:top-24 lg:self-start"><div class="rounded-[1.6rem] border border-brand-100 bg-brand-950 p-5 text-cream-50 shadow-card sm:p-6"><div class="flex items-start justify-between gap-4"><div><p class="text-xs font-bold uppercase tracking-[.18em] text-brand-300">Your order</p><h2 class="mt-2 font-serif text-2xl font-bold">Ready when you are</h2></div><span class="rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold text-gold-300">{{ totalUnits }} item{{ totalUnits === 1 ? '' : 's' }}</span></div><div class="mt-6 space-y-3 border-b border-white/10 pb-5 text-sm"><div class="flex justify-between gap-4 text-brand-200"><span>Subtotal</span><span class="font-semibold text-cream-50">{{ money(subtotal) }}</span></div><div class="flex justify-between gap-4 text-brand-200"><span>Delivery</span><span class="font-semibold text-cream-50">{{ deliveryCharge ? money(deliveryCharge) : 'Calculated next' }}</span></div><div v-if="discount > 0" class="flex justify-between gap-4 text-sage-300"><span>Discount</span><span>-{{ money(discount) }}</span></div></div><div class="flex items-end justify-between gap-4 py-5"><span class="text-sm font-semibold text-brand-200">Total to pay</span><span class="font-serif text-3xl font-bold text-gold-300">{{ money(total) }}</span></div><button form="checkout-details" type="submit" :disabled="processing || !!minOrderError" class="flex w-full items-center justify-center gap-2 rounded-2xl bg-gold-500 px-5 py-4 text-sm font-bold text-brand-950 transition hover:bg-gold-400 disabled:cursor-not-allowed disabled:opacity-50"><span v-if="!processing">Place order</span><span v-else>Processing your order…</span><span v-if="!processing">→</span></button><div class="mt-4 flex items-start gap-2 text-xs leading-5 text-brand-300"><svg class="mt-0.5 h-4 w-4 shrink-0 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3 5 6v5c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6l-7-3Z"/></svg><span>Cash on delivery. Our team will confirm your order by phone.</span></div></div><div class="mt-3 rounded-2xl border border-brand-100 bg-white p-4 text-xs leading-5 text-brand-500 shadow-soft"><p class="font-bold text-brand-800">Need help?</p><p class="mt-1">Call the main branch after placing your order for a quick update.</p></div></aside>
                 </div>
             </div>
         </div>
@@ -204,146 +35,43 @@ import { Link, router } from '@inertiajs/vue3';
 import { ref, computed, onMounted, watch } from 'vue';
 
 const props = defineProps({ branches: Array, deliveryAreas: Array, auth: Object, minOrder: Object, selectedBranchId: [Number, String] });
-
 const cartItems = ref([]);
 const processing = ref(false);
 const errors = ref({});
-const form = ref({
-    branch_id: props.selectedBranchId || '',
-    delivery_type: 'pickup',
-    delivery_area_id: '',
-    customer_name: '',
-    customer_phone: '',
-    customer_email: '',
-    customer_address: '',
-    notes: '',
-    coupon_code: '',
-});
+const form = ref({ branch_id: props.selectedBranchId || '', delivery_type: 'pickup', delivery_area_id: '', customer_name: '', customer_phone: '', customer_email: '', customer_address: '', notes: '', coupon_code: '' });
 const discount = ref(0);
 const couponMessage = ref('');
 const couponSuccess = ref(false);
 
 const loadCart = () => {
     try {
-        let raw = JSON.parse(localStorage.getItem('cart') || '[]');
-        // Filter out items with invalid prices (from old cart before fix)
-        raw = raw.filter(item => item.price != null && !isNaN(item.price));
+        const original = JSON.parse(localStorage.getItem('cart') || '[]');
+        const raw = original.filter(item => item.price != null && !isNaN(item.price));
         cartItems.value = raw;
-        if (raw.length < JSON.parse(localStorage.getItem('cart') || '[]').length) {
-            localStorage.setItem('cart', JSON.stringify(raw));
-        }
+        if (raw.length < original.length) localStorage.setItem('cart', JSON.stringify(raw));
     } catch { cartItems.value = []; }
 };
 
-onMounted(() => {
-    loadCart();
-    // Auto-fill name/phone if user is logged in
-    if (props.auth?.user) {
-        form.value.customer_name = props.auth.user.name || '';
-        form.value.customer_phone = props.auth.user.phone || '';
-        form.value.customer_email = props.auth.user.email || '';
-    }
-});
-
-const selectedBranch = computed(() => props.branches?.find(b => b.id == form.value.branch_id));
-
-// Use global delivery areas
+onMounted(() => { loadCart(); if (props.auth?.user) { form.value.customer_name = props.auth.user.name || ''; form.value.customer_phone = props.auth.user.phone || ''; form.value.customer_email = props.auth.user.email || ''; } });
+const selectedBranch = computed(() => props.branches?.find(branch => branch.id == form.value.branch_id));
 const allDeliveryAreas = computed(() => props.deliveryAreas || []);
-
-const sadarAreas = computed(() => allDeliveryAreas.value.filter(a => a.zone_type === 'sadar'));
-const outsideAreas = computed(() => allDeliveryAreas.value.filter(a => a.zone_type === 'outside_sadar'));
-const selectedArea = computed(() => allDeliveryAreas.value.find(a => a.id == form.value.delivery_area_id));
+const sadarAreas = computed(() => allDeliveryAreas.value.filter(area => area.zone_type === 'sadar'));
+const outsideAreas = computed(() => allDeliveryAreas.value.filter(area => area.zone_type === 'outside_sadar'));
+const selectedArea = computed(() => allDeliveryAreas.value.find(area => area.id == form.value.delivery_area_id));
 const pickupAllowed = computed(() => cartItems.value.length > 0 && cartItems.value.every(item => item.allow_pickup !== false));
 const homeDeliveryAllowed = computed(() => cartItems.value.length > 0 && cartItems.value.every(item => item.allow_home_delivery !== false));
-const deliveryModeMessage = computed(() => {
-    if (!cartItems.value.length) return '';
-    if (pickupAllowed.value && !homeDeliveryAllowed.value) return 'This cart contains a pickup-only product. Please collect it from your selected branch.';
-    if (!pickupAllowed.value && homeDeliveryAllowed.value) return 'This cart is available for home delivery only.';
-    if (!pickupAllowed.value && !homeDeliveryAllowed.value) return 'Please remove an item with no active delivery option.';
-    return '';
-});
-
-watch(() => form.value.delivery_type, (deliveryType) => {
-    if (deliveryType === 'pickup') form.value.delivery_area_id = '';
-});
-watch([pickupAllowed, homeDeliveryAllowed], ([pickup, homeDelivery]) => {
-    if (form.value.delivery_type === 'pickup' && !pickup && homeDelivery) form.value.delivery_type = 'home_delivery';
-    if (form.value.delivery_type === 'home_delivery' && !homeDelivery && pickup) form.value.delivery_type = 'pickup';
-});
-
-const subtotal = computed(() => cartItems.value.reduce((sum, item) => sum + item.price * item.quantity, 0));
-const deliveryCharge = computed(() => {
-    if (form.value.delivery_type !== 'home_delivery' || !form.value.delivery_area_id) return 0;
-    return selectedArea.value ? parseFloat(selectedArea.value.delivery_charge) : 0;
-});
+const deliveryModeMessage = computed(() => { if (!cartItems.value.length) return ''; if (pickupAllowed.value && !homeDeliveryAllowed.value) return 'This bag contains a pickup-only item. Please collect it from your selected branch.'; if (!pickupAllowed.value && homeDeliveryAllowed.value) return 'This bag is available for home delivery only.'; if (!pickupAllowed.value && !homeDeliveryAllowed.value) return 'Please remove an item with no active delivery option.'; return ''; });
+watch(() => form.value.delivery_type, type => { if (type === 'pickup') form.value.delivery_area_id = ''; });
+watch([pickupAllowed, homeDeliveryAllowed], ([pickup, homeDelivery]) => { if (form.value.delivery_type === 'pickup' && !pickup && homeDelivery) form.value.delivery_type = 'home_delivery'; if (form.value.delivery_type === 'home_delivery' && !homeDelivery && pickup) form.value.delivery_type = 'pickup'; });
+const totalUnits = computed(() => cartItems.value.reduce((sum, item) => sum + Number(item.quantity || 0), 0));
+const money = value => '৳' + Number(value || 0).toLocaleString('en-BD', { maximumFractionDigits: 0 });
+const assetUrl = path => path?.startsWith('http') ? path : '/storage/' + path;
+const subtotal = computed(() => cartItems.value.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0), 0));
+const deliveryCharge = computed(() => form.value.delivery_type === 'home_delivery' && selectedArea.value ? Number(selectedArea.value.delivery_charge || 0) : 0);
 const total = computed(() => Math.max(0, subtotal.value + deliveryCharge.value - discount.value));
-
-const minOrderError = computed(() => {
-    if (form.value.delivery_type !== 'home_delivery' || !selectedArea.value) return '';
-    const minAmount = selectedArea.value.zone_type === 'sadar'
-        ? (props.minOrder?.sadar || 500)
-        : (props.minOrder?.outside || 1000);
-    if (subtotal.value < minAmount) {
-        return `Minimum order for this area is ৳${minAmount}. Your subtotal is ৳${subtotal.value}. Please add ৳${minAmount - subtotal.value} more.`;
-    }
-    return '';
-});
-
-const updateQty = (productId, delta) => {
-    const item = cartItems.value.find(i => i.product_id === productId);
-    if (!item) return;
-    item.quantity += delta;
-    if (item.quantity <= 0) {
-        cartItems.value = cartItems.value.filter(i => i.product_id !== productId);
-    }
-    localStorage.setItem('cart', JSON.stringify(cartItems.value));
-    window.dispatchEvent(new Event('cart-updated'));
-};
-
-const removeItem = (productId) => {
-    cartItems.value = cartItems.value.filter(item => item.product_id !== productId);
-    localStorage.setItem('cart', JSON.stringify(cartItems.value));
-    window.dispatchEvent(new Event('cart-updated'));
-};
-
-const applyCoupon = async () => {
-    if (!form.value.coupon_code) return;
-    try {
-        const response = await fetch(route('checkout.apply-coupon'), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content },
-            body: JSON.stringify({ code: form.value.coupon_code, subtotal: subtotal.value }),
-        });
-        const data = await response.json();
-        if (data.success) {
-            discount.value = data.discount;
-            couponSuccess.value = true;
-            couponMessage.value = data.message;
-        } else {
-            discount.value = 0;
-            couponSuccess.value = false;
-            couponMessage.value = data.message;
-        }
-    } catch {
-        couponMessage.value = 'Failed to apply coupon.';
-        couponSuccess.value = false;
-    }
-};
-
-const submitOrder = () => {
-    if (!cartItems.value.length || processing.value) return;
-    processing.value = true;
-    errors.value = {};
-    form.value.items = cartItems.value.map(item => ({ product_id: item.product_id, quantity: item.quantity }));
-    router.post(route('checkout.store'), form.value, {
-        onSuccess: () => {
-            localStorage.removeItem('cart');
-            window.dispatchEvent(new Event('cart-updated'));
-        },
-        onError: (errs) => {
-            errors.value = errs;
-        },
-        onFinish: () => { processing.value = false; },
-    });
-};
+const minOrderError = computed(() => { if (form.value.delivery_type !== 'home_delivery' || !selectedArea.value) return ''; const minimum = selectedArea.value.zone_type === 'sadar' ? (props.minOrder?.sadar || 500) : (props.minOrder?.outside || 1000); return subtotal.value < minimum ? `Minimum order for this area is ${money(minimum)}. Please add ${money(minimum - subtotal.value)} more.` : ''; });
+const updateQty = (productId, delta) => { const item = cartItems.value.find(entry => entry.product_id === productId); if (!item) return; item.quantity += delta; if (item.quantity <= 0) cartItems.value = cartItems.value.filter(entry => entry.product_id !== productId); localStorage.setItem('cart', JSON.stringify(cartItems.value)); window.dispatchEvent(new Event('cart-updated')); };
+const removeItem = productId => { cartItems.value = cartItems.value.filter(item => item.product_id !== productId); localStorage.setItem('cart', JSON.stringify(cartItems.value)); window.dispatchEvent(new Event('cart-updated')); };
+const applyCoupon = async () => { if (!form.value.coupon_code) return; try { const response = await fetch(route('checkout.apply-coupon'), { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content }, body: JSON.stringify({ code: form.value.coupon_code, subtotal: subtotal.value }) }); const data = await response.json(); discount.value = data.success ? Number(data.discount || 0) : 0; couponSuccess.value = !!data.success; couponMessage.value = data.message || 'Unable to apply this coupon.'; } catch { discount.value = 0; couponSuccess.value = false; couponMessage.value = 'Unable to apply this coupon right now.'; } };
+const submitOrder = () => { if (!cartItems.value.length || processing.value) return; processing.value = true; errors.value = {}; const payload = { ...form.value, items: cartItems.value.map(item => ({ product_id: item.product_id, quantity: item.quantity })) }; router.post(route('checkout.store'), payload, { onSuccess: () => { localStorage.removeItem('cart'); window.dispatchEvent(new Event('cart-updated')); }, onError: responseErrors => { errors.value = responseErrors; }, onFinish: () => { processing.value = false; } }); };
 </script>
