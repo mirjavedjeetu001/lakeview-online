@@ -118,9 +118,9 @@
 
                 <!-- Save button -->
                 <div class="sticky bottom-4 z-10">
-                    <button type="submit" class="bg-gold-500 text-brand-950 px-8 py-3.5 rounded-xl font-bold hover:bg-gold-400 transition shadow-lg flex items-center gap-2">
+                    <button type="submit" :disabled="saving" class="bg-gold-500 text-brand-950 px-8 py-3.5 rounded-xl font-bold hover:bg-gold-400 transition shadow-lg flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-60">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                        Save Settings
+                        {{ saving ? 'Saving...' : 'Save Settings' }}
                     </button>
                 </div>
             </form>
@@ -224,6 +224,7 @@ const heroImages = ref([]);
 const recipientEmails = ref([]);
 const testEmail = ref('metasoftinfo@gmail.com');
 const testingMail = ref(false);
+const saving = ref(false);
 
 const initValues = () => {
     if (props.settings) {
@@ -255,14 +256,24 @@ initValues();
 const activeTab = ref(Object.keys(groupedSettings.value)[0] || 'general');
 
 const saveSettings = () => {
-    // Save hero images as JSON
-    settingValues.value['hero_images'] = JSON.stringify(heroImages.value.filter(u => u.trim()));
-    settingValues.value['mail_order_recipients'] = JSON.stringify(recipientEmails.value.map(email => email.trim()).filter(Boolean));
+    const settingsArray = Object.values(props.settings || {}).flat().map(setting => {
+        let value = settingValues.value[setting.key] ?? setting.value ?? '';
+        if (setting.key === 'hero_images') value = JSON.stringify(heroImages.value.filter(url => url.trim()));
+        if (setting.key === 'mail_order_recipients') value = JSON.stringify(recipientEmails.value.map(email => email.trim()).filter(Boolean));
 
-    const settingsArray = Object.entries(settingValues.value).map(([key, value]) => ({
-        key, value, group: groupMap[key] || 'general',
-    }));
-    router.post(route('admin.settings.update'), { settings: settingsArray });
+        return {
+            key: setting.key,
+            value: String(value ?? ''),
+            group: setting.group || groupMap[setting.key] || 'general',
+        };
+    });
+
+    saving.value = true;
+    router.post(route('admin.settings.update'), { settings: settingsArray }, {
+        preserveState: false,
+        preserveScroll: true,
+        onFinish: () => { saving.value = false; },
+    });
 };
 
 const testMail = () => {

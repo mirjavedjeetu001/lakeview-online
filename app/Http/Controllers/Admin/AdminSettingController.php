@@ -60,7 +60,7 @@ class AdminSettingController extends Controller
             Setting::set($setting['key'], $setting['value'], $setting['group']);
         }
 
-        return redirect()->back()->with('success', 'Settings updated successfully.');
+        return redirect()->route('admin.settings.index')->with('success', 'Settings updated successfully.');
     }
 
     public function testMail(Request $request)
