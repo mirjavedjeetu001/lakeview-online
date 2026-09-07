@@ -129,7 +129,7 @@ class CheckoutController extends Controller
 
             if ($area->zone_type === 'outside_sadar' && !$this->outsideSadarAllowed($products)) {
                 return redirect()->back()->withErrors([
-                    'delivery_area_id' => 'Outside-Sadar delivery is available when your bag includes a cake with eligible bakery or sweets items.',
+                    'delivery_area_id' => 'Outside-Sadar delivery is available when your bag includes a cake.',
                 ])->withInput();
             }
 
@@ -273,9 +273,7 @@ class CheckoutController extends Controller
 
     private function outsideSadarAllowed($products): bool
     {
-        $hasCake = $products->contains(fn (Product $product) => $this->isCustomCakeProduct($product));
-
-        return $hasCake && $products->every(fn (Product $product) => $this->isCustomCakeProduct($product) || $this->isCakeCompanion($product));
+        return $products->contains(fn (Product $product) => $this->isCustomCakeProduct($product));
     }
 
     private function isCustomCakeProduct(Product $product): bool
@@ -289,10 +287,4 @@ class CheckoutController extends Controller
             || str_contains($name, 'cake');
     }
 
-    private function isCakeCompanion(Product $product): bool
-    {
-        $category = strtolower((string) ($product->category?->name ?? ''));
-
-        return (bool) preg_match('/sweet|bakery|biscuit|cookie|toast|dessert/', $category);
-    }
 }
