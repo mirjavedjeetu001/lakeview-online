@@ -12,6 +12,7 @@
                 <thead class="bg-cream-50">
                     <tr>
                         <th class="px-5 py-3 text-left text-xs font-medium text-brand-500 uppercase">Area</th>
+                        <th class="px-5 py-3 text-left text-xs font-medium text-brand-500 uppercase">Branch</th>
                         <th class="px-5 py-3 text-left text-xs font-medium text-brand-500 uppercase">Zone</th>
                         <th class="px-5 py-3 text-left text-xs font-medium text-brand-500 uppercase">Charge</th>
                         <th class="px-5 py-3 text-left text-xs font-medium text-brand-500 uppercase">Actions</th>
@@ -20,6 +21,7 @@
                 <tbody class="divide-y divide-brand-50">
                     <tr v-for="area in areas" :key="area.id" class="hover:bg-cream-50 transition">
                         <td class="px-5 py-3 text-sm font-medium text-brand-900">{{ area.name }}</td>
+                        <td class="px-5 py-3 text-sm text-brand-600">{{ branchName(area.branch_id) }}</td>
                         <td class="px-5 py-3 text-sm">
                             <span class="px-2.5 py-1 rounded-full text-xs font-medium" :class="area.zone_type === 'sadar' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'">
                                 {{ area.zone_type === 'sadar' ? '📍 Sadar' : '🛵 Outside Sadar' }}
@@ -39,6 +41,13 @@
             <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border-2 border-brand-100">
                 <h3 class="font-serif font-bold text-brand-900 text-lg mb-4">{{ editing ? 'Edit Area' : 'Add Delivery Area' }}</h3>
                 <form @submit.prevent="saveArea" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-brand-700 mb-1.5">Branch</label>
+                        <select v-model="form.branch_id" required class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition">
+                            <option value="">Choose the serving branch...</option>
+                            <option v-for="branch in branches" :key="branch.id" :value="branch.id">{{ branch.name }}{{ !branch.is_active ? ' · hidden' : '' }}</option>
+                        </select>
+                    </div>
                     <div>
                         <label class="block text-sm font-medium text-brand-700 mb-1.5">Area Name</label>
                         <input v-model="form.name" type="text" required placeholder="e.g. Binerpota, Debhata, Kalaroa..." class="w-full rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-gold-400 bg-cream-50 px-4 py-3 text-brand-900 transition" />
@@ -73,15 +82,15 @@ import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { ref } from 'vue';
 import { router } from '@inertiajs/vue3';
 
-const props = defineProps({ areas: Array });
+const props = defineProps({ areas: Array, branches: Array });
 const showModal = ref(false);
 const editing = ref(null);
-const form = ref({ name: '', zone_type: 'sadar', delivery_charge: 100, is_active: true });
+const form = ref({ branch_id: '', name: '', zone_type: 'sadar', delivery_charge: 100, is_active: true });
 
 const openModal = (area = null) => {
     editing.value = area;
-    if (area) { form.value = { name: area.name, zone_type: area.zone_type, delivery_charge: area.delivery_charge, is_active: area.is_active }; }
-    else { form.value = { name: '', zone_type: 'sadar', delivery_charge: 100, is_active: true }; }
+    if (area) { form.value = { branch_id: area.branch_id, name: area.name, zone_type: area.zone_type, delivery_charge: area.delivery_charge, is_active: area.is_active }; }
+    else { form.value = { branch_id: props.branches?.find(branch => branch.is_active)?.id || '', name: '', zone_type: 'sadar', delivery_charge: 100, is_active: true }; }
     showModal.value = true;
 };
 
@@ -90,5 +99,6 @@ const saveArea = () => {
     else { router.post(route('admin.delivery-areas.store'), form.value, { onSuccess: () => showModal.value = false }); }
 };
 
+const branchName = (id) => props.branches?.find(branch => Number(branch.id) === Number(id))?.name || 'Unassigned';
 const deleteArea = (area) => { if (confirm('Delete this area?')) router.delete(route('admin.delivery-areas.destroy', area.id)); };
 </script>

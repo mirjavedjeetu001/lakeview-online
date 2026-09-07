@@ -15,12 +15,14 @@ class AdminDeliveryAreaController extends Controller
         $areas = DeliveryArea::orderBy('zone_type')->orderBy('name')->get();
         return Inertia::render('Admin/DeliveryAreas/Index', [
             'areas' => $areas,
+            'branches' => Branch::orderBy('sort_order')->get(['id', 'name', 'is_active']),
         ]);
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'branch_id' => 'required|exists:branches,id',
             'name' => 'required|string|max:255',
             'zone_type' => 'required|in:sadar,outside_sadar',
             'delivery_charge' => 'required|numeric|min:0',
@@ -34,6 +36,7 @@ class AdminDeliveryAreaController extends Controller
     public function update(Request $request, DeliveryArea $deliveryArea)
     {
         $validated = $request->validate([
+            'branch_id' => 'required|exists:branches,id',
             'name' => 'required|string|max:255',
             'zone_type' => 'required|in:sadar,outside_sadar',
             'delivery_charge' => 'required|numeric|min:0',

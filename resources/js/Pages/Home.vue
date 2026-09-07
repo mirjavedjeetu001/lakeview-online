@@ -91,9 +91,10 @@ const addToCart = (product, amount = 1) => {
     if (existing) {
         existing.quantity += amount;
         existing.image = product.image || existing.image;
+        existing.category_name = product.category?.name || existing.category_name || '';
         existing.allow_pickup = product.allow_pickup !== false;
         existing.allow_home_delivery = product.allow_home_delivery !== false;
-    } else cart.push({ product_id: product.id, name: product.name, image: product.image || '', price: Number(product.effective_price), quantity: amount, allow_pickup: product.allow_pickup !== false, allow_home_delivery: product.allow_home_delivery !== false });
+    } else cart.push({ product_id: product.id, name: product.name, category_name: product.category?.name || '', image: product.image || '', price: Number(product.effective_price), quantity: amount, allow_pickup: product.allow_pickup !== false, allow_home_delivery: product.allow_home_delivery !== false });
     localStorage.setItem('cart', JSON.stringify(cart)); window.dispatchEvent(new Event('cart-updated'));
 };
 </script>

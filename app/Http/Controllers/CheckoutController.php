@@ -40,7 +40,13 @@ class CheckoutController extends Controller
         $validated = $request->validate([
             'branch_id' => 'required|exists:branches,id',
             'delivery_type' => 'required|in:pickup,home_delivery',
-            'delivery_area_id' => ['nullable', 'required_if:delivery_type,home_delivery', Rule::exists('delivery_areas', 'id')->where('is_active', true)],
+            'delivery_area_id' => [
+                'nullable',
+                'required_if:delivery_type,home_delivery',
+                Rule::exists('delivery_areas', 'id')->where(fn ($query) => $query
+                    ->where('is_active', true)
+                    ->where('branch_id', $request->input('branch_id'))),
+            ],
             'customer_name' => 'required|string|max:255',
             'customer_phone' => 'required|string|max:20',
             'customer_email' => 'nullable|email|max:255',
@@ -70,6 +76,7 @@ class CheckoutController extends Controller
 
         $subtotal = 0;
         $itemsData = [];
+        $products = collect();
         foreach ($validated['items'] as $item) {
             $product = Product::forBranch($branch->id)
                 ->with('category')
@@ -81,6 +88,8 @@ class CheckoutController extends Controller
                     'items' => 'One or more products are not available at the selected branch.',
                 ])->withInput();
             }
+
+            $products->push($product);
 
             if ($validated['delivery_type'] === 'home_delivery' && !$product->allow_home_delivery) {
                 return redirect()->back()->withErrors([
@@ -111,18 +120,36 @@ class CheckoutController extends Controller
         }
 
         $deliveryCharge = 0;
+        $area = null;
         if ($validated['delivery_type'] === 'home_delivery' && !empty($validated['delivery_area_id'])) {
-            $area = DeliveryArea::find($validated['delivery_area_id']);
-            if ($area) {
-                $deliveryCharge = $area->delivery_charge;
+            $area = DeliveryArea::whereKey($validated['delivery_area_id'])
+                ->where('branch_id', $branch->id)
+                ->where('is_active', true)
+                ->first();
+
+            if (!$area) {
+                return redirect()->back()->withErrors([
+                    'delivery_area_id' => 'This delivery area is not served by the selected branch.',
+                ])->withInput();
             }
+
+            if ($area->zone_type === 'outside_sadar' && !$this->outsideSadarAllowed($products)) {
+                return redirect()->back()->withErrors([
+                    'delivery_area_id' => 'Outside-Sadar delivery is available when your bag includes a cake with eligible bakery or sweets items.',
+                ])->withInput();
+            }
+
+            $deliveryCharge = $area->delivery_charge;
         }
 
         // Check minimum order amount
         if ($validated['delivery_type'] === 'home_delivery') {
             $minOrder = 0;
             if (!empty($validated['delivery_area_id'])) {
-                $area = DeliveryArea::find($validated['delivery_area_id']);
+                $area = $area ?: DeliveryArea::whereKey($validated['delivery_area_id'])
+                    ->where('branch_id', $branch->id)
+                    ->where('is_active', true)
+                    ->first();
                 if ($area) {
                     $minKey = $area->zone_type === 'sadar' ? 'min_order_sadar' : 'min_order_outside';
                     $minOrder = (float) (\App\Models\Setting::where('key', $minKey)->first()?->value ?? 0);
@@ -247,5 +274,26 @@ class CheckoutController extends Controller
             'discount' => $discount,
             'message' => 'Coupon applied successfully!',
         ]);
+    }
+
+    private function outsideSadarAllowed($products): bool
+    {
+        $hasCake = $products->contains(fn (Product $product) => $this->isCustomCakeProduct($product));
+
+        return $hasCake && $products->every(fn (Product $product) => $this->isCustomCakeProduct($product) || $this->isCakeCompanion($product));
+    }
+
+    private function isCustomCakeProduct(Product $product): bool
+    {
+        $category = strtolower((string) ($product->category?->name ?? ''));
+
+        return in_array($category, ['cake', 'order cake'], true) || str_contains($category, 'custom cake');
+    }
+
+    private function isCakeCompanion(Product $product): bool
+    {
+        $category = strtolower((string) ($product->category?->name ?? ''));
+
+        return (bool) preg_match('/sweet|bakery|biscuit|cookie|toast|dessert/', $category);
     }
 }

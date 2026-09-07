@@ -36,15 +36,17 @@ const form = ref({ branch_id: props.selectedBranchId || '', delivery_type: props
 if (props.auth?.user) { form.value.customer_name = props.auth.user.name || ''; form.value.customer_phone = props.auth.user.phone || ''; form.value.customer_email = props.auth.user.email || ''; }
 const selectedBranch = computed(() => props.branches?.find(branch => branch.id == form.value.branch_id));
 const allDeliveryAreas = computed(() => props.deliveryAreas || []);
-const sadarAreas = computed(() => allDeliveryAreas.value.filter(area => area.zone_type === 'sadar'));
-const outsideAreas = computed(() => allDeliveryAreas.value.filter(area => area.zone_type === 'outside_sadar'));
-const selectedArea = computed(() => allDeliveryAreas.value.find(area => area.id == form.value.delivery_area_id));
+const branchDeliveryAreas = computed(() => form.value.branch_id ? allDeliveryAreas.value.filter(area => Number(area.branch_id) === Number(form.value.branch_id)) : []);
+const sadarAreas = computed(() => branchDeliveryAreas.value.filter(area => area.zone_type === 'sadar'));
+const outsideAreas = computed(() => branchDeliveryAreas.value.filter(area => area.zone_type === 'outside_sadar'));
+const selectedArea = computed(() => branchDeliveryAreas.value.find(area => area.id == form.value.delivery_area_id));
 const pickupAllowed = computed(() => ['pickup', 'both'].includes(props.deliveryMode || 'pickup'));
 const homeDeliveryAllowed = computed(() => ['home_delivery', 'both'].includes(props.deliveryMode || 'pickup'));
 const minDate = computed(() => { const date = new Date(); date.setDate(date.getDate() + 1); return date.toISOString().split('T')[0]; });
 const money = value => '৳' + Number(value || 0).toLocaleString('en-BD', { maximumFractionDigits: 0 });
 
 watch(() => form.value.delivery_type, type => { if (type === 'pickup') { form.value.delivery_area_id = ''; form.value.customer_address = ''; } });
+watch(() => form.value.branch_id, () => { if (form.value.delivery_area_id && !selectedArea.value) form.value.delivery_area_id = ''; });
 const handleFile = event => { const file = event.target.files?.[0] || null; fileError.value = ''; if (file && file.size > 2 * 1024 * 1024) { designImage.value = null; designPreview.value = ''; fileError.value = 'Please choose an image smaller than 2MB.'; event.target.value = ''; return; } designImage.value = file; designPreview.value = file ? URL.createObjectURL(file) : ''; };
 const submitOrder = () => { if (processing.value) return; processing.value = true; const formData = new FormData(); Object.entries(form.value).forEach(([key, value]) => { if (value !== null && value !== undefined) formData.append(key, value); }); if (designImage.value) formData.append('design_image', designImage.value); router.post(route('custom-cake.store'), formData, { forceFormData: true, onFinish: () => { processing.value = false; } }); };
 </script>
