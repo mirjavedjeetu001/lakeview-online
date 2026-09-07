@@ -14,11 +14,34 @@ class HomeController extends Controller
 {
     public function index()
     {
-        $categories = Category::where('is_active', true)->orderBy('sort_order')->get();
+        $categories = Category::where('is_active', true)
+            ->orderBy('sort_order')
+            ->get(['id', 'name', 'slug', 'image', 'delivery_mode']);
         $branchId = (int) session('branch_id');
-        $featuredProducts = ($branchId ? Product::forBranch($branchId) : Product::query())
-            ->with('category')
-            ->where('products.is_available', true)
+        $branches = Branch::query()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->get(['id', 'name', 'address', 'phones', 'image', 'is_active', 'sort_order']);
+
+        // The outlet picker opens before the customer can shop. Avoid loading
+        // the complete catalog for that first paint; the selected outlet visit
+        // loads only the products relevant to that branch.
+        if (!$branchId) {
+            return Inertia::render('Home', [
+                'categories' => $categories,
+                'featuredProducts' => [],
+                'bestSellingProducts' => [],
+                'allProducts' => [],
+                'branches' => $branches,
+                'selectedBranch' => null,
+            ]);
+        }
+
+        $productQuery = fn () => Product::forBranch($branchId)
+            ->with('category:id,name,slug,delivery_mode')
+            ->where('products.is_available', true);
+
+        $featuredProducts = $productQuery()
             ->where('is_featured', true)
             ->orderBy('sort_order')
             ->take(8)
@@ -35,9 +58,7 @@ class HomeController extends Controller
             ->orderByDesc('total_sold')
             ->limit(8)
             ->pluck('product_id');
-        $bestSellingProducts = ($branchId ? Product::forBranch($branchId) : Product::query())
-            ->with('category')
-            ->where('products.is_available', true)
+        $bestSellingProducts = $productQuery()
             ->whereIn('products.id', $topSellingIds)
             ->get()
             ->sortBy(fn ($product) => $topSellingIds->search($product->id))
@@ -45,13 +66,10 @@ class HomeController extends Controller
         if ($bestSellingProducts->isEmpty()) {
             $bestSellingProducts = $featuredProducts;
         }
-        $allProducts = ($branchId ? Product::forBranch($branchId) : Product::query())
-            ->with('category')
-            ->where('products.is_available', true)
+        $allProducts = $productQuery()
             ->orderBy('sort_order')
             ->take(8)
             ->get();
-        $branches = Branch::activeList();
 
         return Inertia::render('Home', [
             'categories' => $categories,
