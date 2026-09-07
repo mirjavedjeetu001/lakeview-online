@@ -35,13 +35,15 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        $branches = \App\Models\Branch::activeList();
+        $branches = \App\Models\Branch::activeList()
+            ->map(fn ($branch) => $branch->only(['id', 'name', 'address', 'phones', 'image', 'is_active', 'sort_order']))
+            ->values();
         $selectedBranch = null;
         if ($request->session()->get('branch_id')) {
             $selectedBranch = $branches->firstWhere('id', (int) $request->session()->get('branch_id'));
         }
         $mainBranch = $branches->first(
-            fn ($branch) => str_contains(strtolower((string) $branch->name), 'main')
+            fn ($branch) => str_contains(strtolower((string) ($branch['name'] ?? '')), 'main')
         ) ?: $branches->first();
 
         return [
