@@ -13,10 +13,29 @@ class ProductController extends Controller
     {
         $query = Product::forBranch((int) session('branch_id'))->with('category');
 
-        if ($request->has('category') && $request->category) {
-            $query->whereHas('category', function ($q) use ($request) {
-                $q->where('slug', $request->category);
-            });
+        if ($request->filled('category')) {
+            $requestedCategory = (string) $request->input('category');
+            $category = Category::where('is_active', true)->where('slug', $requestedCategory)->first();
+
+            // Older shared links may contain an accidental numeric suffix (e.g. ...YBrfW500).
+            if (!$category) {
+                $normalizedCategory = preg_replace('/\d+$/', '', $requestedCategory);
+                if ($normalizedCategory !== $requestedCategory) {
+                    $category = Category::where('is_active', true)->where('slug', $normalizedCategory)->first();
+                    if ($category) {
+                        return redirect()->route('products.index', array_filter([
+                            'category' => $category->slug,
+                            'search' => $request->input('search'),
+                        ]));
+                    }
+                }
+            }
+
+            if ($category) {
+                $query->where('products.category_id', $category->id);
+            } else {
+                $query->whereRaw('1 = 0');
+            }
         }
 
         if ($request->has('search') && $request->search) {
