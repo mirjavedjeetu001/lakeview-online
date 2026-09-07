@@ -57,6 +57,8 @@ class CheckoutController extends Controller
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
             'coupon_code' => 'nullable|string',
+        ], [
+            'customer_address.required' => 'Please provide your full delivery address for home delivery.',
         ]);
 
         $branch = Branch::whereKey($validated['branch_id'])

@@ -52,6 +52,7 @@ const dueAmount = computed(() => Math.max(0, Number(props.order.total || 0) - Nu
 const paymentLabel = (method) => ({ cash_on_delivery: 'Cash on delivery' }[method] || 'Cash on delivery');
 const setPaid = () => { paymentStatus.value = 'paid'; paidAmount.value = Number(props.order.total || 0); };
 const copySummary = async () => {
+    const isHomeDelivery = props.order.delivery_type === 'home_delivery';
     const items = (props.order.items || []).map((item) => `- ${item.product_name} x${item.quantity} = ৳${item.total}`).join('\n');
     const summary = [
         `Order: ${props.order.order_number}`,
@@ -61,7 +62,7 @@ const copySummary = async () => {
         `Delivery: ${props.order.delivery_type === 'pickup' ? 'Pickup' : 'Home delivery'}`,
         `Branch: ${props.order.branch?.name || 'N/A'}`,
         props.order.delivery_area?.name ? `Area: ${props.order.delivery_area.name}` : null,
-        props.order.customer_address ? `Address: ${props.order.customer_address}` : null,
+        isHomeDelivery ? `Address: ${props.order.customer_address || 'Not provided'}` : null,
         '', 'Items:', items || '- No items', '',
         `Subtotal: ৳${props.order.subtotal}`,
         `Discount: ৳${props.order.discount || 0}`,

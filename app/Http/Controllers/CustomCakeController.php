@@ -45,6 +45,8 @@ class CustomCakeController extends Controller
             'delivery_time' => 'nullable|string',
             'design_image' => 'nullable|image|max:2048',
             'notes' => 'nullable|string|max:1000',
+        ], [
+            'customer_address.required' => 'Please provide your full delivery address for home delivery.',
         ]);
 
         $branch = Branch::whereKey($validated['branch_id'])
