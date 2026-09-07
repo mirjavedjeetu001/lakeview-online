@@ -38,9 +38,10 @@
                         </button>
 
                         <div v-if="$page.props.auth?.user" class="relative hidden md:block">
-                            <button @click="profileOpen = !profileOpen" class="icon-button flex items-center gap-2 px-2">
-                                <span class="avatar">{{ $page.props.auth.user.name?.charAt(0)?.toUpperCase() }}</span>
-                                <span class="hidden md:block max-w-[140px] truncate text-xs font-semibold text-brand-800">{{ $page.props.auth.user.name }}</span>
+                            <button @click="profileOpen = !profileOpen" class="profile-button" :aria-expanded="profileOpen" aria-haspopup="menu">
+                                <span class="avatar shrink-0">{{ $page.props.auth.user.name?.charAt(0)?.toUpperCase() }}</span>
+                                <span class="max-w-[140px] truncate text-xs font-semibold text-brand-800">{{ $page.props.auth.user.name }}</span>
+                                <svg class="w-3.5 h-3.5 shrink-0 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m6 9 6 6 6-6"/></svg>
                             </button>
                             <div v-if="profileOpen" class="absolute right-0 top-full mt-3 w-56 rounded-2xl bg-white shadow-card border border-brand-100 p-2 z-50">
                                 <div class="px-3 py-2.5 border-b border-brand-100 mb-1">
@@ -58,7 +59,7 @@
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 8h14l-1 12H6L5 8Zm3 0V6a4 4 0 0 1 8 0v2"/></svg>
                             <span v-if="cartCount" class="cart-count">{{ cartCount }}</span>
                         </Link>
-                        <button @click="mobileMenuOpen = !mobileMenuOpen" class="icon-button lg:hidden" aria-label="Open menu">
+                        <button @click="mobileMenuOpen = !mobileMenuOpen" class="icon-button mobile-menu-toggle lg:hidden" :aria-expanded="mobileMenuOpen" aria-label="Open menu">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6h16M4 12h16M4 18h16"/></svg>
                         </button>
                     </div>
