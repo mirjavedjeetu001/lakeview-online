@@ -9,7 +9,9 @@ use App\Http\Controllers\Admin\AdminDeliveryAreaController;
 use App\Http\Controllers\Admin\AdminDeliveryManController;
 use App\Http\Controllers\Admin\AdminOrderController;
 use App\Http\Controllers\Admin\AdminProductController;
+use App\Http\Controllers\Admin\AdminReportController;
 use App\Http\Controllers\Admin\AdminSettingController;
+use App\Http\Controllers\Admin\AdminStockController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\BranchSelectionController;
@@ -135,6 +137,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::patch('/orders/{order}/payment', [AdminOrderController::class, 'updatePaymentStatus'])->name('orders.payment');
     Route::patch('/orders/{order}/verify-payment', [AdminOrderController::class, 'verifyPayment'])->name('orders.verify-payment');
     Route::patch('/orders/{order}/discount', [AdminOrderController::class, 'updateDiscount'])->name('orders.discount');
+
+    Route::get('/reports', [AdminReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/export', [AdminReportController::class, 'export'])->name('reports.export');
+    Route::get('/stock', [AdminStockController::class, 'index'])->name('stock.index');
+    Route::patch('/stock/{product}', [AdminStockController::class, 'update'])->name('stock.update');
+    Route::get('/stock/export', [AdminStockController::class, 'export'])->name('stock.export');
 
     Route::get('/custom-cakes', [AdminCustomCakeController::class, 'index'])->name('custom-cakes.index');
     Route::get('/custom-cakes/{customCakeOrder}', [AdminCustomCakeController::class, 'show'])->name('custom-cakes.show');

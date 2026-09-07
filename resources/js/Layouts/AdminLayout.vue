@@ -27,6 +27,14 @@
                         <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                         <span v-if="sidebarOpen">Orders</span>
                     </Link>
+                    <Link :href="route('admin.reports.index')" :class="activeMenu === 'reports' ? 'bg-gold-500 text-brand-950' : 'hover:bg-brand-800'" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 19V5m0 14h16M8 16v-4m4 4V8m4 8V5m4 11v-7"/></svg>
+                        <span v-if="sidebarOpen">Sales Reports</span>
+                    </Link>
+                    <Link :href="route('admin.stock.index')" :class="activeMenu === 'stock' ? 'bg-gold-500 text-brand-950' : 'hover:bg-brand-800'" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 7.5 12 3l9 4.5M3 7.5 12 12m0-9v9m9-4.5L12 12m-9-4.5V17l9 4 9-4V7.5M7 9.5l10 5M7 14.5l10-5"/></svg>
+                        <span v-if="sidebarOpen">Stock Management</span>
+                    </Link>
                     <Link :href="route('admin.custom-cakes.index')" :class="activeMenu === 'custom-cakes' ? 'bg-gold-500 text-brand-950' : 'hover:bg-brand-800'" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition">
                         <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.701 2.701 0 00-1.5-.454M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M21 21v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7h18zm-3-9v-1a2 2 0 00-2-2H8a2 2 0 00-2 2v1h12z"/></svg>
                         <span v-if="sidebarOpen">Custom Cake Orders</span>
