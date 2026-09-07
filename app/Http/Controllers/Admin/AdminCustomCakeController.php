@@ -12,6 +12,9 @@ class AdminCustomCakeController extends Controller
     public function index(Request $request)
     {
         $query = CustomCakeOrder::with(['branch', 'deliveryArea']);
+        if ($request->user()->adminBranchId()) {
+            $query->where('branch_id', $request->user()->adminBranchId());
+        }
         if ($request->has('status') && $request->status) {
             $query->where('status', $request->status);
         }
@@ -24,6 +27,7 @@ class AdminCustomCakeController extends Controller
 
     public function show(CustomCakeOrder $customCakeOrder)
     {
+        abort_unless(request()->user()->canAccessBranch((int) $customCakeOrder->branch_id), 403, 'This cake order is outside your branch access.');
         $customCakeOrder->load(['branch', 'deliveryArea', 'deliveryMan']);
         $deliveryMen = \App\Models\DeliveryMan::where('is_active', true)->orderBy('name')->get();
         return Inertia::render('Admin/CustomCakes/Show', [
@@ -34,6 +38,7 @@ class AdminCustomCakeController extends Controller
 
     public function updateStatus(Request $request, CustomCakeOrder $customCakeOrder)
     {
+        $this->ensureBranchAccess($request, $customCakeOrder);
         $validated = $request->validate([
             'status' => 'required|in:pending,confirmed,preparing,ready,delivered,cancelled',
             'estimated_price' => 'nullable|numeric|min:0',
@@ -50,6 +55,7 @@ class AdminCustomCakeController extends Controller
 
     public function assignDeliveryMan(Request $request, CustomCakeOrder $customCakeOrder)
     {
+        $this->ensureBranchAccess($request, $customCakeOrder);
         $validated = $request->validate([
             'delivery_man_id' => 'nullable|exists:delivery_men,id',
         ]);
@@ -59,6 +65,7 @@ class AdminCustomCakeController extends Controller
 
     public function updatePaymentStatus(Request $request, CustomCakeOrder $customCakeOrder)
     {
+        $this->ensureBranchAccess($request, $customCakeOrder);
         $validated = $request->validate([
             'payment_status' => 'required|in:unpaid,paid',
         ]);
@@ -68,7 +75,13 @@ class AdminCustomCakeController extends Controller
 
     public function verifyPayment(Request $request, CustomCakeOrder $customCakeOrder)
     {
+        $this->ensureBranchAccess($request, $customCakeOrder);
         $customCakeOrder->update(['payment_verified' => true, 'payment_status' => 'paid']);
         return redirect()->back()->with('success', 'Payment verified successfully.');
+    }
+
+    private function ensureBranchAccess(Request $request, CustomCakeOrder $order): void
+    {
+        abort_unless($request->user()->canAccessBranch((int) $order->branch_id), 403, 'This cake order is outside your branch access.');
     }
 }

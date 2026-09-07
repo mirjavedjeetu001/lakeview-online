@@ -10,14 +10,15 @@ use Inertia\Inertia;
 
 class AdminBranchController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $branches = Branch::withCount(['deliveryAreas', 'orders', 'products'])->orderBy('sort_order')->get();
+        $branches = Branch::withCount(['deliveryAreas', 'orders', 'products'])->when($request->user()->adminBranchId(), fn ($builder, $id) => $builder->whereKey($id))->orderBy('sort_order')->get();
         return Inertia::render('Admin/Branches/Index', ['branches' => $branches]);
     }
 
     public function store(Request $request)
     {
+        abort_if($request->user()->adminBranchId(), 403, 'A branch-restricted user cannot create a new branch.');
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'address' => 'nullable|string',
@@ -39,6 +40,7 @@ class AdminBranchController extends Controller
 
     public function update(Request $request, Branch $branch)
     {
+        abort_unless($request->user()->canAccessBranch((int) $branch->id), 403, 'This branch is outside your access.');
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'address' => 'nullable|string',
@@ -57,8 +59,9 @@ class AdminBranchController extends Controller
         return redirect()->back()->with('success', 'Branch updated successfully.');
     }
 
-    public function destroy(Branch $branch)
+    public function destroy(Request $request, Branch $branch)
     {
+        abort_unless($request->user()->canAccessBranch((int) $branch->id), 403, 'This branch is outside your access.');
         $branch->delete();
         return redirect()->back()->with('success', 'Branch deleted successfully.');
     }

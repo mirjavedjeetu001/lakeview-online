@@ -21,14 +21,14 @@ class AdminReportController extends Controller
     public function index(Request $request)
     {
         [$from, $to] = $this->dateRange($request);
-        $branchId = $request->filled('branch_id') ? $request->integer('branch_id') : null;
+        $branchId = $request->user()->adminBranchId() ?: ($request->filled('branch_id') ? $request->integer('branch_id') : null);
         $status = in_array($request->input('status', 'delivered'), array_merge(['all'], self::STATUSES), true)
             ? $request->input('status', 'delivered')
             : 'delivered';
 
         return Inertia::render('Admin/Reports/Index', [
             ...$this->analytics($from, $to, $branchId, $status),
-            'branches' => Branch::orderBy('sort_order')->get(['id', 'name']),
+            'branches' => Branch::when($request->user()->adminBranchId(), fn ($builder, $id) => $builder->whereKey($id))->orderBy('sort_order')->get(['id', 'name']),
             'filters' => [
                 'from' => $from->toDateString(),
                 'to' => $to->toDateString(),
@@ -42,7 +42,7 @@ class AdminReportController extends Controller
     public function export(Request $request)
     {
         [$from, $to] = $this->dateRange($request);
-        $branchId = $request->filled('branch_id') ? $request->integer('branch_id') : null;
+        $branchId = $request->user()->adminBranchId() ?: ($request->filled('branch_id') ? $request->integer('branch_id') : null);
         $status = in_array($request->input('status', 'delivered'), array_merge(['all'], self::STATUSES), true)
             ? $request->input('status', 'delivered')
             : 'delivered';

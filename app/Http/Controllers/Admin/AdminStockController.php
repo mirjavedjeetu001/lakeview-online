@@ -15,7 +15,7 @@ class AdminStockController extends Controller
 
     public function index(Request $request)
     {
-        $branches = Branch::orderBy('sort_order')->get(['id', 'name', 'is_active']);
+        $branches = $this->availableBranches($request);
         $branchId = $request->filled('branch_id')
             ? $request->integer('branch_id')
             : ($branches->firstWhere('is_active', true)?->id ?: $branches->first()?->id);
@@ -44,6 +44,8 @@ class AdminStockController extends Controller
             'is_available' => 'required|boolean',
         ]);
 
+        abort_unless($request->user()->canAccessBranch((int) $validated['branch_id']), 403, 'This branch is outside your access.');
+
         $exists = DB::table('branch_product')
             ->where('branch_id', $validated['branch_id'])
             ->where('product_id', $product)
@@ -67,7 +69,7 @@ class AdminStockController extends Controller
 
     public function export(Request $request)
     {
-        $branches = Branch::orderBy('sort_order')->get(['id', 'name', 'is_active']);
+        $branches = $this->availableBranches($request);
         $branchId = $request->filled('branch_id')
             ? $request->integer('branch_id')
             : ($branches->firstWhere('is_active', true)?->id ?: $branches->first()?->id);
@@ -142,5 +144,11 @@ class AdminStockController extends Controller
             'low' => (clone $base)->whereBetween('stock', [1, self::LOW_STOCK_LIMIT])->count(),
             'out' => (clone $base)->where('stock', 0)->count(),
         ];
+    }
+
+    private function availableBranches(Request $request)
+    {
+        return Branch::when($request->user()->adminBranchId(), fn ($builder, $branchId) => $builder->whereKey($branchId))
+            ->orderBy('sort_order')->get(['id', 'name', 'is_active']);
     }
 }

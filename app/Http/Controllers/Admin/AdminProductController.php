@@ -16,6 +16,11 @@ class AdminProductController extends Controller
     public function index(Request $request)
     {
         $query = Product::with(['category', 'branches'])->withCount('branches');
+        $adminBranchId = $request->user()->adminBranchId();
+
+        if ($adminBranchId) {
+            $query->whereHas('branches', fn ($builder) => $builder->whereKey($adminBranchId));
+        }
 
         if ($request->filled('search')) {
             $query->where('name', 'like', '%' . $request->string('search') . '%');
@@ -30,7 +35,7 @@ class AdminProductController extends Controller
         return Inertia::render('Admin/Products/Index', [
             'products' => $products,
             'categories' => Category::orderBy('sort_order')->get(),
-            'branches' => Branch::orderBy('sort_order')->get(),
+            'branches' => Branch::when($adminBranchId, fn ($builder) => $builder->whereKey($adminBranchId))->orderBy('sort_order')->get(),
             'filters' => $request->only(['search', 'category_id']),
         ]);
     }
@@ -58,6 +63,7 @@ class AdminProductController extends Controller
 
     public function update(Request $request, Product $product)
     {
+        $this->ensureProductAccess($request, $product);
         $validated = $this->validateProduct($request);
         $currentGallery = $product->gallery ?: [];
         $removeGallery = json_decode($request->input('remove_gallery', '[]'), true) ?: [];
@@ -87,6 +93,7 @@ class AdminProductController extends Controller
 
     public function destroy(Product $product)
     {
+        $this->ensureProductAccess(request(), $product);
         $product->delete();
 
         return redirect()->back()->with('success', 'Product deleted successfully.');
@@ -132,7 +139,9 @@ class AdminProductController extends Controller
             return [];
         }
 
-        $branchIds = Branch::pluck('id')->map(fn ($id) => (int) $id)->all();
+        $adminBranchId = $request->user()->adminBranchId();
+        $branchIds = Branch::when($adminBranchId, fn ($builder) => $builder->whereKey($adminBranchId))
+            ->pluck('id')->map(fn ($id) => (int) $id)->all();
 
         return collect($raw)
             ->filter(fn ($assignment) => is_array($assignment) && in_array((int) ($assignment['branch_id'] ?? 0), $branchIds, true))
@@ -153,6 +162,21 @@ class AdminProductController extends Controller
 
     private function syncBranches(Product $product, array $assignments, bool $fallbackToActive = true): void
     {
+        $adminBranchId = request()->user()->adminBranchId();
+
+        // A branch-restricted admin may update its own pivot row, but must not
+        // detach this product from another outlet while saving the form.
+        if ($adminBranchId && !$assignments && $fallbackToActive) {
+            $assignments = [$adminBranchId => ['is_available' => true]];
+        }
+
+        if ($adminBranchId) {
+            if ($assignments) {
+                $product->branches()->syncWithoutDetaching($assignments);
+            }
+            return;
+        }
+
         if (!$assignments && $fallbackToActive) {
             $assignments = Branch::activeList()->pluck('id')->mapWithKeys(fn ($id) => [
                 $id => ['is_available' => true],
@@ -160,5 +184,14 @@ class AdminProductController extends Controller
         }
 
         $product->branches()->sync($assignments);
+    }
+
+    private function ensureProductAccess(Request $request, Product $product): void
+    {
+        $adminBranchId = $request->user()->adminBranchId();
+
+        if ($adminBranchId && !$product->branches()->whereKey($adminBranchId)->exists()) {
+            abort(403, 'This product is not assigned to your branch.');
+        }
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Branch;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -29,8 +30,10 @@ class AdminUserController extends Controller
         }
 
         return Inertia::render('Admin/Users/Index', [
-            'users' => $query->paginate(15)->withQueryString(),
+            'users' => $query->with('branch:id,name')->paginate(15)->withQueryString(),
             'filters' => $request->only(['search', 'role']),
+            'branches' => Branch::orderBy('sort_order')->get(['id', 'name', 'is_active']),
+            'permissions' => User::PERMISSION_LABELS,
         ]);
     }
 
@@ -39,6 +42,8 @@ class AdminUserController extends Controller
         $validated = $this->validateUser($request);
         $validated['password'] = Hash::make($validated['password']);
         $validated['is_active'] = $request->boolean('is_active', true);
+        $validated['permissions'] = $this->cleanPermissions($request->input('permissions', []), $validated['role']);
+        $validated['branch_id'] = $validated['role'] === 'super_admin' ? null : ($validated['branch_id'] ?? null);
 
         User::create($validated);
 
@@ -53,6 +58,10 @@ class AdminUserController extends Controller
             return redirect()->back()->withErrors(['role' => 'You cannot remove your own admin access.']);
         }
 
+        if ($user->is($request->user()) && $request->user()->role === 'super_admin' && $validated['role'] !== 'super_admin') {
+            return redirect()->back()->withErrors(['role' => 'The active super admin account cannot be downgraded from itself.']);
+        }
+
         if (array_key_exists('password', $validated) && filled($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);
         } else {
@@ -63,6 +72,8 @@ class AdminUserController extends Controller
         if ($user->is($request->user())) {
             $validated['is_active'] = true;
         }
+        $validated['permissions'] = $this->cleanPermissions($request->input('permissions', []), $validated['role']);
+        $validated['branch_id'] = $validated['role'] === 'super_admin' ? null : ($validated['branch_id'] ?? null);
 
         $user->update($validated);
 
@@ -93,6 +104,22 @@ class AdminUserController extends Controller
             'password' => $user ? 'nullable|string|min:6' : 'required|string|min:6',
             'role' => 'required|in:customer,admin,super_admin',
             'is_active' => 'boolean',
+            'branch_id' => 'nullable|exists:branches,id',
+            'permissions' => 'nullable|array',
+            'permissions.*' => 'string|in:' . implode(',', User::ADMIN_PERMISSIONS),
         ]);
+    }
+
+    private function cleanPermissions(array $permissions, string $role): array
+    {
+        if ($role === 'super_admin') {
+            return User::ADMIN_PERMISSIONS;
+        }
+
+        if ($role === 'customer') {
+            return [];
+        }
+
+        return array_values(array_intersect($permissions, User::ADMIN_PERMISSIONS));
     }
 }
