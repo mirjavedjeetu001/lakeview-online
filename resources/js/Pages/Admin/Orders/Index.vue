@@ -3,10 +3,7 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="flex items-center justify-between p-4 border-b">
                 <h2 class="font-bold text-gray-900">All Orders</h2>
-                <select v-model="statusFilter" class="rounded-lg border-gray-300 focus:border-brand-500 focus:ring-brand-500 text-sm" @change="doFilter">
-                    <option value="">All Status</option>
-                    <option v-for="s in statuses" :key="s" :value="s">{{ s.replace(/_/g, ' ') }}</option>
-                </select>
+                <div class="flex flex-col sm:flex-row gap-2"><select v-if="branches.length > 1" v-model="branchFilter" class="rounded-lg border-gray-300 focus:border-brand-500 focus:ring-brand-500 text-sm" @change="doFilter"><option value="">All branches</option><option v-for="branch in branches" :key="branch.id" :value="branch.id">{{ branch.name }}</option></select><select v-model="statusFilter" class="rounded-lg border-gray-300 focus:border-brand-500 focus:ring-brand-500 text-sm" @change="doFilter"><option value="">All Status</option><option v-for="s in statuses" :key="s" :value="s">{{ s.replace(/_/g, ' ') }}</option></select></div>
             </div>
             <div class="overflow-x-auto"><table class="w-full min-w-[760px]">
                 <thead class="bg-gray-50">
@@ -42,9 +39,11 @@ import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Link, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
-const props = defineProps({ orders: Object, filters: Object });
+const props = defineProps({ orders: Object, filters: Object, branches: Array });
 const statuses = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered', 'cancelled'];
+const branches = props.branches || [];
 const statusFilter = ref(props.filters?.status || '');
-const doFilter = () => router.get(route('admin.orders.index'), { status: statusFilter.value }, { preserveState: true, preserveScroll: true });
+const branchFilter = ref(props.filters?.branch_id || '');
+const doFilter = () => router.get(route('admin.orders.index'), { status: statusFilter.value, branch_id: branchFilter.value }, { preserveState: true, preserveScroll: true });
 const statusClass = (status) => ({ pending: 'bg-yellow-100 text-yellow-700', confirmed: 'bg-blue-100 text-blue-700', preparing: 'bg-purple-100 text-purple-700', ready: 'bg-indigo-100 text-indigo-700', out_for_delivery: 'bg-orange-100 text-orange-700', delivered: 'bg-green-100 text-green-700', cancelled: 'bg-red-100 text-red-700' }[status] || 'bg-gray-100 text-gray-700');
 </script>

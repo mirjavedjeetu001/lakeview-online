@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Branch;
 use App\Models\DeliveryMan;
 use App\Models\Order;
 use Illuminate\Http\Request;
@@ -13,8 +14,9 @@ class AdminOrderController extends Controller
     public function index(Request $request)
     {
         $query = Order::with(['branch', 'deliveryArea', 'items', 'coupon', 'deliveryMan']);
-        if ($request->user()->adminBranchId()) {
-            $query->where('branch_id', $request->user()->adminBranchId());
+        $branchId = $request->user()->adminBranchId() ?: ($request->filled('branch_id') ? $request->integer('branch_id') : null);
+        if ($branchId) {
+            $query->where('branch_id', $branchId);
         }
         if ($request->has('status') && $request->status) {
             $query->where('status', $request->status);
@@ -22,7 +24,9 @@ class AdminOrderController extends Controller
         $orders = $query->latest()->paginate(15);
         return Inertia::render('Admin/Orders/Index', [
             'orders' => $orders,
-            'filters' => $request->only(['status']),
+            'branches' => Branch::when($request->user()->adminBranchId(), fn ($builder, $id) => $builder->whereKey($id))
+                ->orderBy('sort_order')->get(['id', 'name']),
+            'filters' => ['status' => $request->input('status', ''), 'branch_id' => $branchId],
         ]);
     }
 

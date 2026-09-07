@@ -5,6 +5,7 @@
                 <div class="bg-white rounded-2xl shadow-sm border border-brand-100 p-6">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                         <div><p class="text-xs uppercase tracking-[.18em] text-brand-400 font-bold">{{ order.order_number }}</p><h3 class="font-serif font-bold text-brand-900 text-lg mt-1">Order Items</h3></div>
+                        <button @click="copySummary" class="rounded-xl border border-brand-200 bg-brand-50 px-3 py-2 text-xs font-bold text-brand-700 hover:bg-brand-100 transition">{{ copied ? 'Copied!' : 'Copy order summary' }}</button>
                         <span class="rounded-full bg-gold-50 px-3 py-1.5 text-xs font-bold text-gold-700">{{ order.status.replace(/_/g, ' ') }}</span>
                     </div>
                     <div class="overflow-x-auto"><table class="w-full min-w-[560px]">
@@ -45,10 +46,47 @@ const paymentStatus = ref(props.order.payment_status || 'unpaid');
 const paidAmount = ref(Number(props.order.advance_amount || (paymentStatus.value === 'paid' ? props.order.total : 0)));
 const transactionId = ref(props.order.transaction_id || '');
 const paymentVerified = ref(!!props.order.payment_verified);
+const copied = ref(false);
 const dueAmount = computed(() => Math.max(0, Number(props.order.total || 0) - Number(paidAmount.value || 0)));
 
 const paymentLabel = (method) => ({ cash_on_delivery: 'Cash on delivery' }[method] || 'Cash on delivery');
 const setPaid = () => { paymentStatus.value = 'paid'; paidAmount.value = Number(props.order.total || 0); };
+const copySummary = async () => {
+    const items = (props.order.items || []).map((item) => `- ${item.product_name} x${item.quantity} = ৳${item.total}`).join('\n');
+    const summary = [
+        `Order: ${props.order.order_number}`,
+        `Customer: ${props.order.customer_name}`,
+        `Phone: ${props.order.customer_phone}`,
+        props.order.customer_email ? `Email: ${props.order.customer_email}` : null,
+        `Delivery: ${props.order.delivery_type === 'pickup' ? 'Pickup' : 'Home delivery'}`,
+        `Branch: ${props.order.branch?.name || 'N/A'}`,
+        props.order.delivery_area?.name ? `Area: ${props.order.delivery_area.name}` : null,
+        props.order.customer_address ? `Address: ${props.order.customer_address}` : null,
+        '', 'Items:', items || '- No items', '',
+        `Subtotal: ৳${props.order.subtotal}`,
+        `Discount: ৳${props.order.discount || 0}`,
+        `Delivery charge: ৳${props.order.delivery_charge || 0}`,
+        `Total: ৳${props.order.total}`,
+        `Payment: ${paymentLabel(props.order.payment_method)} - ${paymentStatus.value}`,
+        `Paid: ৳${paidAmount.value || 0}`,
+        `Due: ৳${dueAmount.value.toFixed(2)}`,
+        `Payment verified: ${paymentVerified.value ? 'Yes' : 'No'}`,
+        `Order status: ${props.order.status.replace(/_/g, ' ')}`,
+        props.order.notes ? `Note: ${props.order.notes}` : null,
+    ].filter(Boolean).join('\n');
+    try {
+        await navigator.clipboard.writeText(summary);
+    } catch {
+        const textarea = document.createElement('textarea');
+        textarea.value = summary;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        textarea.remove();
+    }
+    copied.value = true;
+    window.setTimeout(() => { copied.value = false; }, 1800);
+};
 const updateStatus = () => router.patch(route('admin.orders.status', props.order.id), { status: status.value });
 const savePayment = () => router.patch(route('admin.orders.payment', props.order.id), { payment_status: paymentStatus.value, advance_amount: paidAmount.value, transaction_id: transactionId.value, payment_verified: paymentVerified.value }, { onSuccess: () => { props.order.payment_status = paymentStatus.value; props.order.advance_amount = paymentStatus.value === 'paid' ? Number(props.order.total) : Number(paidAmount.value || 0); props.order.transaction_id = transactionId.value; props.order.payment_verified = paymentVerified.value; } });
 const assignDeliveryMan = () => router.patch(route('admin.orders.delivery-man', props.order.id), { delivery_man_id: deliveryManId.value });
