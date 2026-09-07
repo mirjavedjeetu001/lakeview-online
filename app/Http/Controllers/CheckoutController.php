@@ -286,8 +286,12 @@ class CheckoutController extends Controller
     private function isCustomCakeProduct(Product $product): bool
     {
         $category = strtolower((string) ($product->category?->name ?? ''));
+        $name = strtolower((string) $product->name);
 
-        return in_array($category, ['cake', 'order cake'], true) || str_contains($category, 'custom cake');
+        return in_array($category, ['cake', 'order cake'], true)
+            || str_contains($category, 'custom cake')
+            || str_contains($category, 'cake')
+            || str_contains($name, 'cake');
     }
 
     private function isCakeCompanion(Product $product): bool

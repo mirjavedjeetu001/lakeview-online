@@ -58,7 +58,7 @@ const selectedBranch = computed(() => props.branches?.find(branch => branch.id =
 const allDeliveryAreas = computed(() => props.deliveryAreas || []);
 const branchDeliveryAreas = computed(() => form.value.branch_id ? allDeliveryAreas.value.filter(area => Number(area.branch_id) === Number(form.value.branch_id)) : []);
 const categoryText = item => String(item.category_name || '').toLowerCase();
-const cakeItem = item => /cake|order cake/.test(categoryText(item)) || (!item.category_name && /cake/.test(String(item.name || '').toLowerCase()));
+const cakeItem = item => /cake|order cake/.test(`${categoryText(item)} ${String(item.name || '').toLowerCase()}`);
 const companionItem = item => /sweet|bakery|biscuit|cookie|toast|dessert/.test(categoryText(item)) || (!item.category_name && /sweet|bakery|biscuit|cookie|toast|dessert/.test(String(item.name || '').toLowerCase()));
 const outsideDeliveryAllowed = computed(() => cartItems.value.some(cakeItem) && cartItems.value.every(item => cakeItem(item) || companionItem(item)));
 const visibleDeliveryAreas = computed(() => branchDeliveryAreas.value.filter(area => area.zone_type === 'sadar' || outsideDeliveryAllowed.value));
