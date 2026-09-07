@@ -59,8 +59,9 @@ const toast = ref({ show: false, product: null });
 let toastTimer;
 
 const assetUrl = (path) => path?.startsWith('http') ? path : '/storage/' + path;
-const heroImages = computed(() => { try { return JSON.parse(settings.value.hero_images || '[]').filter(Boolean); } catch { return []; } });
-const heroImage = (index) => heroImages.value[index] || (featuredProducts.value.length ? assetUrl(featuredProducts.value[index % featuredProducts.value.length]?.image) : '');
+const fallbackHeroImages = ['/images/lakeview-hero.jpg', '/images/lakeview-sweets.jpg', '/images/lakeview-cake.jpg'];
+const heroImages = computed(() => { try { const configured = JSON.parse(settings.value.hero_images || '[]').filter(Boolean); return configured.length ? configured : fallbackHeroImages; } catch { return fallbackHeroImages; } });
+const heroImage = (index) => heroImages.value[index % heroImages.value.length] || (featuredProducts.value.length ? assetUrl(featuredProducts.value[index % featuredProducts.value.length]?.image) : '');
 const productMark = (product, index) => product?.category?.name?.slice(0, 2).toUpperCase() || ['FB', 'CC', 'LF', 'LV'][index] || 'LV';
 const categoryMark = (name) => ({ Cake: 'CK', Bread: 'BR', Cookies: 'CO', Sweets: 'SW', 'Fast Food': 'FF', Toast: 'TO', Dessert: 'DS', 'Order Cake': 'OC' }[name] || 'LV');
 const addToCart = (product, amount = 1) => {
