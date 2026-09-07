@@ -48,6 +48,7 @@ const loadCart = () => {
     try {
         const original = JSON.parse(localStorage.getItem('cart') || '[]');
         const raw = original.filter(item => item.price != null && !isNaN(item.price));
+        raw.forEach(item => { item.allow_home_delivery = true; });
         cartItems.value = raw;
         if (raw.length < original.length) localStorage.setItem('cart', JSON.stringify(raw));
     } catch { cartItems.value = []; }

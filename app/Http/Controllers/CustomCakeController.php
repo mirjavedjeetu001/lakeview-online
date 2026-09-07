@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Branch;
-use App\Models\Category;
 use App\Models\CustomCakeOrder;
 use App\Models\DeliveryArea;
 use App\Models\User;
@@ -20,29 +19,16 @@ class CustomCakeController extends Controller
     {
         $branches = Branch::activeList();
         $deliveryAreas = DeliveryArea::where('is_active', true)->orderBy('zone_type')->orderBy('name')->get();
-        $customCakeCategory = Category::whereIn('name', ['Order Cake', 'Cake'])
-            ->orderByRaw("CASE WHEN name = 'Order Cake' THEN 0 ELSE 1 END")
-            ->first();
-
         return Inertia::render('CustomCake/Index', [
             'branches' => $branches,
             'deliveryAreas' => $deliveryAreas,
             'selectedBranchId' => (int) session('branch_id'),
-            'deliveryMode' => in_array($customCakeCategory?->delivery_mode, ['pickup', 'home_delivery', 'both'], true)
-                ? $customCakeCategory->delivery_mode
-                : 'pickup',
+            'deliveryMode' => 'both',
         ]);
     }
 
     public function store(Request $request)
     {
-        $customCakeCategory = Category::whereIn('name', ['Order Cake', 'Cake'])
-            ->orderByRaw("CASE WHEN name = 'Order Cake' THEN 0 ELSE 1 END")
-            ->first();
-        $deliveryMode = in_array($customCakeCategory?->delivery_mode, ['pickup', 'home_delivery', 'both'], true)
-            ? $customCakeCategory->delivery_mode
-            : 'pickup';
-
         $validated = $request->validate([
             'branch_id' => 'required|exists:branches,id',
             'delivery_type' => 'required|in:pickup,home_delivery',
@@ -60,14 +46,6 @@ class CustomCakeController extends Controller
             'design_image' => 'nullable|image|max:2048',
             'notes' => 'nullable|string|max:1000',
         ]);
-
-        if ($deliveryMode === 'pickup' && $validated['delivery_type'] !== 'pickup') {
-            return redirect()->back()->withErrors(['delivery_type' => 'Custom cakes are currently available for branch pickup only.'])->withInput();
-        }
-
-        if ($deliveryMode === 'home_delivery' && $validated['delivery_type'] !== 'home_delivery') {
-            return redirect()->back()->withErrors(['delivery_type' => 'Custom cakes are currently available for home delivery only.'])->withInput();
-        }
 
         $branch = Branch::whereKey($validated['branch_id'])
             ->where('is_active', true)

@@ -62,7 +62,7 @@
                     <label class="field-label">Description<textarea v-model="form.description" rows="3" class="field-input"></textarea></label>
                     <label class="field-label">Category image<input @change="handleFile" type="file" accept="image/*" class="field-input file:mr-3 file:rounded-full file:border-0 file:bg-brand-100 file:px-3 file:py-1 file:text-xs file:font-bold file:text-brand-700" /><span class="block mt-1 text-xs font-normal text-brand-400">JPG, PNG or WEBP · maximum 2MB</span></label>
                     <div v-if="fileError" class="rounded-xl bg-red-50 px-3 py-2 text-xs text-red-700">{{ fileError }}</div>
-                    <label class="field-label">Delivery options<select v-model="form.delivery_mode" class="field-input"><option value="both">Pickup & Home Delivery</option><option value="pickup">Pickup only</option><option value="home_delivery">Home Delivery only</option></select><span class="block mt-1 text-xs font-normal text-brand-400">Products set to “Use category setting” will follow this.</span></label>
+                    <label class="field-label">Delivery options<select v-model="form.delivery_mode" class="field-input"><option value="both">Pickup & Home Delivery</option><option value="pickup">Pickup preferred</option><option value="home_delivery">Home Delivery only</option></select><span class="block mt-1 text-xs font-normal text-brand-400">Home delivery remains available for every product; this controls pickup availability.</span></label>
                     <div class="grid sm:grid-cols-2 gap-4">
                         <label class="field-label">Sort order<input v-model="form.sort_order" type="number" min="0" class="field-input" /></label>
                         <label class="inline-flex items-center gap-2 self-end pb-3 text-sm font-semibold text-brand-700"><input v-model="form.is_active" type="checkbox" class="rounded border-brand-300 text-brand-600" /> Active category</label>
@@ -124,5 +124,5 @@ const saveCategory = () => {
 };
 
 const deleteCategory = (cat) => { if (confirm('Delete this category?')) router.delete(route('admin.categories.destroy', cat.id)); };
-const deliveryLabel = (mode) => ({ pickup: 'Pickup only', home_delivery: 'Home delivery', both: 'Pickup + delivery' }[mode] || 'Pickup + delivery');
+const deliveryLabel = (mode) => ({ pickup: 'Pickup + delivery', home_delivery: 'Home delivery', both: 'Pickup + delivery' }[mode] || 'Pickup + delivery');
 </script>

@@ -99,7 +99,13 @@ class Product extends Model
             ? $this->delivery_mode
             : ($this->category?->delivery_mode ?: 'both');
 
-        return in_array($mode, ['pickup', 'home_delivery', 'both'], true) ? $mode : 'both';
+        // Home delivery is available for every catalog item. A legacy pickup-only
+        // setting still keeps the pickup option, but must not block delivery.
+        if ($mode === 'pickup') {
+            return 'both';
+        }
+
+        return in_array($mode, ['home_delivery', 'both'], true) ? $mode : 'both';
     }
 
     public function getAllowPickupAttribute(): bool
@@ -109,6 +115,6 @@ class Product extends Model
 
     public function getAllowHomeDeliveryAttribute(): bool
     {
-        return in_array($this->effective_delivery_mode, ['home_delivery', 'both'], true);
+        return true;
     }
 }

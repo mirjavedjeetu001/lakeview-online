@@ -29,8 +29,8 @@ class CheckoutController extends Controller
             'deliveryAreas' => $deliveryAreas,
             'selectedBranchId' => $selectedBranchId,
             'minOrder' => [
-                'sadar' => (float) ($settings['min_order_sadar'] ?? 500),
-                'outside' => (float) ($settings['min_order_outside'] ?? 1000),
+                'sadar' => (float) ($settings['min_order_sadar'] ?? $settings['min_order_amount'] ?? 0),
+                'outside' => (float) ($settings['min_order_outside'] ?? $settings['min_order_amount'] ?? 0),
             ],
         ]);
     }
@@ -91,12 +91,6 @@ class CheckoutController extends Controller
 
             $products->push($product);
 
-            if ($validated['delivery_type'] === 'home_delivery' && !$product->allow_home_delivery) {
-                return redirect()->back()->withErrors([
-                    'items' => "{$product->name} is available for pickup only. Please choose Pickup for this order.",
-                ])->withInput();
-            }
-
             if ($validated['delivery_type'] === 'pickup' && !$product->allow_pickup) {
                 return redirect()->back()->withErrors([
                     'items' => "{$product->name} is available for home delivery only. Please choose Home Delivery for this order.",
@@ -152,7 +146,8 @@ class CheckoutController extends Controller
                     ->first();
                 if ($area) {
                     $minKey = $area->zone_type === 'sadar' ? 'min_order_sadar' : 'min_order_outside';
-                    $minOrder = (float) (\App\Models\Setting::where('key', $minKey)->first()?->value ?? 0);
+                    $globalMinimum = \App\Models\Setting::where('key', 'min_order_amount')->value('value');
+                    $minOrder = (float) (\App\Models\Setting::where('key', $minKey)->value('value') ?? $globalMinimum ?? 0);
                 }
             }
             if ($minOrder > 0 && $subtotal < $minOrder) {

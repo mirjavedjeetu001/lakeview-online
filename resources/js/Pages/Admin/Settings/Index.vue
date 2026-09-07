@@ -184,7 +184,7 @@ const settingHints = {
     hero_image: 'Single hero background image (optional). Use Hero Images above for multiple.',
     hero_images: 'Add multiple image URLs for a rotating hero banner',
     whatsapp_number: 'Include country code, e.g. +8801722554400',
-    min_order_amount: 'Minimum order amount for delivery (in Taka)',
+    min_order_amount: 'Fallback minimum order amount for delivery (in Taka)',
     min_order_pickup: 'Minimum order for pickup (0 = no minimum)',
     min_order_sadar: 'Minimum order for Sadar area delivery (in Taka)',
     min_order_outside: 'Minimum order for Outside Sadar delivery (in Taka)',

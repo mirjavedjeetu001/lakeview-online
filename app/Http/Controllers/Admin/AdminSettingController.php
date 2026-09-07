@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
@@ -14,6 +15,7 @@ class AdminSettingController extends Controller
     public function index()
     {
         $this->ensureMailerSettings();
+        $this->ensureDeliverySettings();
         // Advance payment is disabled for now. Keep its database values for a future
         // re-enable, but do not expose the controls in the active admin UI.
         $settings = Setting::whereNotIn('key', ['merchant_number', 'merchant_name', 'payment_instructions'])
@@ -101,6 +103,25 @@ class AdminSettingController extends Controller
             'mail_order_recipients' => [json_encode(['metasoftinfo@gmail.com']), 'mailer'],
             'mail_order_notifications' => ['1', 'mailer'],
             'mail_customer_notifications' => ['1', 'mailer'],
+        ];
+
+        foreach ($defaults as $key => [$value, $group]) {
+            Setting::firstOrCreate(['key' => $key], ['value' => $value, 'group' => $group]);
+        }
+
+        Cache::forget('settings.all');
+        Cache::forget('settings.group.delivery');
+    }
+
+    private function ensureDeliverySettings(): void
+    {
+        $globalMinimum = (string) (Setting::where('key', 'min_order_amount')->value('value') ?? '0');
+
+        $defaults = [
+            'min_order_amount' => [$globalMinimum, 'delivery'],
+            'min_order_sadar' => [$globalMinimum, 'delivery'],
+            'min_order_outside' => [$globalMinimum, 'delivery'],
+            'min_order_pickup' => ['0', 'delivery'],
         ];
 
         foreach ($defaults as $key => [$value, $group]) {
