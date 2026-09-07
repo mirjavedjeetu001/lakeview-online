@@ -53,6 +53,10 @@ class Product extends Model
                     ->where('branch_product.branch_id', '=', $branchId);
             })
             ->where('branch_product.is_available', true)
+            ->where(function ($query) {
+                $query->whereNull('branch_product.stock')
+                    ->orWhere('branch_product.stock', '>', 0);
+            })
             ->where('products.is_available', true)
             ->select('products.*')
             ->addSelect([
