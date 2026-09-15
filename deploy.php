@@ -42,8 +42,8 @@ log_msg('Starting deployment from prod...');
 
 $commands = [
     "cd $REPO_DIR && git fetch --prune origin prod 2>&1",
-    "cd $REPO_DIR && git checkout prod 2>&1",
-    "cd $REPO_DIR && git pull --ff-only origin prod 2>&1",
+    "cd $REPO_DIR && git checkout -f prod 2>&1",
+    "cd $REPO_DIR && git reset --hard origin/prod 2>&1",
     "cd $PROJECT_DIR && /bin/mkdir -p build images 2>&1",
     "cd $PROJECT_DIR && /bin/rm -f setup.php 2>&1",
     "cd $PROJECT_DIR && php artisan migrate --force 2>&1",
