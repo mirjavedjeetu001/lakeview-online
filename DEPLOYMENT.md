@@ -1,6 +1,6 @@
 # Lake View Sweets & Bakery - cPanel Deployment Guide (No Terminal)
 
-## Step 1: Clone Repo via cPanel Git Version Control
+## Step 1: cPanel Git Version Control
 
 1. Login to cPanel: https://lakeview-cafe.com:2083
    - Username: lakeviex
@@ -8,11 +8,11 @@
 
 2. Go to **Git Version Control** (under Development section)
 
-3. Click **Create** and fill in:
+3. If the repository is not already present, click **Create** and fill in:
    - Repository Name: `lakeview`
    - Clone URL: `https://github.com/mirjavedjeetu001/lakeview-online.git`
    - Branch: `prod`
-   - Repository Path: `/home/lakeviex/lakeview`
+   - Repository Path: `/home/lakeviex/public_html`
    - Click **Create**
 
 4. Wait for the clone to complete
@@ -20,7 +20,7 @@
 ## Step 2: Create .env File
 
 1. Go to **File Manager** in cPanel
-2. Navigate to `/home/lakeviex/lakeview/`
+2. Navigate to `/home/lakeviex/public_html/`
 3. Click **+ File** and create a new file named `.env`
 4. Edit it and paste this content:
 
@@ -57,7 +57,7 @@ MAIL_MAILER=log
 
 ## Step 3: Set Permissions
 
-1. In **File Manager**, navigate to `/home/lakeviex/lakeview/`
+1. In **File Manager**, navigate to `/home/lakeviex/public_html/`
 2. Right-click on `storage` folder → **Change Permissions** → set to `775`
 3. Right-click on `bootstrap/cache` folder → **Change Permissions** → set to `775`
 
@@ -67,7 +67,7 @@ MAIL_MAILER=log
 2. Select database `lakeviex_lakeviewonline` (left sidebar)
 3. Click **Import** tab
 4. Click **Choose File** and select the `dump.sql` file:
-   - Navigate to `/home/lakeviex/lakeview/database/dump.sql`
+   - Navigate to `/home/lakeviex/public_html/database/dump.sql`
 5. Click **Go** to import
 6. Wait for "Import has been successfully finished" message
 
@@ -75,12 +75,12 @@ MAIL_MAILER=log
 
 1. Go to **Domains** in cPanel
 2. Click **Manage** next to `lakeview-cafe.com`
-3. Change **Document Root** to: `/home/lakeviex/lakeview/public`
+3. Keep the **Document Root** as: `/home/lakeviex/public_html`
 4. Save
 
 ## Step 6: Run Setup Script (Replaces Terminal)
 
-1. Open your browser and visit:
+1. Open your browser and visit (only when the setup file has been intentionally uploaded):
    ```
    https://lakeview-cafe.com/setup.php
    ```
@@ -95,8 +95,8 @@ MAIL_MAILER=log
 ## Step 7: Delete Setup File (IMPORTANT!)
 
 1. Go back to **File Manager**
-2. Navigate to `/home/lakeviex/lakeview/public/`
-3. Delete `setup.php` (security risk if left!)
+2. Navigate to `/home/lakeviex/public_html/`
+3. Delete `setup.php` (security risk if left!). The deployment script also removes it automatically.
 
 ## Step 8: Test Your Website
 
@@ -108,14 +108,14 @@ Your website should be live!
 
 ## Auto-Deploy Setup
 
-The repository is kept at `/home/lakeviex/lakeview` and the public document root is `/home/lakeviex/public_html`. The deploy script pulls `prod`, syncs Laravel source, copies `public/build` to the live root `build` directory, preserves `.env` and user uploads, refreshes caches, and removes `setup.php` from the public root.
+The cPanel Git repository and public document root are both `/home/lakeviex/public_html`. The deploy script fetches and resets the working tree to `origin/prod`, preserves untracked runtime files such as `.env` and `storage`, refreshes migrations and caches, and removes `setup.php` from the public root.
 
 ### Add GitHub Webhook:
 1. Go to: https://github.com/mirjavedjeetu001/lakeview-online/settings/hooks
 2. Click **Add webhook**:
    - URL: `https://lakeview-cafe.com/deploy.php`
    - Content type: `application/json`
-   - Secret: `lakeview_deploy_secret_2024`
+   - Secret: the value of `DEPLOY_WEBHOOK_SECRET` in the server `.env` file
    - Events: Just the push event
    - Active: checked
 3. Click **Add webhook**

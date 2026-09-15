@@ -8,7 +8,22 @@
  * Events: Push only (prod branch)
  */
 
-$SECRET = 'lakeview_deploy_secret_2024';
+$SECRET = getenv('DEPLOY_WEBHOOK_SECRET') ?: '';
+$envFile = __DIR__ . '/.env';
+if ($SECRET === '' && is_readable($envFile)) {
+    foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+        if (preg_match('/^\s*DEPLOY_WEBHOOK_SECRET\s*=\s*(.*)\s*$/', $line, $matches)) {
+            $SECRET = trim($matches[1], " \t\"'");
+            break;
+        }
+    }
+}
+
+if ($SECRET === '') {
+    http_response_code(500);
+    exit('Deployment is not configured');
+}
+
 $REPO_DIR = '/home/lakeviex/public_html';
 $PROJECT_DIR = '/home/lakeviex/public_html';
 $LOG_FILE = '/home/lakeviex/deploy.log';
