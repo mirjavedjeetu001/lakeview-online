@@ -8,6 +8,11 @@
     # Keep older browser requests for favicon.ico working with the branded SVG icon.
     RewriteRule ^favicon\.ico$ /favicon.svg [R=302,L]
 
+    # The document root is the project root, while Laravel's public disk lives
+    # in storage/app/public. Serve uploaded product/category/branch images from
+    # their public URL without exposing the rest of the storage directory.
+    RewriteRule ^storage/(.+)$ storage/app/public/$1 [END]
+
     # Protect sensitive directories
     RewriteRule ^(app|bootstrap|config|database|resources|routes|storage|tests)(/|$) - [F,L]
 
