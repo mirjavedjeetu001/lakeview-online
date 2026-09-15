@@ -3,6 +3,10 @@ deployment:
   tasks:
     - export DEPLOYPATH=/home/lakeviex/public_html
     - /bin/mkdir -p $DEPLOYPATH/build $DEPLOYPATH/images
+    - /bin/rsync -av --delete public/build/ $DEPLOYPATH/build/
+    - /bin/rsync -av public/images/ $DEPLOYPATH/images/
+    - /bin/cp -f public_html/index.php $DEPLOYPATH/index.php
+    - /bin/cp -f public_html/.htaccess $DEPLOYPATH/.htaccess
     - /bin/rm -f $DEPLOYPATH/setup.php
     - cd $DEPLOYPATH && php artisan migrate --force
     - cd $DEPLOYPATH && php artisan config:cache
