@@ -2,13 +2,12 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home/lakeviex/public_html
-    - /bin/rsync -av --exclude='public_html' --exclude='.git' --exclude='node_modules' --exclude='.env' --exclude='storage' --exclude='bootstrap/cache' --exclude='public/storage' . $DEPLOYPATH/
     - /bin/mkdir -p $DEPLOYPATH/build $DEPLOYPATH/images
-    - /bin/rsync -av --delete public/build/ $DEPLOYPATH/build/
-    - /bin/rsync -av public/images/ $DEPLOYPATH/images/
-    - /bin/cp -f public_html/index.php $DEPLOYPATH/index.php
-    - /bin/cp -f public_html/.htaccess $DEPLOYPATH/.htaccess
     - /bin/rm -f $DEPLOYPATH/setup.php
+    - cd $DEPLOYPATH && php artisan migrate --force
+    - cd $DEPLOYPATH && php artisan config:cache
+    - cd $DEPLOYPATH && php artisan route:cache
+    - cd $DEPLOYPATH && php artisan view:cache
     - /bin/chmod -R 755 $DEPLOYPATH
     - /bin/chmod -R 775 $DEPLOYPATH/storage
     - /bin/chmod -R 775 $DEPLOYPATH/bootstrap/cache
