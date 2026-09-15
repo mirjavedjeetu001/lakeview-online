@@ -69,8 +69,10 @@ class AdminProductController extends Controller
         $currentGallery = $product->gallery ?: [];
         $removeGallery = json_decode($request->input('remove_gallery', '[]'), true) ?: [];
         $remainingGallery = array_values(array_diff($currentGallery, $removeGallery));
-        foreach (array_diff($currentGallery, $remainingGallery) as $oldImage) {
-            Storage::disk('public')->delete($oldImage);
+        foreach (array_diff($currentGallery, $remainingGallery) as $removedGalleryImage) {
+            if (is_string($removedGalleryImage) && $removedGalleryImage !== '' && !str_starts_with($removedGalleryImage, 'http')) {
+                Storage::disk('public')->delete($removedGalleryImage);
+            }
         }
         $newGallery = $this->storeGallery($request);
         unset($validated['gallery'], $validated['remove_gallery']);
