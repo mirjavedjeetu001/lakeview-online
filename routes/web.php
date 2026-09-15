@@ -153,5 +153,6 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     Route::get('/settings', [AdminSettingController::class, 'index'])->name('settings.index');
     Route::post('/settings', [AdminSettingController::class, 'update'])->name('settings.update');
+    Route::post('/settings/cleanup', [AdminSettingController::class, 'cleanup'])->name('settings.cleanup');
     Route::post('/settings/test-mail', [AdminSettingController::class, 'testMail'])->name('settings.test-mail');
 });

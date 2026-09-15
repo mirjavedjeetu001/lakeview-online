@@ -106,11 +106,9 @@ Your website should be live!
 
 ---
 
-## Auto-Deploy Setup (Optional - For Future Updates)
+## Auto-Deploy Setup
 
-### Copy deploy script:
-1. In **File Manager**, copy `/home/lakeviex/lakeview/deploy.php`
-   to `/home/lakeviex/public_html/deploy.php`
+The repository is kept at `/home/lakeviex/lakeview` and the public document root is `/home/lakeviex/public_html`. The deploy script pulls `prod`, syncs Laravel source, copies `public/build` to the live root `build` directory, preserves `.env` and user uploads, refreshes caches, and removes `setup.php` from the public root.
 
 ### Add GitHub Webhook:
 1. Go to: https://github.com/mirjavedjeetu001/lakeview-online/settings/hooks
@@ -126,14 +124,12 @@ Your website should be live!
 ```bash
 # On your local machine:
 git checkout main
-# make changes...
+# make changes, run npm run build, then commit...
 git add . && git commit -m "your changes"
 git push origin main
 
-# Merge to prod to trigger auto-deploy:
-git checkout prod
-git merge main
-git push origin prod
+# Push the tested main commit to prod to trigger auto-deploy:
+git push origin main:prod
 ```
 
 ### If Frontend Changes:
@@ -142,6 +138,5 @@ npm run build
 git add public/build/
 git commit -m "rebuild assets"
 git push origin main
-git checkout prod && git merge main && git push origin prod
-git checkout main
+git push origin main:prod
 ```

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -41,6 +42,7 @@ class AdminBranchController extends Controller
     public function update(Request $request, Branch $branch)
     {
         abort_unless($request->user()->canAccessBranch((int) $branch->id), 403, 'This branch is outside your access.');
+        $oldImage = $branch->image;
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'address' => 'nullable|string',
@@ -56,13 +58,20 @@ class AdminBranchController extends Controller
         }
 
         $branch->update($validated);
+        if ($request->hasFile('image') && $oldImage && !str_starts_with($oldImage, 'http')) {
+            Storage::disk('public')->delete($oldImage);
+        }
         return redirect()->back()->with('success', 'Branch updated successfully.');
     }
 
     public function destroy(Request $request, Branch $branch)
     {
         abort_unless($request->user()->canAccessBranch((int) $branch->id), 403, 'This branch is outside your access.');
+        $image = $branch->image;
         $branch->delete();
+        if ($image && !str_starts_with($image, 'http')) {
+            Storage::disk('public')->delete($image);
+        }
         return redirect()->back()->with('success', 'Branch deleted successfully.');
     }
 }

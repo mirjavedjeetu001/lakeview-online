@@ -135,16 +135,41 @@
                 </div>
                 <p v-if="$page.props.errors?.mail_test" class="text-red-300 text-sm mt-3">{{ $page.props.errors.mail_test }}</p>
             </div>
+
+            <section v-if="isSuperAdmin" class="mt-6 rounded-2xl border border-red-200 bg-red-50 p-6">
+                <div class="flex items-start gap-3">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600">!</span>
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-[.18em] text-red-500">Danger zone</p>
+                        <h3 class="mt-1 font-serif text-xl font-bold text-red-900">Database cleanup</h3>
+                        <p class="mt-2 max-w-2xl text-sm leading-6 text-red-700">Use this only for demo/test reset. Selected records and their uploaded images will be permanently removed. Branches, categories, users, delivery areas and settings will stay unchanged.</p>
+                    </div>
+                </div>
+                <div class="mt-5 grid gap-3 sm:grid-cols-2">
+                    <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-red-200 bg-white p-4">
+                        <input v-model="cleanupProducts" type="checkbox" class="mt-1 h-4 w-4 rounded border-red-300 text-red-600 focus:ring-red-400" />
+                        <span><strong class="block text-sm text-red-900">Products & inventory</strong><small class="mt-1 block text-xs leading-5 text-red-600">Delete all products and branch stock assignments. Categories remain.</small></span>
+                    </label>
+                    <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-red-200 bg-white p-4">
+                        <input v-model="cleanupOrders" type="checkbox" class="mt-1 h-4 w-4 rounded border-red-300 text-red-600 focus:ring-red-400" />
+                        <span><strong class="block text-sm text-red-900">Orders & cake requests</strong><small class="mt-1 block text-xs leading-5 text-red-600">Delete regular orders, custom cake orders and reset coupon usage.</small></span>
+                    </label>
+                </div>
+                <p v-if="$page.props.errors?.cleanup" class="mt-3 text-sm font-semibold text-red-700">{{ $page.props.errors.cleanup }}</p>
+                <button type="button" @click="cleanupDatabase" :disabled="cleaning" class="mt-5 rounded-xl bg-red-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60">{{ cleaning ? 'Cleaning...' : 'Delete selected data' }}</button>
+            </section>
         </div>
     </AdminLayout>
 </template>
 
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import { router } from '@inertiajs/vue3';
+import { router, usePage } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 
 const props = defineProps({ settings: Object });
+const page = usePage();
+const isSuperAdmin = computed(() => page.props.auth?.user?.role === 'super_admin');
 
 const groupedSettings = computed(() => {
     const groups = {};
@@ -225,6 +250,9 @@ const recipientEmails = ref([]);
 const testEmail = ref('metasoftinfo@gmail.com');
 const testingMail = ref(false);
 const saving = ref(false);
+const cleanupProducts = ref(false);
+const cleanupOrders = ref(false);
+const cleaning = ref(false);
 
 const initValues = () => {
     if (props.settings) {
@@ -279,5 +307,22 @@ const saveSettings = () => {
 const testMail = () => {
     testingMail.value = true;
     router.post(route('admin.settings.test-mail'), { email: testEmail.value }, { onFinish: () => testingMail.value = false });
+};
+
+const cleanupDatabase = () => {
+    if ((!cleanupProducts.value && !cleanupOrders.value) || cleaning.value) return;
+    const selected = [cleanupProducts.value ? 'products and branch inventory' : '', cleanupOrders.value ? 'orders and custom cake requests' : ''].filter(Boolean).join(' plus ');
+    if (window.prompt(`This will permanently delete ${selected}. Type DELETE ALL DATA to continue.`) !== 'DELETE ALL DATA') return;
+    if (!window.confirm(`Final confirmation: permanently delete ${selected}?`)) return;
+
+    cleaning.value = true;
+    router.post(route('admin.settings.cleanup'), {
+        products: cleanupProducts.value,
+        orders: cleanupOrders.value,
+        confirmation: 'DELETE ALL DATA',
+    }, {
+        preserveScroll: true,
+        onFinish: () => { cleaning.value = false; },
+    });
 };
 </script>

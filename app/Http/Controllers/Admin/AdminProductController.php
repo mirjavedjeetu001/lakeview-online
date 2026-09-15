@@ -64,6 +64,7 @@ class AdminProductController extends Controller
     public function update(Request $request, Product $product)
     {
         $this->ensureProductAccess($request, $product);
+        $oldImage = $product->image;
         $validated = $this->validateProduct($request);
         $currentGallery = $product->gallery ?: [];
         $removeGallery = json_decode($request->input('remove_gallery', '[]'), true) ?: [];
@@ -74,15 +75,20 @@ class AdminProductController extends Controller
         $newGallery = $this->storeGallery($request);
         unset($validated['gallery'], $validated['remove_gallery']);
 
+        $validated['gallery'] = array_values(array_merge($remainingGallery, $newGallery));
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('products', 'public');
-        }
-        $validated['gallery'] = array_values(array_merge($remainingGallery, $newGallery));
-        if (!$product->image && !$request->hasFile('image') && $newGallery) {
+        } elseif ($oldImage && in_array($oldImage, $removeGallery, true)) {
+            $validated['image'] = $newGallery[0] ?? ($remainingGallery[0] ?? null);
+        } elseif (!$oldImage && $newGallery) {
             $validated['image'] = $newGallery[0];
         }
 
         $product->update($validated);
+
+        if ($oldImage && $oldImage !== $product->image && !in_array($oldImage, $validated['gallery'], true) && !in_array($oldImage, $removeGallery, true) && !str_starts_with($oldImage, 'http')) {
+            Storage::disk('public')->delete($oldImage);
+        }
 
         if ($request->has('branch_assignments')) {
             $this->syncBranches($product, $this->branchAssignments($request), false);
@@ -94,7 +100,14 @@ class AdminProductController extends Controller
     public function destroy(Product $product)
     {
         $this->ensureProductAccess(request(), $product);
+        $imagePaths = collect([$product->image])
+            ->merge($product->gallery ?: [])
+            ->filter(fn ($path) => is_string($path) && $path !== '' && !str_starts_with($path, 'http'))
+            ->unique()
+            ->values()
+            ->all();
         $product->delete();
+        Storage::disk('public')->delete($imagePaths);
 
         return redirect()->back()->with('success', 'Product deleted successfully.');
     }

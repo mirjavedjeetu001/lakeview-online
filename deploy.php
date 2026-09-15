@@ -9,6 +9,7 @@
  */
 
 $SECRET = 'lakeview_deploy_secret_2024';
+$REPO_DIR = '/home/lakeviex/lakeview';
 $PROJECT_DIR = '/home/lakeviex/public_html';
 $LOG_FILE = '/home/lakeviex/deploy.log';
 
@@ -37,15 +38,19 @@ if (!isset($data['ref']) || $data['ref'] !== 'refs/heads/prod') {
     exit('Skipped');
 }
 
-log_msg('Starting deployment...');
+log_msg('Starting deployment from prod...');
 
 $commands = [
-    "cd $PROJECT_DIR && git fetch origin",
-    "cd $PROJECT_DIR && git checkout prod",
-    "cd $PROJECT_DIR && git pull origin prod",
-    "cd $PROJECT_DIR && composer install --no-dev --optimize-autoloader 2>&1",
-    "cd $PROJECT_DIR && npm install 2>&1",
-    "cd $PROJECT_DIR && npm run build 2>&1",
+    "cd $REPO_DIR && git fetch --prune origin prod 2>&1",
+    "cd $REPO_DIR && git checkout prod 2>&1",
+    "cd $REPO_DIR && git pull --ff-only origin prod 2>&1",
+    "cd $REPO_DIR && /bin/rsync -av --exclude='public_html' --exclude='.git' --exclude='node_modules' --exclude='.env' --exclude='storage' --exclude='bootstrap/cache' --exclude='public/storage' . $PROJECT_DIR/ 2>&1",
+    "cd $REPO_DIR && /bin/mkdir -p $PROJECT_DIR/build $PROJECT_DIR/images 2>&1",
+    "cd $REPO_DIR && /bin/rsync -av --delete public/build/ $PROJECT_DIR/build/ 2>&1",
+    "cd $REPO_DIR && /bin/rsync -av public/images/ $PROJECT_DIR/images/ 2>&1",
+    "cd $REPO_DIR && /bin/cp -f public_html/index.php $PROJECT_DIR/index.php 2>&1",
+    "cd $REPO_DIR && /bin/cp -f public_html/.htaccess $PROJECT_DIR/.htaccess 2>&1",
+    "/bin/rm -f $PROJECT_DIR/setup.php 2>&1",
     "cd $PROJECT_DIR && php artisan migrate --force 2>&1",
     "cd $PROJECT_DIR && php artisan config:cache 2>&1",
     "cd $PROJECT_DIR && php artisan route:cache 2>&1",

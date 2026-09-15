@@ -3,11 +3,18 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Coupon;
+use App\Models\CustomCakeOrder;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Product;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class AdminSettingController extends Controller
@@ -86,6 +93,74 @@ class AdminSettingController extends Controller
         }
 
         return redirect()->back()->with('success', 'Test email sent successfully.');
+    }
+
+    public function cleanup(Request $request)
+    {
+        abort_unless($request->user()?->role === 'super_admin', 403, 'Only the super admin can clean database data.');
+
+        $request->validate([
+            'products' => 'required|boolean',
+            'orders' => 'required|boolean',
+            'confirmation' => 'required|in:DELETE ALL DATA',
+        ]);
+
+        $cleanProducts = $request->boolean('products');
+        $cleanOrders = $request->boolean('orders');
+
+        if (!$cleanProducts && !$cleanOrders) {
+            return redirect()->back()->withErrors(['cleanup' => 'Select Products, Orders, or both before cleaning the database.']);
+        }
+
+        $productImagePaths = [];
+        $cakeImagePaths = [];
+        $deletedProducts = 0;
+        $deletedOrders = 0;
+        $deletedCakeOrders = 0;
+
+        DB::transaction(function () use ($cleanProducts, $cleanOrders, &$productImagePaths, &$cakeImagePaths, &$deletedProducts, &$deletedOrders, &$deletedCakeOrders) {
+            if ($cleanOrders) {
+                $deletedOrders = Order::query()->count();
+                $deletedCakeOrders = CustomCakeOrder::query()->count();
+                $cakeImagePaths = CustomCakeOrder::query()
+                    ->pluck('design_image')
+                    ->filter(fn ($path) => is_string($path) && $path !== '' && !str_starts_with($path, 'http'))
+                    ->unique()
+                    ->values()
+                    ->all();
+
+                OrderItem::query()->delete();
+                Order::query()->delete();
+                CustomCakeOrder::query()->delete();
+                Coupon::query()->update(['used_count' => 0]);
+            }
+
+            if ($cleanProducts) {
+                $deletedProducts = Product::query()->count();
+                $productImagePaths = Product::query()
+                    ->get(['image', 'gallery'])
+                    ->flatMap(fn (Product $product) => collect([$product->image])->merge($product->gallery ?: []))
+                    ->filter(fn ($path) => is_string($path) && $path !== '' && !str_starts_with($path, 'http'))
+                    ->unique()
+                    ->values()
+                    ->all();
+
+                DB::table('branch_product')->delete();
+                Product::query()->delete();
+            }
+        });
+
+        Storage::disk('public')->delete(array_values(array_unique(array_merge($productImagePaths, $cakeImagePaths))));
+
+        $summary = [];
+        if ($cleanProducts) {
+            $summary[] = "{$deletedProducts} products";
+        }
+        if ($cleanOrders) {
+            $summary[] = "{$deletedOrders} orders and {$deletedCakeOrders} custom cake orders";
+        }
+
+        return redirect()->back()->with('success', 'Database cleanup complete: ' . implode(', ', $summary) . '.');
     }
 
     private function ensureMailerSettings(): void
