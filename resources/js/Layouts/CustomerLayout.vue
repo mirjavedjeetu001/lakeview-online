@@ -66,7 +66,7 @@
                 </div>
             </div>
 
-            <div v-if="mobileMenuOpen" class="lg:hidden border-t border-brand-100 bg-cream-50 px-4 py-4 shadow-soft">
+            <div v-if="mobileMenuOpen" class="fixed inset-x-0 bottom-16 z-[60] max-h-[70vh] overflow-y-auto rounded-t-3xl border-t border-brand-100 bg-cream-50 px-4 py-4 shadow-card lg:hidden">
                 <div class="grid grid-cols-2 gap-2">
                     <Link v-for="item in mobileLinks" :key="item.label" :href="item.href" class="mobile-nav-link" @click="mobileMenuOpen = false">{{ item.label }}</Link>
                     <Link v-if="!$page.props.auth?.user" :href="route('login')" class="mobile-nav-link" @click="mobileMenuOpen = false">Login</Link>
@@ -84,9 +84,9 @@
         <div v-if="$page.props.flash?.success" class="bg-sage-50 border-b border-sage-200 text-sage-700 text-sm px-4 py-3 text-center">{{ $page.props.flash.success }}</div>
         <div v-if="$page.props.flash?.error" class="bg-red-50 border-b border-red-200 text-red-700 text-sm px-4 py-3 text-center">{{ $page.props.flash.error }}</div>
 
-        <main class="flex-1"><slot /></main>
+        <main class="flex-1 pb-20 lg:pb-0"><slot /></main>
 
-        <footer class="mt-20 bg-brand-950 text-cream-200">
+        <footer class="mt-20 bg-brand-950 pb-20 text-cream-200 lg:pb-0">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
                 <div class="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
                     <div>
@@ -101,13 +101,13 @@
             </div>
         </footer>
 
-        <nav class="lg:hidden sticky bottom-0 z-40 bg-cream-50/95 backdrop-blur-xl border-t border-brand-200/70 shadow-lg">
+        <nav class="fixed inset-x-0 bottom-0 lg:hidden z-40 bg-cream-50/95 backdrop-blur-xl border-t border-brand-200/70 shadow-lg">
             <div class="h-16 flex items-center justify-around px-2">
                 <Link :href="route('home')" class="bottom-nav-item" :class="isActive('home') && 'bottom-nav-active'"><span>⌂</span><small>Home</small></Link>
                 <Link :href="route('products.index')" class="bottom-nav-item" :class="isActive('products') && 'bottom-nav-active'"><span>◌</span><small>Shop</small></Link>
                 <Link :href="route('custom-cake.index')" class="bottom-nav-item" :class="isActive('custom-cake') && 'bottom-nav-active'"><span>✦</span><small>Cake</small></Link>
                 <Link :href="route('checkout.index')" class="bottom-nav-item relative"><span>◇<b v-if="cartCount" class="cart-count cart-count-small">{{ cartCount }}</b></span><small>Bag</small></Link>
-                <button type="button" class="bottom-nav-item" :class="mobileMenuOpen && 'bottom-nav-active'" @click="mobileMenuOpen = true"><span>☰</span><small>More</small></button>
+                <button type="button" class="bottom-nav-item" :class="mobileMenuOpen && 'bottom-nav-active'" @click="mobileMenuOpen = !mobileMenuOpen"><span>☰</span><small>More</small></button>
             </div>
         </nav>
 

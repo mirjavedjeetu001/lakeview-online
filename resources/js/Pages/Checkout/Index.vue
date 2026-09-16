@@ -58,7 +58,7 @@ const loadCart = () => {
 onMounted(() => { loadCart(); if (props.auth?.user) { form.value.customer_name = props.auth.user.name || ''; form.value.customer_phone = props.auth.user.phone || ''; form.value.customer_email = props.auth.user.email || ''; } });
 const selectedBranch = computed(() => props.branches?.find(branch => branch.id == form.value.branch_id));
 const allDeliveryAreas = computed(() => props.deliveryAreas || []);
-const branchDeliveryAreas = computed(() => form.value.branch_id ? allDeliveryAreas.value.filter(area => Number(area.branch_id) === Number(form.value.branch_id)) : []);
+const branchDeliveryAreas = computed(() => form.value.branch_id ? allDeliveryAreas.value.filter(area => area.branch_id == null || Number(area.branch_id) === Number(form.value.branch_id)) : []);
 const categoryText = item => String(item.category_name || '').toLowerCase();
 const cakeItem = item => /cake|order cake/.test(`${categoryText(item)} ${String(item.name || '').toLowerCase()}`);
 const outsideDeliveryAllowed = computed(() => cartItems.value.some(cakeItem));

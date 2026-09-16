@@ -36,7 +36,7 @@ const form = ref({ branch_id: props.selectedBranchId || '', delivery_type: props
 if (props.auth?.user) { form.value.customer_name = props.auth.user.name || ''; form.value.customer_phone = props.auth.user.phone || ''; form.value.customer_email = props.auth.user.email || ''; }
 const selectedBranch = computed(() => props.branches?.find(branch => branch.id == form.value.branch_id));
 const allDeliveryAreas = computed(() => props.deliveryAreas || []);
-const branchDeliveryAreas = computed(() => form.value.branch_id ? allDeliveryAreas.value.filter(area => Number(area.branch_id) === Number(form.value.branch_id)) : []);
+const branchDeliveryAreas = computed(() => form.value.branch_id ? allDeliveryAreas.value.filter(area => area.branch_id == null || Number(area.branch_id) === Number(form.value.branch_id)) : []);
 const sadarAreas = computed(() => branchDeliveryAreas.value.filter(area => area.zone_type === 'sadar'));
 const outsideAreas = computed(() => branchDeliveryAreas.value.filter(area => area.zone_type === 'outside_sadar'));
 const selectedArea = computed(() => branchDeliveryAreas.value.find(area => area.id == form.value.delivery_area_id));

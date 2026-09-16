@@ -32,7 +32,7 @@ class CustomCakeController extends Controller
         $validated = $request->validate([
             'branch_id' => 'required|exists:branches,id',
             'delivery_type' => 'required|in:pickup,home_delivery',
-            'delivery_area_id' => ['nullable', 'required_if:delivery_type,home_delivery', Rule::exists('delivery_areas', 'id')->where(fn ($query) => $query->where('is_active', true)->where('branch_id', $request->input('branch_id')))],
+            'delivery_area_id' => ['nullable', 'required_if:delivery_type,home_delivery', Rule::exists('delivery_areas', 'id')->where(fn ($query) => $query->where('is_active', true)->where(fn ($branchQuery) => $branchQuery->whereNull('branch_id')->orWhere('branch_id', $request->input('branch_id'))))],
             'customer_name' => 'required|string|max:255',
             'customer_phone' => 'required|string|max:20',
             'customer_email' => 'nullable|email|max:255',
@@ -65,7 +65,7 @@ class CustomCakeController extends Controller
         $area = null;
         if ($validated['delivery_type'] === 'home_delivery' && !empty($validated['delivery_area_id'])) {
             $area = DeliveryArea::whereKey($validated['delivery_area_id'])
-                ->where('branch_id', $branch->id)
+                ->availableForBranch($branch->id)
                 ->where('is_active', true)
                 ->first();
             $deliveryCharge = (float) ($area?->delivery_charge ?? 0);

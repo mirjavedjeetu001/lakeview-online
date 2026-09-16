@@ -45,7 +45,9 @@ class CheckoutController extends Controller
                 'required_if:delivery_type,home_delivery',
                 Rule::exists('delivery_areas', 'id')->where(fn ($query) => $query
                     ->where('is_active', true)
-                    ->where('branch_id', $request->input('branch_id'))),
+                    ->where(fn ($branchQuery) => $branchQuery
+                        ->whereNull('branch_id')
+                        ->orWhere('branch_id', $request->input('branch_id')))),
             ],
             'customer_name' => 'required|string|max:255',
             'customer_phone' => 'required|string|max:20',
@@ -119,7 +121,7 @@ class CheckoutController extends Controller
         $area = null;
         if ($validated['delivery_type'] === 'home_delivery' && !empty($validated['delivery_area_id'])) {
             $area = DeliveryArea::whereKey($validated['delivery_area_id'])
-                ->where('branch_id', $branch->id)
+                ->availableForBranch($branch->id)
                 ->where('is_active', true)
                 ->first();
 
@@ -143,7 +145,7 @@ class CheckoutController extends Controller
             $minOrder = 0;
             if (!empty($validated['delivery_area_id'])) {
                 $area = $area ?: DeliveryArea::whereKey($validated['delivery_area_id'])
-                    ->where('branch_id', $branch->id)
+                    ->availableForBranch($branch->id)
                     ->where('is_active', true)
                     ->first();
                 if ($area) {
