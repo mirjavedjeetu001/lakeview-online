@@ -58,7 +58,21 @@ const loadCart = () => {
 onMounted(() => { loadCart(); if (props.auth?.user) { form.value.customer_name = props.auth.user.name || ''; form.value.customer_phone = props.auth.user.phone || ''; form.value.customer_email = props.auth.user.email || ''; } });
 const selectedBranch = computed(() => props.branches?.find(branch => branch.id == form.value.branch_id));
 const allDeliveryAreas = computed(() => props.deliveryAreas || []);
-const branchDeliveryAreas = computed(() => form.value.branch_id ? allDeliveryAreas.value.filter(area => area.branch_id == null || Number(area.branch_id) === Number(form.value.branch_id)) : []);
+const normalizedAreaName = name => String(name || '').toLowerCase().replace(/[()\s_-]+/g, ' ').trim();
+const branchDeliveryAreas = computed(() => {
+    if (!form.value.branch_id) return [];
+    const branchId = Number(form.value.branch_id);
+    const scoped = allDeliveryAreas.value.filter(area => area.branch_id == null || Number(area.branch_id) === branchId);
+    const branchSpecific = scoped.filter(area => Number(area.branch_id) === branchId);
+    const global = scoped.filter(area => area.branch_id == null);
+    const seen = new Set();
+    return [...branchSpecific, ...global].filter(area => {
+        const key = normalizedAreaName(area.name);
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+});
 const categoryText = item => String(item.category_name || '').toLowerCase();
 const cakeItem = item => /cake|order cake/.test(`${categoryText(item)} ${String(item.name || '').toLowerCase()}`);
 const outsideDeliveryAllowed = computed(() => cartItems.value.some(cakeItem));

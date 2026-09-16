@@ -20,7 +20,6 @@ return new class extends Migration
             return;
         }
 
-        $ruralName = 'Satkhira Sadar (Rural)';
         $normalizedName = 'satkhira sadar rural';
         $naltaArea = DB::table('delivery_areas')
             ->where('branch_id', $nalta->id)
@@ -39,19 +38,13 @@ return new class extends Migration
         $globalRural = DB::table('delivery_areas')
             ->whereNull('branch_id')
             ->whereRaw("LOWER(REPLACE(REPLACE(name, '(', ''), ')', '')) = ?", [$normalizedName])
-            ->first(['delivery_charge']);
-
-        $fallbackCharge = DB::table('delivery_areas')
-            ->where('zone_type', 'outside_sadar')
-            ->where('is_active', true)
-            ->orderByDesc('delivery_charge')
-            ->value('delivery_charge');
+            ->first(['name', 'delivery_charge', 'is_active']);
 
         DB::table('delivery_areas')->insert([
             'branch_id' => $nalta->id,
-            'name' => $ruralName,
+            'name' => $globalRural->name ?? 'Satkhira Sadar (Rural)',
             'zone_type' => 'sadar',
-            'delivery_charge' => $globalRural->delivery_charge ?? $fallbackCharge ?? 200,
+            'delivery_charge' => $globalRural->delivery_charge ?? 200,
             'is_active' => true,
             'created_at' => now(),
             'updated_at' => now(),
@@ -60,6 +53,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        // Delivery-area edits are admin-managed data; do not remove them on rollback.
+        // Keep admin-managed delivery-area records intact on rollback.
     }
 };
