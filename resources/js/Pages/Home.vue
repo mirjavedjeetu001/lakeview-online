@@ -10,15 +10,15 @@
         </section>
 
         <section class="reference-home-hero relative overflow-hidden border-b border-brand-100">
-            <div class="reference-hero mx-auto max-w-7xl px-0 sm:px-6 lg:px-8">
-                <div class="reference-hero-media relative overflow-hidden sm:rounded-[2rem]">
+            <div class="reference-hero w-full">
+                <div class="reference-hero-media relative overflow-hidden">
                     <img v-if="heroImage(0)" :src="heroImage(0)" alt="Fresh Lake View bakery" class="reference-hero-image" />
                     <div class="reference-hero-wash"></div>
                     <div class="relative z-10 flex min-h-[570px] flex-col justify-between px-5 pb-7 pt-8 sm:min-h-[610px] sm:px-10 sm:pb-10 sm:pt-12 lg:px-14 lg:pb-12 lg:pt-14">
                         <div class="reference-hero-copy max-w-xl">
                             <div class="inline-flex items-center gap-2 rounded-full border border-gold-200 bg-white/80 px-3 py-2 text-[10px] font-bold uppercase tracking-[.18em] text-gold-700 shadow-soft"><span class="h-2 w-2 animate-pulse rounded-full bg-sage-400"></span>Lake View bakery</div>
                             <p class="mt-5 text-xs font-bold uppercase tracking-[.16em] text-brand-500">{{ branchDisplayName(selectedBranch) || 'Fresh from Satkhira' }}</p>
-                            <h1 class="mt-4 max-w-[560px] font-serif text-[clamp(3.2rem,7vw,6.5rem)] font-bold leading-[.88] tracking-[-.06em] text-brand-900">Made for your<br><span class="reference-hero-accent">sweetest days.</span></h1>
+                            <h1 class="mt-4 max-w-[640px] font-serif text-[clamp(3.2rem,5.5vw,5.8rem)] font-bold leading-[.9] tracking-[-.06em] text-brand-900">Made for your<br><span class="reference-hero-accent">sweetest days.</span></h1>
                             <p class="mt-6 max-w-lg text-sm leading-7 text-brand-600 sm:text-base">{{ settings.hero_subtitle || 'From everyday breads to celebration cakes, discover something delicious for every kind of day.' }}</p>
                             <div class="mt-7 flex flex-wrap items-center gap-3"><Link :href="route('products.index')" class="btn-primary">Explore the bakery <span>→</span></Link><Link :href="route('custom-cake.index')" class="btn-outline">Make a custom cake</Link></div>
                             <div class="mt-7 flex flex-wrap gap-x-5 gap-y-2 text-xs font-semibold text-brand-500"><span class="inline-flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-sage-400"></span>Freshly baked daily</span><span class="inline-flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-gold-500"></span>Pickup & delivery</span></div>
