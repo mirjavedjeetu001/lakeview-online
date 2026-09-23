@@ -22,6 +22,7 @@ class AdminBranchController extends Controller
         abort_if($request->user()->adminBranchId(), 403, 'A branch-restricted user cannot create a new branch.');
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'name_bn' => 'nullable|string|max:255',
             'address' => 'nullable|string',
             'phones' => 'nullable|array',
             'phones.*' => 'string|max:20',
@@ -45,6 +46,7 @@ class AdminBranchController extends Controller
         $oldImage = $branch->image;
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'name_bn' => 'nullable|string|max:255',
             'address' => 'nullable|string',
             'phones' => 'nullable|array',
             'phones.*' => 'string|max:20',

@@ -9,6 +9,7 @@ deployment:
     - /bin/cp -f public_html/.htaccess $DEPLOYPATH/.htaccess
     - /bin/rm -f $DEPLOYPATH/setup.php
     - cd $DEPLOYPATH && php artisan migrate --force
+    - cd $DEPLOYPATH && php artisan cache:forget branches.active.v3
     - cd $DEPLOYPATH && php artisan config:cache
     - cd $DEPLOYPATH && php artisan route:cache
     - cd $DEPLOYPATH && php artisan view:cache

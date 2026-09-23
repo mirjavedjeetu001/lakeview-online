@@ -29,7 +29,7 @@
                     <div class="flex items-center gap-1.5 sm:gap-2">
                         <button @click="branchPickerOpen = true" class="branch-pill hidden sm:inline-flex">
                             <svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5" stroke-width="1.8"/></svg>
-                            <span class="max-w-[132px] truncate">{{ selectedBranch?.name || 'Choose outlet' }}</span>
+                            <span class="max-w-[132px] truncate">{{ branchDisplayName(selectedBranch) || 'Choose outlet' }}</span>
                             <svg class="w-3.5 h-3.5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m6 9 6 6 6-6"/></svg>
                         </button>
 
@@ -76,7 +76,7 @@
                     <button v-if="$page.props.auth?.user" type="button" class="mobile-nav-link text-left" @click="logout">Sign out</button>
                 </div>
                 <button @click="branchPickerOpen = true; mobileMenuOpen = false" class="mt-3 w-full flex items-center justify-between rounded-xl bg-brand-100 px-4 py-3 text-sm font-semibold text-brand-800">
-                    <span>Shopping from {{ selectedBranch?.name || 'an outlet' }}</span><span class="text-brand-500">Change →</span>
+                    <span>Shopping from {{ branchDisplayName(selectedBranch) || 'an outlet' }}</span><span class="text-brand-500">Change →</span>
                 </button>
             </div>
         </header>
@@ -117,7 +117,7 @@
                     <div class="flex items-start justify-between gap-4 mb-6"><div><p class="eyebrow">Your local bakery</p><h2 class="font-serif text-3xl font-bold text-brand-900 mt-2">Choose an outlet</h2><p class="text-sm text-brand-500 mt-2">We’ll show availability and pricing for your selected branch.</p></div><button v-if="selectedBranch" @click="branchPickerOpen = false" class="icon-button" aria-label="Close"><span class="text-xl">×</span></button></div>
                     <div class="grid sm:grid-cols-2 gap-3">
                         <button v-for="branch in branches" :key="branch.id" @click="selectBranch(branch.id)" class="text-left rounded-2xl border p-4 transition group" :class="selectedBranch?.id === branch.id ? 'border-brand-500 bg-brand-100' : 'border-brand-200 bg-white hover:border-brand-400 hover:-translate-y-0.5'">
-                            <div class="flex items-start gap-3"><span class="outlet-icon">⌖</span><span class="min-w-0"><span class="block font-semibold text-brand-900 group-hover:text-brand-600">{{ branch.name }}</span><span class="block text-xs text-brand-500 mt-1 line-clamp-2">{{ branch.address || 'Lake View Sweets & Bakery outlet' }}</span><span v-if="branch.phones?.[0]" class="block text-xs text-brand-600 mt-2">{{ branch.phones[0] }}</span></span><span v-if="selectedBranch?.id === branch.id" class="ml-auto text-brand-600">✓</span></div>
+                            <div class="flex items-start gap-3"><span class="outlet-icon">⌖</span><span class="min-w-0"><span class="block font-semibold text-brand-900 group-hover:text-brand-600">{{ branch.name }}</span><span v-if="branch.name_bn" class="mt-0.5 block text-xs font-medium text-brand-500">{{ branch.name_bn }}</span><span class="block text-xs text-brand-500 mt-1 line-clamp-2">{{ branch.address || 'Lake View Sweets & Bakery outlet' }}</span><span v-if="branch.phones?.[0]" class="block text-xs text-brand-600 mt-2">{{ branch.phones[0] }}</span></span><span v-if="selectedBranch?.id === branch.id" class="ml-auto text-brand-600">✓</span></div>
                         </button>
                     </div>
                 </div>
@@ -135,6 +135,7 @@ const settings = computed(() => page.props.settings || {});
 const branches = computed(() => page.props.branches || []);
 const selectedBranch = computed(() => page.props.selectedBranch || null);
 const mainBranch = computed(() => page.props.mainBranch || branches.value.find(branch => branch.name?.toLowerCase().includes('main')) || branches.value[0] || null);
+const branchDisplayName = (branch) => branch?.name_bn ? `${branch.name} · ${branch.name_bn}` : branch?.name || '';
 const profileOpen = ref(false);
 const mobileMenuOpen = ref(false);
 const branchPickerOpen = ref(!selectedBranch.value || (page.url || '').includes('choose_branch=1'));

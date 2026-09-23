@@ -2,7 +2,7 @@
     <article class="group rounded-[1.4rem] border border-brand-100 bg-white overflow-hidden shadow-soft hover:-translate-y-1 hover:shadow-card transition">
         <button type="button" @click="openQuickView" class="block relative w-full text-left">
             <div class="aspect-[.95] bg-brand-50 flex items-center justify-center overflow-hidden">
-                <img v-if="product.image" :src="assetUrl(product.image)" :alt="product.name" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                <img v-if="product.image" :src="assetUrl(product.image)" :alt="product.name" loading="lazy" decoding="async" class="h-full w-full object-contain p-2 sm:p-3 group-hover:scale-105 transition duration-500" />
                 <span v-else class="text-6xl">{{ emoji }}</span>
             </div>
             <span v-if="hasDiscount" class="absolute top-3 left-3 rounded-full bg-brand-600 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white">Sale</span>

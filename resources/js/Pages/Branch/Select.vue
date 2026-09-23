@@ -13,7 +13,7 @@
             <div v-if="branches.length" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <button v-for="branch in branches" :key="branch.id" @click="choose(branch.id)" class="group text-left rounded-[1.5rem] border border-brand-200 bg-white p-5 shadow-soft transition hover:-translate-y-1 hover:border-brand-500 hover:shadow-card" :class="selectedBranchId === branch.id ? 'ring-2 ring-brand-500 bg-brand-50' : ''">
                     <div class="flex items-start justify-between gap-4"><span class="outlet-icon outlet-icon-large">⌖</span><span v-if="selectedBranchId === branch.id" class="text-brand-600 text-lg">✓</span></div>
-                    <h2 class="font-semibold text-brand-900 mt-5 group-hover:text-brand-600">{{ branch.name }}</h2>
+                    <h2 class="font-semibold text-brand-900 mt-5 group-hover:text-brand-600">{{ branch.name }}</h2><p v-if="branch.name_bn" class="mt-1 text-sm font-medium text-brand-500">{{ branch.name_bn }}</p>
                     <p class="text-sm text-brand-500 mt-2 leading-6">{{ branch.address || 'Lake View Sweets & Bakery outlet' }}</p>
                     <p v-if="branch.phones?.[0]" class="text-sm text-brand-600 mt-4">{{ branch.phones[0] }}</p>
                     <span class="inline-flex items-center gap-2 mt-5 text-sm font-semibold text-brand-700 group-hover:text-brand-500">Start shopping <span>→</span></span>

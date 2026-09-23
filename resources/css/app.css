@@ -93,6 +93,19 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 .hero-product-fallback span { display: inline-flex; width: 76px; height: 76px; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,.4); border-radius: 50%; font-family: 'Playfair Display', Georgia, serif; font-size: 1.4rem; font-weight: 800; letter-spacing: .08em; }
 .hero-product-caption { position: absolute; inset: auto .75rem .75rem; display: flex; align-items: center; justify-content: space-between; gap: .5rem; border-radius: .8rem; background: rgba(34,17,14,.72); padding: .55rem .65rem; color: #fffaf5; font-size: .7rem; backdrop-filter: blur(8px); }
 .hero-product-caption small { flex: none; color: #f3d69f; font-weight: 700; }
+.featured-hero-rail { scroll-behavior: smooth; }
+.featured-hero-card { display: block; border-radius: 1.35rem; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.08); padding: .7rem; transition: transform .25s ease, background .25s ease, border-color .25s ease; }
+.featured-hero-card:hover { transform: translateY(-2px); border-color: rgba(243,214,159,.55); background: rgba(255,255,255,.14); }
+.featured-hero-image { display: flex; min-height: 190px; align-items: center; justify-content: center; overflow: hidden; border-radius: 1rem; background: rgba(255,255,255,.92); color: #c9853b; }
+.category-rail { scroll-behavior: smooth; }
+.category-slide { transition: transform .2s ease, border-color .2s ease; }
+.category-slide:active { transform: scale(.97); }
+.coupon-ticker { min-height: 43px; }
+.coupon-ticker-viewport { overflow: hidden; }
+.coupon-ticker-track { display: flex; width: max-content; min-width: 100%; align-items: center; animation: coupon-ticker 28s linear infinite; }
+.coupon-ticker:hover .coupon-ticker-track { animation-play-state: paused; }
+@keyframes coupon-ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .coupon-ticker-track { animation: none; } }
 .hero-floating-note, .hero-floating-badge { z-index: 2; }
 .card-shadow { box-shadow: 0 15px 45px rgba(81, 40, 32, .09); }
 .card-shadow-hover:hover { box-shadow: 0 22px 58px rgba(81, 40, 32, .16); }

@@ -66,6 +66,7 @@ $commands = [
     "cd $REPO_DIR && /bin/cp -f public_html/.htaccess $PROJECT_DIR/.htaccess 2>&1",
     "cd $PROJECT_DIR && /bin/rm -f setup.php 2>&1",
     "cd $PROJECT_DIR && php artisan migrate --force 2>&1",
+    "cd $PROJECT_DIR && php artisan cache:forget branches.active.v3 2>&1",
     "cd $PROJECT_DIR && php artisan config:cache 2>&1",
     "cd $PROJECT_DIR && php artisan route:cache 2>&1",
     "cd $PROJECT_DIR && php artisan view:cache 2>&1",

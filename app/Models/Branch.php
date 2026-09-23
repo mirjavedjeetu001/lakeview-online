@@ -11,7 +11,7 @@ class Branch extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'slug', 'address', 'phones', 'image', 'is_active', 'sort_order'];
+    protected $fillable = ['name', 'name_bn', 'slug', 'address', 'phones', 'image', 'is_active', 'sort_order'];
 
     protected $casts = [
         'phones' => 'array',
