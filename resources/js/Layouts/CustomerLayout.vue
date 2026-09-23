@@ -77,8 +77,8 @@
                     <Link v-if="$page.props.auth?.user && ['admin', 'super_admin'].includes($page.props.auth.user.role)" :href="route('admin.dashboard')" class="mobile-nav-link" @click="mobileMenuOpen = false">Admin panel</Link>
                     <button v-if="$page.props.auth?.user" type="button" class="mobile-nav-link text-left" @click="logout">Sign out</button>
                 </div>
-                <button @click="branchPickerOpen = true; mobileMenuOpen = false" class="mt-3 w-full flex items-center justify-between rounded-xl bg-brand-100 px-4 py-3 text-sm font-semibold text-brand-800">
-                    <span>Shopping from {{ branchDisplayName(selectedBranch) || 'an outlet' }}</span><span class="text-brand-500">Change →</span>
+                <button @click="branchPickerOpen = true; mobileMenuOpen = false" class="mt-3 w-full flex items-start justify-between gap-3 rounded-xl bg-brand-100 px-4 py-3 text-sm font-semibold text-brand-800">
+                    <span class="min-w-0 flex-1 break-words text-left leading-5">Shopping from {{ branchDisplayName(selectedBranch) || 'an outlet' }}</span><span class="text-brand-500">Change →</span>
                 </button>
             </div>
 
