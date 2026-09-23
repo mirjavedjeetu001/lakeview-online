@@ -23,10 +23,15 @@ class CheckoutController extends Controller
         $selectedBranchId = (int) session('branch_id');
         $branches = Branch::activeList();
         $deliveryAreas = DeliveryArea::where('is_active', true)->orderBy('zone_type')->orderBy('name')->get();
+        $nationalProductIds = Product::where('national_delivery', true)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->values();
         $settings = \App\Models\Setting::getAllByGroup();
         return Inertia::render('Checkout/Index', [
             'branches' => $branches,
             'deliveryAreas' => $deliveryAreas,
+            'nationalProductIds' => $nationalProductIds,
             'selectedBranchId' => $selectedBranchId,
             'minOrder' => [
                 'sadar' => (float) ($settings['min_order_sadar'] ?? $settings['min_order_amount'] ?? 0),
