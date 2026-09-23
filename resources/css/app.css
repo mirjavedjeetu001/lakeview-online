@@ -107,7 +107,8 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 .coupon-ticker:hover .coupon-ticker-track { animation-play-state: paused; }
 @keyframes coupon-ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @media (prefers-reduced-motion: reduce) { .coupon-ticker-track { animation: none; } }
-.hero-floating-note, .hero-floating-badge { z-index: 2; }
+.hero-floating-note { display: none; }
+.hero-floating-badge { z-index: 2; }
 .card-shadow { box-shadow: 0 15px 45px rgba(81, 40, 32, .09); }
 .card-shadow-hover:hover { box-shadow: 0 22px 58px rgba(81, 40, 32, .16); }
 .shadow-soft { box-shadow: 0 10px 35px rgba(81, 40, 32, .08); }
