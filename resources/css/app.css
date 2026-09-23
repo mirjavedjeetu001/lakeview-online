@@ -100,9 +100,10 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 .category-rail { scroll-behavior: smooth; }
 .category-slide { transition: transform .2s ease, border-color .2s ease; }
 .category-slide:active { transform: scale(.97); }
-.coupon-ticker { min-height: 43px; }
+.coupon-ticker { display: flex; min-height: 44px; height: 44px; align-items: center; isolation: isolate; }
 .coupon-ticker-viewport { overflow: hidden; }
 .coupon-ticker-track { display: flex; width: max-content; min-width: 100%; align-items: center; animation: coupon-ticker 28s linear infinite; }
+.coupon-ticker-track > span { white-space: nowrap; }
 .coupon-ticker:hover .coupon-ticker-track { animation-play-state: paused; }
 @keyframes coupon-ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @media (prefers-reduced-motion: reduce) { .coupon-ticker-track { animation: none; } }

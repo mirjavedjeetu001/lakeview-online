@@ -65,6 +65,8 @@
                     </div>
                 </div>
             </div>
+        </header>
+
 
             <div v-if="mobileMenuOpen" class="fixed inset-x-0 bottom-16 z-[60] max-h-[70vh] overflow-y-auto rounded-t-3xl border-t border-brand-100 bg-cream-50 px-4 py-4 shadow-card lg:hidden">
                 <div class="grid grid-cols-2 gap-2">
@@ -79,7 +81,6 @@
                     <span>Shopping from {{ branchDisplayName(selectedBranch) || 'an outlet' }}</span><span class="text-brand-500">Change →</span>
                 </button>
             </div>
-        </header>
 
         <div v-if="$page.props.flash?.success" class="bg-sage-50 border-b border-sage-200 text-sage-700 text-sm px-4 py-3 text-center">{{ $page.props.flash.success }}</div>
         <div v-if="$page.props.flash?.error" class="bg-red-50 border-b border-red-200 text-red-700 text-sm px-4 py-3 text-center">{{ $page.props.flash.error }}</div>
