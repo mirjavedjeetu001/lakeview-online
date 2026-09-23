@@ -127,6 +127,7 @@ class AdminProductController extends Controller
             'gallery.*' => 'image|max:4096',
             'remove_gallery' => 'nullable|json',
             'delivery_mode' => 'required|in:inherit,both,pickup,home_delivery',
+            'national_delivery' => 'boolean',
             'is_available' => 'boolean',
             'is_featured' => 'boolean',
             'sort_order' => 'integer|min:0',

@@ -185,6 +185,7 @@ class DatabaseSeeder extends Seeder
                 'name' => $product[0],
                 'slug' => Str::slug($product[0]) . '-' . Str::random(5),
                 'price' => $product[2],
+                'national_delivery' => in_array($catName, ['Cake', 'Order Cake'], true),
                 'is_available' => true,
                 'is_featured' => in_array($product[0], $featuredNames),
                 'sort_order' => $sortOrder++,
@@ -222,6 +223,7 @@ class DatabaseSeeder extends Seeder
                 'branch_id' => $branch->id,
                 'name' => 'Satkhira Sadar',
                 'zone_type' => 'sadar',
+                'service_scope' => 'sadar',
                 'delivery_charge' => 30,
                 'is_active' => true,
             ]);
@@ -229,6 +231,7 @@ class DatabaseSeeder extends Seeder
                 'branch_id' => $branch->id,
                 'name' => 'Outside Sadar',
                 'zone_type' => 'outside_sadar',
+                'service_scope' => 'outside_sadar',
                 'delivery_charge' => 60,
                 'is_active' => true,
             ]);

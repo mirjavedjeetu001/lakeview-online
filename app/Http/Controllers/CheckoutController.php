@@ -131,9 +131,17 @@ class CheckoutController extends Controller
                 ])->withInput();
             }
 
-            if ($area->zone_type === 'outside_sadar' && !$this->outsideSadarAllowed($products)) {
+            $serviceScope = $area->service_scope ?: ($area->zone_type === 'outside_sadar' ? 'outside_sadar' : 'sadar');
+
+            if ($serviceScope === 'outside_sadar' && !$this->outsideSadarAllowed($products)) {
                 return redirect()->back()->withErrors([
                     'delivery_area_id' => 'Outside-Sadar delivery is available when your bag includes a cake.',
+                ])->withInput();
+            }
+
+            if ($serviceScope === 'national' && !$products->every(fn (Product $product) => $product->allow_national_delivery)) {
+                return redirect()->back()->withErrors([
+                    'delivery_area_id' => 'One or more products in your bag are not eligible for Bangladesh-wide courier delivery.',
                 ])->withInput();
             }
 
@@ -149,7 +157,8 @@ class CheckoutController extends Controller
                     ->where('is_active', true)
                     ->first();
                 if ($area) {
-                    $minKey = $area->zone_type === 'sadar' ? 'min_order_sadar' : 'min_order_outside';
+                    $serviceScope = $area->service_scope ?: ($area->zone_type === 'outside_sadar' ? 'outside_sadar' : 'sadar');
+                    $minKey = in_array($serviceScope, ['sadar', 'sadar_rural'], true) ? 'min_order_sadar' : 'min_order_outside';
                     $globalMinimum = \App\Models\Setting::where('key', 'min_order_amount')->value('value');
                     $minOrder = (float) (\App\Models\Setting::where('key', $minKey)->value('value') ?? $globalMinimum ?? 0);
                 }

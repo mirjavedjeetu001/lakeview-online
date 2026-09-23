@@ -10,7 +10,7 @@ class DeliveryArea extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['branch_id', 'name', 'zone_type', 'delivery_charge', 'is_active'];
+    protected $fillable = ['branch_id', 'name', 'district', 'upazila', 'zone_type', 'service_scope', 'delivery_charge', 'courier_name', 'is_active'];
 
     public function scopeAvailableForBranch(Builder $query, int $branchId): Builder
     {

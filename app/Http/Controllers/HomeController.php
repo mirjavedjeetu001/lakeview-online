@@ -81,7 +81,6 @@ class HomeController extends Controller
         }
         $allProducts = $productQuery()
             ->orderBy('sort_order')
-            ->take(8)
             ->get();
 
         return Inertia::render('Home', [

@@ -14,14 +14,15 @@ class Product extends Model
 
     protected $fillable = [
         'category_id', 'name', 'slug', 'description', 'price', 'discount_price',
-        'image', 'gallery', 'delivery_mode', 'is_available', 'is_featured', 'sort_order'
+        'image', 'gallery', 'delivery_mode', 'national_delivery', 'is_available', 'is_featured', 'sort_order'
     ];
 
     protected $casts = [
         'gallery' => 'array',
+        'national_delivery' => 'boolean',
     ];
 
-    protected $appends = ['effective_price', 'effective_delivery_mode', 'allow_pickup', 'allow_home_delivery'];
+    protected $appends = ['effective_price', 'effective_delivery_mode', 'allow_pickup', 'allow_home_delivery', 'allow_national_delivery'];
 
     protected static function boot()
     {
@@ -116,5 +117,10 @@ class Product extends Model
     public function getAllowHomeDeliveryAttribute(): bool
     {
         return true;
+    }
+
+    public function getAllowNationalDeliveryAttribute(): bool
+    {
+        return (bool) $this->national_delivery;
     }
 }
