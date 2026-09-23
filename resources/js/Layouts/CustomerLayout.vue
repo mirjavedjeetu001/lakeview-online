@@ -29,7 +29,7 @@
                     <div class="flex items-center gap-1.5 sm:gap-2">
                         <button @click="branchPickerOpen = true" class="branch-pill hidden sm:inline-flex">
                             <svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5" stroke-width="1.8"/></svg>
-                            <span class="max-w-[132px] truncate">{{ branchDisplayName(selectedBranch) || 'Choose outlet' }}</span>
+                            <span class="max-w-[230px] whitespace-normal break-words text-left text-xs leading-4">{{ branchDisplayName(selectedBranch) || 'Choose outlet' }}</span>
                             <svg class="w-3.5 h-3.5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m6 9 6 6 6-6"/></svg>
                         </button>
 
