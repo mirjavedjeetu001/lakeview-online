@@ -5,6 +5,7 @@
             <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-8">
                 <div class="relative w-full lg:max-w-sm"><svg class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m21 21-4.35-4.35m2.35-5.15a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z"/></svg><input v-model="search" @input="debouncedSearch" type="search" placeholder="Search the bakery..." class="w-full rounded-full border border-brand-200 bg-white py-3 pl-11 pr-4 text-sm text-brand-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-100" /></div>
                 <div class="flex gap-2 overflow-x-auto scrollbar-hide pb-1"><button @click="selectCategory('')" :class="!filters.category ? 'bg-brand-700 text-white border-brand-700' : 'bg-white text-brand-700 border-brand-200'" class="rounded-full border px-4 py-2 text-xs font-bold whitespace-nowrap transition">Everything</button><button v-for="cat in categories" :key="cat.id" @click="selectCategory(cat.slug)" :class="filters.category === cat.slug ? 'bg-brand-700 text-white border-brand-700' : 'bg-white text-brand-700 border-brand-200'" class="rounded-full border px-4 py-2 text-xs font-bold whitespace-nowrap transition">{{ cat.name }}</button></div>
+                <div class="flex gap-2 overflow-x-auto scrollbar-hide pb-1"><span class="self-center whitespace-nowrap text-[11px] font-bold uppercase tracking-wide text-brand-400">Delivery</span><button v-for="option in deliveryFilters" :key="option.value" @click="selectDeliveryFilter(option.value)" :class="filters.delivery === option.value ? 'bg-gold-500 text-brand-950 border-gold-500' : 'bg-white text-brand-700 border-brand-200'" class="rounded-full border px-3 py-2 text-xs font-bold whitespace-nowrap transition">{{ option.label }}</button></div>
             </div>
             <div v-if="productItems.length" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6"><ProductCard v-for="product in productItems" :key="product.id" :product="product" @add="addToCart" /></div>
             <div v-else class="rounded-[2rem] border border-brand-200 bg-white px-6 py-20 text-center shadow-soft"><div class="text-6xl">🍰</div><h2 class="font-serif text-2xl font-bold text-brand-900 mt-4">Nothing on the counter</h2><p class="text-sm text-brand-500 mt-2">Try a different search or category for this outlet.</p></div>
@@ -26,6 +27,13 @@ const selectedBranch = computed(() => page.props.selectedBranch || null);
 const search = ref(props.filters?.search || '');
 const filters = computed(() => props.filters || {});
 const categories = computed(() => props.categories || []);
+const deliveryFilters = [
+    { value: '', label: 'All delivery options' },
+    { value: 'home_delivery', label: 'Only home delivery' },
+    { value: 'pickup', label: 'Only pickup' },
+    { value: 'both', label: 'Pickup + delivery' },
+    { value: 'national', label: 'All Bangladesh delivery' },
+];
 const toast = ref({ show: false, product: null });
 const productItems = ref([...(props.products?.data || [])]);
 const pagination = ref(props.products || {});
@@ -33,8 +41,9 @@ const loadingMore = ref(false);
 const hasMore = computed(() => !!pagination.value?.next_page_url);
 let debounceTimer;
 let toastTimer;
-const debouncedSearch = () => { clearTimeout(debounceTimer); debounceTimer = setTimeout(() => router.get(route('products.index'), { search: search.value, category: filters.value.category }, { preserveState: true, preserveScroll: true }), 350); };
-const selectCategory = (category) => router.get(route('products.index'), { category, search: search.value }, { preserveState: true, preserveScroll: true });
+const debouncedSearch = () => { clearTimeout(debounceTimer); debounceTimer = setTimeout(() => router.get(route('products.index'), { search: search.value, category: filters.value.category, delivery: filters.value.delivery }, { preserveState: true, preserveScroll: true }), 350); };
+const selectCategory = (category) => router.get(route('products.index'), { category, search: search.value, delivery: filters.value.delivery }, { preserveState: true, preserveScroll: true });
+const selectDeliveryFilter = (delivery) => router.get(route('products.index'), { category: filters.value.category, search: search.value, delivery }, { preserveState: true, preserveScroll: true });
 watch(() => props.products, (next) => { if (next?.current_page === 1) { productItems.value = [...(next.data || [])]; pagination.value = next; } }, { deep: true });
 const loadMore = () => { if (loadingMore.value || !pagination.value?.next_page_url) return; loadingMore.value = true; router.get(pagination.value.next_page_url, {}, { only: ['products'], preserveState: true, preserveScroll: true, onSuccess: (page) => { const next = page.props.products || {}; productItems.value = [...productItems.value, ...(next.data || [])]; pagination.value = next; }, onFinish: () => loadingMore.value = false }); };
 const addToCart = (product, amount = 1) => { let cart = []; try { cart = JSON.parse(localStorage.getItem('cart') || '[]'); } catch {} const existing = cart.find(i => i.product_id === product.id); if (existing) { existing.quantity += amount; existing.image = product.image || existing.image; existing.category_name = product.category?.name || existing.category_name || ''; existing.allow_pickup = product.allow_pickup !== false; existing.allow_home_delivery = product.allow_home_delivery !== false; existing.allow_national_delivery = product.allow_national_delivery === true; } else cart.push({ product_id: product.id, name: product.name, category_name: product.category?.name || '', image: product.image || '', price: Number(product.effective_price), quantity: amount, allow_pickup: product.allow_pickup !== false, allow_home_delivery: product.allow_home_delivery !== false, allow_national_delivery: product.allow_national_delivery === true }); localStorage.setItem('cart', JSON.stringify(cart)); window.dispatchEvent(new Event('cart-updated')); };

@@ -77,10 +77,15 @@ const branchDeliveryAreas = computed(() => {
 });
 const categoryText = item => String(item.category_name || '').toLowerCase();
 const cakeItem = item => /cake|order cake/.test(`${categoryText(item)} ${String(item.name || '').toLowerCase()}`);
-const outsideDeliveryAllowed = computed(() => cartItems.value.some(cakeItem));
+const outsideDeliveryAllowed = computed(() => cartItems.value.some(cakeItem) || allNationalDeliveryAllowed.value);
 const serviceScope = area => area?.service_scope || (area?.zone_type === 'outside_sadar' ? 'outside_sadar' : 'sadar');
 const allNationalDeliveryAllowed = computed(() => cartItems.value.length > 0 && cartItems.value.every(item => item.allow_national_delivery === true));
-const visibleDeliveryAreas = computed(() => branchDeliveryAreas.value);
+const visibleDeliveryAreas = computed(() => branchDeliveryAreas.value.filter(area => {
+    const scope = serviceScope(area);
+    if (scope === 'outside_sadar' && !outsideDeliveryAllowed.value) return false;
+    if (scope === 'national' && !allNationalDeliveryAllowed.value) return false;
+    return true;
+}));
 const sadarAreas = computed(() => visibleDeliveryAreas.value.filter(area => serviceScope(area) === 'sadar'));
 const ruralAreas = computed(() => visibleDeliveryAreas.value.filter(area => serviceScope(area) === 'sadar_rural'));
 const outsideAreas = computed(() => visibleDeliveryAreas.value.filter(area => serviceScope(area) === 'outside_sadar'));

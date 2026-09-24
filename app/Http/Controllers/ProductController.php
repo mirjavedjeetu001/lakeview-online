@@ -42,13 +42,27 @@ class ProductController extends Controller
             $query->where('name', 'like', '%' . $request->search . '%');
         }
 
-        $products = $query->orderBy('sort_order')->paginate(12);
+        $deliveryFilter = (string) $request->input('delivery', '');
+        if (in_array($deliveryFilter, ['home_delivery', 'pickup', 'both'], true)) {
+            $query->where(function ($builder) use ($deliveryFilter) {
+                $builder->where('products.delivery_mode', $deliveryFilter)
+                    ->orWhere(function ($inherit) use ($deliveryFilter) {
+                        $inherit->where(function ($mode) {
+                            $mode->whereNull('products.delivery_mode')->orWhere('products.delivery_mode', 'inherit');
+                        })->whereHas('category', fn ($category) => $category->where('delivery_mode', $deliveryFilter));
+                    });
+            });
+        } elseif ($deliveryFilter === 'national') {
+            $query->where('products.national_delivery', true);
+        }
+
+        $products = $query->orderBy('sort_order')->paginate(12)->withQueryString();
         $categories = Category::where('is_active', true)->orderBy('sort_order')->get();
 
         return Inertia::render('Products/Index', [
             'products' => $products,
             'categories' => $categories,
-            'filters' => $request->only(['category', 'search']),
+            'filters' => $request->only(['category', 'search', 'delivery']),
         ]);
     }
 
