@@ -8,6 +8,7 @@ use App\Models\DeliveryArea;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\Setting;
 use App\Models\User;
 use App\Services\OrderNotificationService;
 use Illuminate\Http\Request;
@@ -28,6 +29,7 @@ class CheckoutController extends Controller
             ->map(fn ($id) => (int) $id)
             ->values();
         $settings = \App\Models\Setting::getAllByGroup();
+        $paymentSettings = Setting::getAllByGroup('payment');
         return Inertia::render('Checkout/Index', [
             'branches' => $branches,
             'deliveryAreas' => $deliveryAreas,
@@ -36,6 +38,13 @@ class CheckoutController extends Controller
             'minOrder' => [
                 'sadar' => (float) ($settings['min_order_sadar'] ?? $settings['min_order_amount'] ?? 0),
                 'outside' => (float) ($settings['min_order_outside'] ?? $settings['min_order_amount'] ?? 0),
+            ],
+            'paymentSettings' => [
+                'bkash_enabled' => ($paymentSettings['bkash_enabled'] ?? '0') === '1' && filled($paymentSettings['bkash_number'] ?? null),
+                'bkash_number' => $paymentSettings['bkash_number'] ?? '',
+                'rocket_enabled' => ($paymentSettings['rocket_enabled'] ?? '0') === '1' && filled($paymentSettings['rocket_number'] ?? null),
+                'rocket_number' => $paymentSettings['rocket_number'] ?? '',
+                'note' => $paymentSettings['online_payment_note'] ?? 'Send the exact payable amount and keep your transaction ID ready.',
             ],
         ]);
     }
@@ -59,7 +68,8 @@ class CheckoutController extends Controller
             'customer_email' => 'nullable|email|max:255',
             'customer_address' => 'nullable|required_if:delivery_type,home_delivery|string|max:500',
             'notes' => 'nullable|string|max:500',
-            'payment_method' => 'nullable|in:cash_on_delivery',
+            'payment_method' => 'nullable|in:cash_on_delivery,bkash,rocket',
+            'transaction_id' => 'nullable|string|max:255',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
@@ -175,6 +185,26 @@ class CheckoutController extends Controller
             }
         }
 
+        $serviceScope = $area ? ($area->service_scope ?: ($area->zone_type === 'outside_sadar' ? 'outside_sadar' : 'sadar')) : null;
+        $paymentMethod = $validated['payment_method'] ?? 'cash_on_delivery';
+        $paymentConfig = Setting::getAllByGroup('payment');
+        $onlineMethodEnabled = [
+            'bkash' => ($paymentConfig['bkash_enabled'] ?? '0') === '1' && filled($paymentConfig['bkash_number'] ?? null),
+            'rocket' => ($paymentConfig['rocket_enabled'] ?? '0') === '1' && filled($paymentConfig['rocket_number'] ?? null),
+        ];
+
+        if ($serviceScope === 'national' && $paymentMethod === 'cash_on_delivery') {
+            return redirect()->back()->withErrors(['payment_method' => 'Bangladesh-wide courier orders require full online payment.'])->withInput();
+        }
+
+        if ($paymentMethod !== 'cash_on_delivery' && empty($onlineMethodEnabled[$paymentMethod])) {
+            return redirect()->back()->withErrors(['payment_method' => 'This online payment method is not currently available.'])->withInput();
+        }
+
+        if ($paymentMethod !== 'cash_on_delivery' && empty(trim((string) ($validated['transaction_id'] ?? '')))) {
+            return redirect()->back()->withErrors(['transaction_id' => 'Please enter the bKash/Rocket transaction ID after making payment.'])->withInput();
+        }
+
         $discount = 0;
         $couponId = null;
         if (!empty($validated['coupon_code'])) {
@@ -187,6 +217,10 @@ class CheckoutController extends Controller
         }
 
         $total = $subtotal + $deliveryCharge - $discount;
+        $onlinePayable = $paymentMethod === 'cash_on_delivery'
+            ? 0
+            : ($serviceScope === 'national' ? $total : max(0, $subtotal - $discount));
+        $paymentStatus = $paymentMethod === 'cash_on_delivery' ? 'unpaid' : 'pending';
 
         // Email is optional. Keep the order address even when the customer does not provide one.
         $user = User::where('phone', $validated['customer_phone'])->first();
@@ -230,10 +264,11 @@ class CheckoutController extends Controller
             'delivery_charge' => $deliveryCharge,
             'discount' => $discount,
             'total' => $total,
-            'payment_method' => 'cash_on_delivery',
-            'advance_amount' => 0,
-            'transaction_id' => null,
+            'payment_method' => $paymentMethod,
+            'advance_amount' => $onlinePayable,
+            'transaction_id' => $paymentMethod === 'cash_on_delivery' ? null : $validated['transaction_id'],
             'payment_verified' => false,
+            'payment_status' => $paymentStatus,
             'status' => 'pending',
             'notes' => $validated['notes'] ?? null,
         ]);

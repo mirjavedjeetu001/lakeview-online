@@ -23,12 +23,13 @@ class AdminSettingController extends Controller
     {
         $this->ensureMailerSettings();
         $this->ensureDeliverySettings();
+        $this->ensurePaymentSettings();
         // Advance payment is disabled for now. Keep its database values for a future
         // re-enable, but do not expose the controls in the active admin UI.
-        $settings = Setting::whereNotIn('key', ['merchant_number', 'merchant_name', 'payment_instructions'])
+        $settings = Setting::query()
             ->get()
             ->map(function ($setting) {
-                if ($setting->key === 'mail_password') {
+                if (in_array($setting->key, ['mail_password', 'bkash_app_secret', 'bkash_password', 'rocket_password'], true)) {
                     $setting->value = '';
                 }
                 return $setting;
@@ -48,9 +49,10 @@ class AdminSettingController extends Controller
         ]);
 
         foreach ($validated['settings'] as $setting) {
-            if ($setting['key'] === 'mail_password') {
+            if (in_array($setting['key'], ['mail_password', 'bkash_app_secret', 'bkash_password', 'rocket_password'], true)) {
                 if (filled($setting['value'])) {
-                    Setting::set($setting['key'], Crypt::encryptString($setting['value']), 'mailer');
+                    $group = str_starts_with($setting['key'], 'mail_') ? 'mailer' : 'payment';
+                    Setting::set($setting['key'], Crypt::encryptString($setting['value']), $group);
                 }
                 continue;
             }
@@ -68,6 +70,37 @@ class AdminSettingController extends Controller
         }
 
         return redirect()->route('admin.settings.index')->with('success', 'Settings updated successfully.');
+    }
+
+    public function uploadHero(Request $request)
+    {
+        $slot = $request->input('slot', 'gallery');
+        abort_unless(in_array($slot, ['gallery', 'desktop', 'mobile'], true), 422, 'Invalid hero image slot.');
+
+        if ($slot === 'gallery') {
+            $validated = $request->validate([
+                'images' => 'required|array|max:12',
+                'images.*' => 'image|mimes:jpg,jpeg,png,webp,avif|max:5120',
+            ]);
+
+            $current = json_decode((string) Setting::get('hero_images', '[]'), true);
+            $current = is_array($current) ? array_values(array_filter($current)) : [];
+            foreach ($validated['images'] as $image) {
+                $current[] = '/storage/' . $image->store('hero-images', 'public');
+            }
+
+            Setting::set('hero_images', json_encode(array_values(array_unique($current))), 'homepage');
+            return redirect()->back()->with('success', count($validated['images']) . ' hero image(s) uploaded successfully.');
+        }
+
+        $validated = $request->validate([
+            'image' => 'required|image|mimes:jpg,jpeg,png,webp,avif|max:5120',
+        ]);
+
+        $key = $slot === 'mobile' ? 'hero_mobile_image' : 'hero_desktop_image';
+        Setting::set($key, '/storage/' . $validated['image']->store('hero-images', 'public'), 'homepage');
+
+        return redirect()->back()->with('success', ucfirst($slot) . ' hero image uploaded successfully.');
     }
 
     public function testMail(Request $request)
@@ -201,6 +234,28 @@ class AdminSettingController extends Controller
 
         foreach ($defaults as $key => [$value, $group]) {
             Setting::firstOrCreate(['key' => $key], ['value' => $value, 'group' => $group]);
+        }
+    }
+
+    private function ensurePaymentSettings(): void
+    {
+        $defaults = [
+            'bkash_enabled' => ['0', 'payment'],
+            'bkash_number' => ['', 'payment'],
+            'bkash_app_key' => ['', 'payment'],
+            'bkash_app_secret' => ['', 'payment'],
+            'bkash_username' => ['', 'payment'],
+            'bkash_password' => ['', 'payment'],
+            'rocket_enabled' => ['0', 'payment'],
+            'rocket_number' => ['', 'payment'],
+            'rocket_merchant_id' => ['', 'payment'],
+            'rocket_password' => ['', 'payment'],
+            'online_payment_note' => 'Send the exact payable amount and keep your transaction ID ready.',
+        ];
+
+        foreach ($defaults as $key => $value) {
+            [$defaultValue, $group] = is_array($value) ? $value : [$value, 'payment'];
+            Setting::firstOrCreate(['key' => $key], ['value' => $defaultValue, 'group' => $group]);
         }
     }
 

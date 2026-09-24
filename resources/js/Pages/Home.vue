@@ -12,8 +12,18 @@
         <section class="reference-home-hero relative overflow-hidden border-b border-brand-100">
             <div class="reference-hero w-full">
                 <div class="reference-hero-media relative overflow-hidden">
-                    <img v-if="heroImage(0)" :src="heroImage(0)" alt="Fresh Lake View bakery" class="reference-hero-image" />
+                    <Transition name="hero-fade" mode="out-in">
+                        <picture v-if="heroImage(activeHeroIndex)" :key="`${activeHeroIndex}-${heroImage(activeHeroIndex)}`" class="absolute inset-0">
+                            <source v-if="heroMobileImage" media="(max-width: 639px)" :srcset="heroMobileImage" />
+                            <img :src="heroImage(activeHeroIndex)" alt="Fresh Lake View bakery" class="reference-hero-image" />
+                        </picture>
+                    </Transition>
                     <div class="reference-hero-wash"></div>
+                    <div v-if="heroImages.length > 1" class="absolute right-5 top-5 z-20 flex items-center gap-2 rounded-full border border-white/60 bg-white/80 p-1.5 shadow-soft backdrop-blur-sm sm:right-8 sm:top-8">
+                        <button type="button" @click="previousHeroImage" class="flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold text-brand-700 transition hover:bg-brand-100" aria-label="Previous hero image">←</button>
+                        <button v-for="(_, index) in heroImages" :key="`hero-dot-${index}`" type="button" @click="goToHeroImage(index)" :class="index === activeHeroIndex ? 'w-5 bg-brand-700' : 'w-2 bg-brand-300'" class="h-2 rounded-full transition-all" :aria-label="`Show hero image ${index + 1}`"></button>
+                        <button type="button" @click="nextHeroImage" class="flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold text-brand-700 transition hover:bg-brand-100" aria-label="Next hero image">→</button>
+                    </div>
                     <div class="relative z-10 flex min-h-[570px] flex-col justify-between px-5 pb-7 pt-8 sm:min-h-[610px] sm:px-10 sm:pb-10 sm:pt-12 lg:px-14 lg:pb-12 lg:pt-14">
                         <div class="reference-hero-copy max-w-xl">
                             <div class="inline-flex items-center gap-2 rounded-full border border-gold-200 bg-white/80 px-3 py-2 text-[10px] font-bold uppercase tracking-[.18em] text-gold-700 shadow-soft"><span class="h-2 w-2 animate-pulse rounded-full bg-sage-400"></span>Lake View bakery</div>
@@ -24,11 +34,18 @@
                             <div class="mt-7 flex flex-wrap gap-x-5 gap-y-2 text-xs font-semibold text-brand-500"><span class="inline-flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-sage-400"></span>Freshly baked daily</span><span class="inline-flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-gold-500"></span>Pickup & delivery</span></div>
                             <div v-if="activeCoupons.length" class="reference-offer-card mt-6 max-w-md rounded-2xl border border-gold-200 bg-white/90 p-4 shadow-card backdrop-blur-sm"><div class="flex items-center justify-between gap-3"><div><p class="text-[10px] font-bold uppercase tracking-[.18em] text-gold-700">Sweet offer</p><p class="mt-1 font-serif text-lg font-bold text-brand-900">{{ couponOffer(activeCoupons[0]) }} on your order</p></div><span class="rounded-full bg-brand-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-brand-700">Use {{ activeCoupons[0].code }}</span></div><p class="mt-3 text-xs text-brand-500">Fresh treats, a little easier on your pocket today.</p></div>
                         </div>
-                        <div v-if="featuredProducts.length" class="reference-featured-desktop absolute bottom-8 right-8 z-10 hidden w-[300px] rotate-2 overflow-hidden rounded-2xl border border-white/80 bg-white/95 shadow-2xl backdrop-blur-sm sm:block lg:bottom-12 lg:right-12"><Link :href="route('products.show', featuredProducts[0].slug)" class="block p-3"><div class="flex items-center gap-3"><div class="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-brand-50"><img v-if="featuredProducts[0].image" :src="assetUrl(featuredProducts[0].image)" :alt="featuredProducts[0].name" class="h-full w-full object-contain p-1.5"/><span v-else class="flex h-full items-center justify-center text-3xl">{{ productEmoji(featuredProducts[0]) }}</span></div><div class="min-w-0"><p class="text-[10px] font-bold uppercase tracking-[.15em] text-gold-700">Featured today</p><h2 class="mt-1 truncate font-serif text-lg font-bold text-brand-900">{{ featuredProducts[0].name }}</h2><p class="mt-1 text-sm font-bold text-brand-600">৳{{ money(featuredProducts[0].effective_price) }} <span class="ml-1 text-xs font-medium text-brand-400">· Tap to view</span></p></div></div></Link></div>
+                        <div v-if="featuredProduct" class="reference-featured-desktop absolute bottom-8 right-8 z-10 hidden w-[320px] rotate-2 overflow-hidden rounded-2xl border border-white/80 bg-white/95 shadow-2xl backdrop-blur-sm sm:block lg:bottom-12 lg:right-12">
+                            <Transition name="fade" mode="out-in">
+                                <Link :key="featuredProduct.id" :href="route('products.show', featuredProduct.slug)" class="block p-3">
+                                    <div class="flex items-center gap-3"><div class="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-brand-50"><img v-if="featuredProduct.image" :src="assetUrl(featuredProduct.image)" :alt="featuredProduct.name" class="h-full w-full object-contain p-1.5"/><span v-else class="flex h-full items-center justify-center text-3xl">{{ productEmoji(featuredProduct) }}</span></div><div class="min-w-0"><p class="text-[10px] font-bold uppercase tracking-[.15em] text-gold-700">Featured today · Tap to view</p><h2 class="mt-1 truncate font-serif text-lg font-bold text-brand-900">{{ featuredProduct.name }}</h2><p class="mt-1 text-sm font-bold text-brand-600">৳{{ money(featuredProduct.effective_price) }}</p></div></div>
+                                </Link>
+                            </Transition>
+                            <div v-if="featuredProducts.length > 1" class="flex items-center justify-between border-t border-brand-100 px-3 py-2"><button type="button" @click="previousFeatured" class="text-xs font-bold text-brand-600 hover:text-brand-900">← Prev</button><div class="flex items-center gap-1.5"><button v-for="(_, index) in featuredProducts" :key="`featured-dot-desktop-${index}`" type="button" @click="goToFeatured(index)" :class="index === featuredIndex ? 'w-4 bg-brand-700' : 'w-1.5 bg-brand-300'" class="h-1.5 rounded-full transition-all" :aria-label="`Show featured product ${index + 1}`"></button></div><button type="button" @click="nextFeatured" class="text-xs font-bold text-brand-600 hover:text-brand-900">Next →</button></div>
+                        </div>
                         <div class="reference-hero-note hidden text-right text-xs font-bold uppercase leading-5 tracking-[.18em] text-brand-500 sm:block">Freshly baked<br><span class="reference-note-accent">in Satkhira</span></div>
                     </div>
                 </div>
-                <div v-if="featuredProducts.length" class="mt-4 sm:hidden"><Link :href="route('products.show', featuredProducts[0].slug)" class="flex items-center gap-3 rounded-2xl border border-brand-100 bg-white p-3 shadow-soft"><div class="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-brand-50"><img v-if="featuredProducts[0].image" :src="assetUrl(featuredProducts[0].image)" :alt="featuredProducts[0].name" class="h-full w-full object-contain p-1.5"/><span v-else class="flex h-full items-center justify-center text-2xl">{{ productEmoji(featuredProducts[0]) }}</span></div><div class="min-w-0"><p class="text-[10px] font-bold uppercase tracking-[.15em] text-gold-700">Featured today · Tap to view</p><h2 class="mt-1 truncate font-serif text-lg font-bold text-brand-900">{{ featuredProducts[0].name }}</h2><p class="mt-1 text-sm font-bold text-brand-600">৳{{ money(featuredProducts[0].effective_price) }}</p></div><span class="ml-auto text-xl text-brand-400">→</span></Link></div>
+                <div v-if="featuredProduct" class="mt-4 sm:hidden"><Transition name="fade" mode="out-in"><Link :key="featuredProduct.id" :href="route('products.show', featuredProduct.slug)" class="flex items-center gap-3 rounded-2xl border border-brand-100 bg-white p-3 shadow-soft"><div class="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-brand-50"><img v-if="featuredProduct.image" :src="assetUrl(featuredProduct.image)" :alt="featuredProduct.name" class="h-full w-full object-contain p-1.5"/><span v-else class="flex h-full items-center justify-center text-2xl">{{ productEmoji(featuredProduct) }}</span></div><div class="min-w-0"><p class="text-[10px] font-bold uppercase tracking-[.15em] text-gold-700">Featured today · Tap to view</p><h2 class="mt-1 truncate font-serif text-lg font-bold text-brand-900">{{ featuredProduct.name }}</h2><p class="mt-1 text-sm font-bold text-brand-600">৳{{ money(featuredProduct.effective_price) }}</p></div><span class="ml-auto text-xl text-brand-400">→</span></Link></Transition><div v-if="featuredProducts.length > 1" class="mt-2 flex items-center justify-center gap-1.5"><button v-for="(_, index) in featuredProducts" :key="`featured-dot-mobile-${index}`" type="button" @click="goToFeatured(index)" :class="index === featuredIndex ? 'w-5 bg-brand-700' : 'w-2 bg-brand-300'" class="h-2 rounded-full transition-all" :aria-label="`Show featured product ${index + 1}`"></button></div></div>
             </div>
         </section>
 
@@ -71,12 +88,16 @@ const activeCoupons = computed(() => page.props.activeCoupons || []);
 const tickerCoupons = computed(() => [...activeCoupons.value, ...activeCoupons.value]);
 const categoryMenuOpen = ref(false);
 const categoryTrack = ref(null);
-const featuredTrack = ref(null);
+const activeHeroIndex = ref(0);
+const featuredIndex = ref(0);
 let featuredTimer = null;
+let heroTimer = null;
 const stopFeaturedTicker = () => { if (featuredTimer) { window.clearInterval(featuredTimer); featuredTimer = null; } };
-const startFeaturedTicker = () => { stopFeaturedTicker(); featuredTimer = window.setInterval(() => { const rail = featuredTrack.value; const card = rail?.querySelector('.featured-hero-card'); if (!rail || !card || rail.scrollWidth <= rail.clientWidth + 8) return; const step = card.getBoundingClientRect().width + 12; const max = rail.scrollWidth - rail.clientWidth; rail.scrollTo({ left: rail.scrollLeft + step >= max - 4 ? 0 : rail.scrollLeft + step, behavior: 'smooth' }); }, 4200); };
-onMounted(startFeaturedTicker);
-onUnmounted(stopFeaturedTicker);
+const stopHeroTicker = () => { if (heroTimer) { window.clearInterval(heroTimer); heroTimer = null; } };
+const startFeaturedTicker = () => { stopFeaturedTicker(); if (featuredProducts.value.length > 1) featuredTimer = window.setInterval(nextFeatured, 4200); };
+const startHeroTicker = () => { stopHeroTicker(); if (heroImages.value.length > 1) heroTimer = window.setInterval(nextHeroImage, 5600); };
+onMounted(() => { startFeaturedTicker(); startHeroTicker(); });
+onUnmounted(() => { stopFeaturedTicker(); stopHeroTicker(); });
 const toast = ref({ show: false, product: null });
 let toastTimer;
 
@@ -87,7 +108,15 @@ const couponOffer = coupon => coupon.type === 'percentage' ? `${coupon.value}% o
 const categoryMark = name => ({ Cake: 'CK', Bread: 'BR', Cookies: 'CO', Sweets: 'SW', 'Fast Food': 'FF', Toast: 'TO', Dessert: 'DS', 'Order Cake': 'OC' }[name] || 'LV');
 const productEmoji = product => ({ Cake: '🎂', Bread: '🍞', Cookies: '🍪', Sweets: '🍬', 'Fast Food': '🍔', Dessert: '🍮' }[product?.category?.name] || '🍰');
 const fallbackHeroImages = ['/images/lakeview-hero.jpg', '/images/lakeview-sweets.jpg', '/images/lakeview-cake.jpg'];
-const heroImages = computed(() => { try { const configured = JSON.parse(settings.value.hero_images || '[]').filter(Boolean); return configured.length ? configured : fallbackHeroImages; } catch { return fallbackHeroImages; } });
+const heroImages = computed(() => { try { const configured = [settings.value.hero_desktop_image, settings.value.hero_image, ...JSON.parse(settings.value.hero_images || '[]')].filter(Boolean); return [...new Set([fallbackHeroImages[0], ...configured, ...fallbackHeroImages.slice(1)])]; } catch { return fallbackHeroImages; } });
+const heroMobileImage = computed(() => settings.value.hero_mobile_image || '');
 const heroImage = index => heroImages.value[index % heroImages.value.length] || '';
+const featuredProduct = computed(() => featuredProducts.value[featuredIndex.value % Math.max(featuredProducts.value.length, 1)] || null);
+const nextFeatured = () => { if (featuredProducts.value.length > 1) featuredIndex.value = (featuredIndex.value + 1) % featuredProducts.value.length; };
+const previousFeatured = () => { if (featuredProducts.value.length > 1) featuredIndex.value = (featuredIndex.value - 1 + featuredProducts.value.length) % featuredProducts.value.length; };
+const goToFeatured = index => { featuredIndex.value = Number(index) || 0; startFeaturedTicker(); };
+const nextHeroImage = () => { if (heroImages.value.length > 1) activeHeroIndex.value = (activeHeroIndex.value + 1) % heroImages.value.length; };
+const previousHeroImage = () => { if (heroImages.value.length > 1) activeHeroIndex.value = (activeHeroIndex.value - 1 + heroImages.value.length) % heroImages.value.length; };
+const goToHeroImage = index => { activeHeroIndex.value = Number(index) || 0; startHeroTicker(); };
 const addToCart = (product, amount = 1) => { let cart = []; try { cart = JSON.parse(localStorage.getItem('cart') || '[]'); } catch { cart = []; } const existing = cart.find(item => item.product_id === product.id); if (existing) { existing.quantity += amount; existing.image = product.image || existing.image; existing.category_name = product.category?.name || existing.category_name || ''; existing.allow_pickup = product.allow_pickup !== false; existing.allow_home_delivery = product.allow_home_delivery !== false; existing.allow_national_delivery = product.allow_national_delivery === true; } else cart.push({ product_id: product.id, name: product.name, category_name: product.category?.name || '', image: product.image || '', price: Number(product.effective_price), quantity: amount, allow_pickup: product.allow_pickup !== false, allow_home_delivery: product.allow_home_delivery !== false, allow_national_delivery: product.allow_national_delivery === true }); localStorage.setItem('cart', JSON.stringify(cart)); window.dispatchEvent(new Event('cart-updated')); toast.value = { show: true, product }; clearTimeout(toastTimer); toastTimer = window.setTimeout(() => { toast.value.show = false; }, 3200); };
 </script>

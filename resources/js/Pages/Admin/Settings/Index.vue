@@ -22,9 +22,13 @@
                             <!-- Hero Images: Multiple image URLs -->
                             <div v-if="setting.key === 'hero_images'">
                                 <label class="block text-sm font-medium text-brand-700 mb-1.5">Hero Images (Multiple)</label>
-                                <p class="text-xs text-brand-400 mb-3">Add multiple hero banner images. They will rotate on the homepage.</p>
+                                <p class="text-xs text-brand-400 mb-3">Upload several images and they will rotate automatically on the homepage. Existing URL entries are also supported.</p>
+                                <label class="mb-4 flex cursor-pointer items-center justify-center rounded-2xl border-2 border-dashed border-gold-300 bg-gold-50/60 px-4 py-5 text-center text-sm font-bold text-gold-700 transition hover:bg-gold-50">
+                                    <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple class="sr-only" @change="uploadHeroGallery" />
+                                    <span>{{ heroUploading ? 'Uploading images...' : '＋ Upload hero slider images' }}</span>
+                                </label>
                                 <div v-for="(img, i) in heroImages" :key="i" class="flex items-center gap-2 mb-2">
-                                    <input v-model="heroImages[i]" type="url" placeholder="https://example.com/image.jpg" class="flex-1 rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-2 focus:ring-gold-200 bg-cream-50 px-4 py-2.5 text-brand-900 transition outline-none text-sm" />
+                                    <input v-model="heroImages[i]" type="text" placeholder="https://example.com/image.jpg or /storage/..." class="flex-1 rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-2 focus:ring-gold-200 bg-cream-50 px-4 py-2.5 text-brand-900 transition outline-none text-sm" />
                                     <div v-if="heroImages[i]" class="w-10 h-10 rounded-lg overflow-hidden border border-brand-100 flex-shrink-0">
                                         <img :src="heroImages[i]" class="w-full h-full object-cover" @error="heroImages[i] = ''" />
                                     </div>
@@ -39,6 +43,31 @@
                                     <option value="smtp">SMTP</option>
                                     <option value="log">Log only (testing)</option>
                                 </select>
+                            </div>
+
+                            <div v-else-if="setting.key === 'bkash_enabled' || setting.key === 'rocket_enabled'" class="flex items-center gap-3">
+                                <label class="flex cursor-pointer items-center">
+                                    <input type="checkbox" :checked="settingValues[setting.key] === '1' || settingValues[setting.key] === true" @change="settingValues[setting.key] = $event.target.checked ? '1' : '0'" class="h-5 w-5 rounded text-gold-500 focus:ring-gold-400" />
+                                    <span class="ml-2 text-sm font-medium text-brand-700">Enable {{ setting.key.startsWith('bkash') ? 'bKash' : 'Rocket' }} manual online payment</span>
+                                </label>
+                            </div>
+
+                            <div v-else-if="['bkash_number', 'rocket_number', 'bkash_app_key', 'bkash_username', 'rocket_merchant_id'].includes(setting.key)">
+                                <label class="block text-sm font-medium text-brand-700 mb-1.5">{{ paymentLabel(setting.key) }}</label>
+                                <input v-model="settingValues[setting.key]" type="text" :placeholder="paymentPlaceholder(setting.key)" class="w-full rounded-xl border-2 border-brand-100 bg-cream-50 px-4 py-3 text-brand-900 outline-none transition focus:border-gold-400 focus:ring-2 focus:ring-gold-200" />
+                                <p class="mt-1 text-xs text-brand-400">{{ setting.key.endsWith('_number') ? 'Customers will see this number at checkout.' : 'Optional gateway credential for future API integration.' }}</p>
+                            </div>
+
+                            <div v-else-if="['bkash_app_secret', 'bkash_password', 'rocket_password'].includes(setting.key)">
+                                <label class="block text-sm font-medium text-brand-700 mb-1.5">{{ paymentLabel(setting.key) }}</label>
+                                <input v-model="settingValues[setting.key]" type="password" autocomplete="new-password" placeholder="Leave blank to keep the saved value" class="w-full rounded-xl border-2 border-brand-100 bg-cream-50 px-4 py-3 text-brand-900 outline-none transition focus:border-gold-400 focus:ring-2 focus:ring-gold-200" />
+                                <p class="mt-1 text-xs text-brand-400">Stored encrypted. The current manual flow uses the receiver number and transaction ID.</p>
+                            </div>
+
+                            <div v-else-if="setting.key === 'online_payment_note'">
+                                <label class="block text-sm font-medium text-brand-700 mb-1.5">Online payment instructions</label>
+                                <textarea v-model="settingValues[setting.key]" rows="2" class="w-full resize-y rounded-xl border-2 border-brand-100 bg-cream-50 px-4 py-3 text-brand-900 outline-none transition focus:border-gold-400 focus:ring-2 focus:ring-gold-200"></textarea>
+                                <p class="mt-1 text-xs text-brand-400">Shown to customers when they choose bKash or Rocket.</p>
                             </div>
 
                             <div v-else-if="setting.key === 'mail_scheme'">
@@ -81,15 +110,27 @@
                             </div>
 
                             <!-- Image URL fields: with preview -->
-                            <div v-else-if="setting.key === 'site_logo' || setting.key === 'hero_image'">
+                            <div v-else-if="['hero_image', 'hero_desktop_image', 'hero_mobile_image'].includes(setting.key)">
                                 <label class="block text-sm font-medium text-brand-700 mb-1.5">{{ setting.key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) }}</label>
                                 <div class="flex items-center gap-3">
-                                    <input v-model="settingValues[setting.key]" type="url" placeholder="https://example.com/image.jpg" class="flex-1 rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-2 focus:ring-gold-200 bg-cream-50 px-4 py-3 text-brand-900 transition outline-none" />
+                                    <input v-model="settingValues[setting.key]" type="text" placeholder="https://example.com/image.jpg or /storage/..." class="flex-1 rounded-xl border-2 border-brand-100 focus:border-gold-400 focus:ring-2 focus:ring-gold-200 bg-cream-50 px-4 py-3 text-brand-900 transition outline-none" />
                                     <div v-if="settingValues[setting.key]" class="w-12 h-12 rounded-lg overflow-hidden border border-brand-100 flex-shrink-0">
                                         <img :src="settingValues[setting.key]" class="w-full h-full object-cover" @error="settingValues[setting.key] = ''" />
                                     </div>
                                 </div>
+                                <label class="mt-2 inline-flex cursor-pointer items-center rounded-xl border border-brand-200 bg-white px-3 py-2 text-xs font-bold text-brand-700 hover:bg-brand-50">
+                                    <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" class="sr-only" @change="uploadHeroVariant(setting.key, $event)" />
+                                    {{ heroUploading ? 'Uploading...' : 'Upload image' }}
+                                </label>
                                 <p v-if="settingHints[setting.key]" class="text-xs text-brand-400 mt-1">{{ settingHints[setting.key] }}</p>
+                            </div>
+
+                            <div v-else-if="setting.key === 'site_logo'">
+                                <label class="block text-sm font-medium text-brand-700 mb-1.5">Site logo</label>
+                                <div class="flex items-center gap-3">
+                                    <input v-model="settingValues[setting.key]" type="text" placeholder="https://example.com/logo.png" class="flex-1 rounded-xl border-2 border-brand-100 bg-cream-50 px-4 py-3 text-brand-900 outline-none transition focus:border-gold-400 focus:ring-2 focus:ring-gold-200" />
+                                    <div v-if="settingValues[setting.key]" class="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg border border-brand-100"><img :src="settingValues[setting.key]" class="h-full w-full object-cover" @error="settingValues[setting.key] = ''" /></div>
+                                </div>
                             </div>
 
                             <!-- Short text fields: single line input -->
@@ -186,6 +227,7 @@ const tabLabels = {
     homepage: 'Homepage',
     social: 'Social & Contact',
     delivery: 'Delivery',
+    payment: 'Payment',
     mailer: 'Mailer',
 };
 
@@ -201,6 +243,7 @@ const tabDescriptions = {
     homepage: 'Hero section, banner images and homepage content',
     social: 'Social media links and contact numbers',
     delivery: 'Delivery charges and minimum order amounts',
+    payment: 'bKash, Rocket and online payment instructions',
     mailer: 'SMTP sender, order recipients, and customer email confirmations',
 };
 
@@ -232,12 +275,14 @@ const shortTextFields = [
 const groupMap = {
     site_name: 'general', site_tagline: 'general', site_description: 'general', site_logo: 'general',
     about_text: 'general', opening_hours: 'general', custom_cake_info: 'general',
-    hero_title: 'homepage', hero_subtitle: 'homepage', hero_image: 'homepage', hero_images: 'homepage',
+    hero_title: 'homepage', hero_subtitle: 'homepage', hero_image: 'homepage', hero_images: 'homepage', hero_desktop_image: 'homepage', hero_mobile_image: 'homepage',
     featured_section_title: 'homepage', featured_section_subtitle: 'homepage',
     promo_banner_text: 'homepage', promo_banner_active: 'homepage',
     facebook_url: 'social', instagram_url: 'social', whatsapp_number: 'social',
     min_order_amount: 'delivery', min_order_pickup: 'delivery',
     min_order_sadar: 'delivery', min_order_outside: 'delivery',
+    bkash_enabled: 'payment', bkash_number: 'payment', bkash_app_key: 'payment', bkash_app_secret: 'payment', bkash_username: 'payment', bkash_password: 'payment',
+    rocket_enabled: 'payment', rocket_number: 'payment', rocket_merchant_id: 'payment', rocket_password: 'payment', online_payment_note: 'payment',
     mail_mailer: 'mailer', mail_host: 'mailer', mail_port: 'mailer', mail_scheme: 'mailer',
     mail_username: 'mailer', mail_password: 'mailer', mail_from_address: 'mailer',
     mail_from_name: 'mailer', mail_reply_to: 'mailer', mail_order_recipients: 'mailer',
@@ -246,6 +291,7 @@ const groupMap = {
 
 const settingValues = ref({});
 const heroImages = ref([]);
+const heroUploading = ref(false);
 const recipientEmails = ref([]);
 const testEmail = ref('metasoftinfo@gmail.com');
 const testingMail = ref(false);
@@ -301,6 +347,46 @@ const saveSettings = () => {
         preserveState: false,
         preserveScroll: true,
         onFinish: () => { saving.value = false; },
+    });
+};
+
+const paymentLabel = key => ({
+    bkash_number: 'bKash receiver number',
+    rocket_number: 'Rocket receiver number',
+    bkash_app_key: 'bKash app key',
+    bkash_username: 'bKash API username',
+    rocket_merchant_id: 'Rocket merchant ID',
+    bkash_app_secret: 'bKash app secret',
+    bkash_password: 'Payment API password',
+    rocket_password: 'Rocket API password',
+}[key] || key.replace(/_/g, ' '));
+
+const paymentPlaceholder = key => key.endsWith('_number') ? '01XXXXXXXXX' : 'Optional credential';
+
+const uploadHeroGallery = event => {
+    const images = Array.from(event.target.files || []);
+    event.target.value = '';
+    if (!images.length) return;
+    heroUploading.value = true;
+    router.post(route('admin.settings.upload-hero'), { slot: 'gallery', images }, {
+        forceFormData: true,
+        preserveScroll: true,
+        onFinish: () => { heroUploading.value = false; },
+    });
+};
+
+const uploadHeroVariant = (key, event) => {
+    const image = event.target.files?.[0];
+    event.target.value = '';
+    if (!image) return;
+    heroUploading.value = true;
+    router.post(route('admin.settings.upload-hero'), {
+        slot: key === 'hero_mobile_image' ? 'mobile' : 'desktop',
+        image,
+    }, {
+        forceFormData: true,
+        preserveScroll: true,
+        onFinish: () => { heroUploading.value = false; },
     });
 };
 

@@ -49,7 +49,7 @@ const paymentVerified = ref(!!props.order.payment_verified);
 const copied = ref(false);
 const dueAmount = computed(() => Math.max(0, Number(props.order.total || 0) - Number(paidAmount.value || 0)));
 
-const paymentLabel = (method) => ({ cash_on_delivery: 'Cash on delivery' }[method] || 'Cash on delivery');
+const paymentLabel = (method) => ({ cash_on_delivery: 'Cash on delivery', bkash: 'bKash', rocket: 'Rocket' }[method] || method || 'Cash on delivery');
 const setPaid = () => { paymentStatus.value = 'paid'; paidAmount.value = Number(props.order.total || 0); };
 const copySummary = async () => {
     const isHomeDelivery = props.order.delivery_type === 'home_delivery';

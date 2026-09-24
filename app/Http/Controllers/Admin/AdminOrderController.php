@@ -68,7 +68,7 @@ class AdminOrderController extends Controller
     {
         $this->ensureOrderAccess($request, $order);
         $validated = $request->validate([
-            'payment_status' => 'required|in:unpaid,paid',
+            'payment_status' => 'required|in:unpaid,pending,partial,paid',
             'advance_amount' => 'nullable|numeric|min:0',
             'transaction_id' => 'nullable|string|max:255',
             'payment_verified' => 'nullable|boolean',
@@ -76,9 +76,10 @@ class AdminOrderController extends Controller
         $paidAmount = array_key_exists('advance_amount', $validated)
             ? min((float) ($validated['advance_amount'] ?? 0), (float) $order->total)
             : (float) ($order->advance_amount ?? 0);
-        $isPaid = $validated['payment_status'] === 'paid';
+        $isPaid = $validated['payment_status'] === 'paid' || $request->boolean('payment_verified');
+        $status = $isPaid ? 'paid' : ($paidAmount > 0 ? 'partial' : $validated['payment_status']);
         $order->update([
-            'payment_status' => $isPaid ? 'paid' : ($paidAmount >= (float) $order->total ? 'paid' : 'unpaid'),
+            'payment_status' => $status,
             'advance_amount' => $isPaid ? (float) $order->total : $paidAmount,
             'transaction_id' => $validated['transaction_id'] ?? null,
             'payment_verified' => $request->boolean('payment_verified'),
@@ -89,7 +90,7 @@ class AdminOrderController extends Controller
     public function verifyPayment(Request $request, Order $order)
     {
         $this->ensureOrderAccess($request, $order);
-        $order->update(['payment_verified' => true, 'payment_status' => 'paid']);
+        $order->update(['payment_verified' => true, 'payment_status' => 'paid', 'advance_amount' => $order->total]);
         return redirect()->back()->with('success', 'Payment verified successfully.');
     }
 
