@@ -8,6 +8,10 @@
                         <h3 class="font-serif font-bold text-brand-900 text-lg">Cake Details</h3>
                         <span :class="statusClass(order.status)" class="px-3 py-1 rounded-full text-xs font-bold capitalize">{{ order.status.replace(/_/g, ' ') }}</span>
                     </div>
+                    <div v-if="order.product" class="mb-4 flex items-center gap-3 rounded-2xl border border-gold-200 bg-gold-50/60 p-3">
+                        <div class="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-white"><img v-if="order.product.image" :src="assetUrl(order.product.image)" :alt="order.product.name" class="h-full w-full object-cover"/><span v-else class="flex h-full items-center justify-center text-xl">🍰</span></div>
+                        <div><p class="text-[10px] font-bold uppercase tracking-[.16em] text-gold-700">Selected cake base</p><p class="mt-1 font-bold text-brand-900">{{ order.product.name }}</p><p class="mt-0.5 text-xs text-brand-500">Customer chose this customizable product.</p></div>
+                    </div>
                     <div class="grid grid-cols-2 gap-4 text-sm">
                         <div class="bg-cream-50 rounded-xl p-3"><span class="text-brand-400 block text-xs">Type</span><span class="font-medium text-brand-900">{{ order.cake_type || '-' }}</span></div>
                         <div class="bg-cream-50 rounded-xl p-3"><span class="text-brand-400 block text-xs">Size</span><span class="font-medium text-brand-900">{{ order.cake_size || '-' }}</span></div>
@@ -126,6 +130,7 @@ const form = ref({
     admin_notes: props.order.admin_notes || '',
 });
 const deliveryManForm = ref({ delivery_man_id: props.order.delivery_man_id || '' });
+const assetUrl = path => path?.startsWith('http') ? path : '/storage/' + path;
 
 const updateOrder = () => router.patch(route('admin.custom-cakes.status', props.order.id), form.value);
 const assignDeliveryMan = () => router.patch(route('admin.custom-cakes.delivery-man', props.order.id), deliveryManForm.value);

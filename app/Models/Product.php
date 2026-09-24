@@ -14,7 +14,7 @@ class Product extends Model
 
     protected $fillable = [
         'category_id', 'name', 'slug', 'description', 'price', 'discount_price',
-        'image', 'gallery', 'delivery_mode', 'national_delivery', 'is_available', 'is_featured', 'sort_order'
+        'image', 'gallery', 'delivery_mode', 'national_delivery', 'customization_mode', 'is_available', 'is_featured', 'sort_order'
     ];
 
     protected $casts = [
@@ -22,7 +22,7 @@ class Product extends Model
         'national_delivery' => 'boolean',
     ];
 
-    protected $appends = ['effective_price', 'effective_delivery_mode', 'allow_pickup', 'allow_home_delivery', 'allow_national_delivery'];
+    protected $appends = ['effective_price', 'effective_delivery_mode', 'allow_pickup', 'allow_home_delivery', 'allow_national_delivery', 'customization_enabled'];
 
     protected static function boot()
     {
@@ -122,5 +122,10 @@ class Product extends Model
     public function getAllowNationalDeliveryAttribute(): bool
     {
         return (bool) $this->national_delivery;
+    }
+
+    public function getCustomizationEnabledAttribute(): bool
+    {
+        return in_array($this->customization_mode, ['ready_and_customization', 'customization_only'], true);
     }
 }

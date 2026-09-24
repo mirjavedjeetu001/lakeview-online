@@ -116,7 +116,7 @@ class AdminProductController extends Controller
 
     private function validateProduct(Request $request): array
     {
-        return $request->validate([
+        $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -128,10 +128,18 @@ class AdminProductController extends Controller
             'remove_gallery' => 'nullable|json',
             'delivery_mode' => 'required|in:inherit,both,pickup,home_delivery',
             'national_delivery' => 'boolean',
+            'customization_mode' => 'required|in:ready_only,ready_and_customization,customization_only',
             'is_available' => 'boolean',
             'is_featured' => 'boolean',
             'sort_order' => 'integer|min:0',
         ]);
+
+        $categoryName = strtolower((string) Category::whereKey($validated['category_id'])->value('name'));
+        if (!in_array($categoryName, ['cake', 'order cake'], true)) {
+            $validated['customization_mode'] = 'ready_only';
+        }
+
+        return $validated;
     }
 
     private function storeGallery(Request $request): array

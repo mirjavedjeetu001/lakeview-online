@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Branch;
 use App\Models\CustomCakeOrder;
 use App\Models\DeliveryArea;
+use App\Models\Product;
 use App\Models\User;
 use App\Services\OrderNotificationService;
 use Illuminate\Http\Request;
@@ -19,9 +20,25 @@ class CustomCakeController extends Controller
     {
         $branches = Branch::activeList();
         $deliveryAreas = DeliveryArea::where('is_active', true)->orderBy('zone_type')->orderBy('name')->get();
+        $customizableProducts = Product::with([
+            'category:id,name',
+            'branches' => fn ($query) => $query
+                ->where('branches.is_active', true)
+                ->wherePivot('is_available', true)
+                ->where(fn ($stock) => $stock->whereNull('branch_product.stock')->orWhere('branch_product.stock', '>', 0)),
+        ])
+            ->where('is_available', true)
+            ->whereIn('customization_mode', ['ready_and_customization', 'customization_only'])
+            ->whereHas('branches', fn ($query) => $query
+                ->where('branches.is_active', true)
+                ->wherePivot('is_available', true)
+                ->where(fn ($stock) => $stock->whereNull('branch_product.stock')->orWhere('branch_product.stock', '>', 0)))
+            ->orderBy('sort_order')->orderBy('name')->get();
+
         return Inertia::render('CustomCake/Index', [
             'branches' => $branches,
             'deliveryAreas' => $deliveryAreas,
+            'customizableProducts' => $customizableProducts,
             'selectedBranchId' => (int) session('branch_id'),
             'deliveryMode' => 'both',
         ]);
@@ -31,6 +48,7 @@ class CustomCakeController extends Controller
     {
         $validated = $request->validate([
             'branch_id' => 'required|exists:branches,id',
+            'product_id' => 'nullable|exists:products,id',
             'delivery_type' => 'required|in:pickup,home_delivery',
             'delivery_area_id' => ['nullable', 'required_if:delivery_type,home_delivery', Rule::exists('delivery_areas', 'id')->where(fn ($query) => $query->where('is_active', true)->where(fn ($branchQuery) => $branchQuery->whereNull('branch_id')->orWhere('branch_id', $request->input('branch_id'))))],
             'customer_name' => 'required|string|max:255',
@@ -55,6 +73,18 @@ class CustomCakeController extends Controller
 
         if (!$branch) {
             return redirect()->back()->withErrors(['branch_id' => 'Please select an active branch.'])->withInput();
+        }
+
+        $product = null;
+        if (!empty($validated['product_id'])) {
+            $product = Product::forBranch($branch->id)
+                ->where('products.id', $validated['product_id'])
+                ->whereIn('customization_mode', ['ready_and_customization', 'customization_only'])
+                ->first();
+
+            if (!$product) {
+                return redirect()->back()->withErrors(['product_id' => 'Please choose an available customizable cake product.'])->withInput();
+            }
         }
 
         if ($validated['delivery_type'] === 'pickup') {
@@ -105,13 +135,14 @@ class CustomCakeController extends Controller
         $order = CustomCakeOrder::create([
             'user_id' => $user->id,
             'branch_id' => $validated['branch_id'],
+            'product_id' => $product?->id,
             'delivery_type' => $validated['delivery_type'],
             'delivery_area_id' => $validated['delivery_area_id'] ?? null,
             'customer_name' => $validated['customer_name'],
             'customer_phone' => $validated['customer_phone'],
             'customer_email' => $validated['customer_email'] ?? null,
             'customer_address' => $validated['customer_address'] ?? null,
-            'cake_type' => $validated['cake_type'] ?? null,
+            'cake_type' => $validated['cake_type'] ?? ($product?->name),
             'cake_size' => $validated['cake_size'] ?? null,
             'cake_flavor' => $validated['cake_flavor'] ?? null,
             'message_on_cake' => $validated['message_on_cake'] ?? null,

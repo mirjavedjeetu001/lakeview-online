@@ -11,7 +11,7 @@ class AdminCustomCakeController extends Controller
 {
     public function index(Request $request)
     {
-        $query = CustomCakeOrder::with(['branch', 'deliveryArea']);
+        $query = CustomCakeOrder::with(['branch', 'deliveryArea', 'product']);
         if ($request->user()->adminBranchId()) {
             $query->where('branch_id', $request->user()->adminBranchId());
         }
@@ -28,7 +28,7 @@ class AdminCustomCakeController extends Controller
     public function show(CustomCakeOrder $customCakeOrder)
     {
         abort_unless(request()->user()->canAccessBranch((int) $customCakeOrder->branch_id), 403, 'This cake order is outside your branch access.');
-        $customCakeOrder->load(['branch', 'deliveryArea', 'deliveryMan']);
+        $customCakeOrder->load(['branch', 'deliveryArea', 'deliveryMan', 'product']);
         $deliveryMen = \App\Models\DeliveryMan::where('is_active', true)->orderBy('name')->get();
         return Inertia::render('Admin/CustomCakes/Show', [
             'order' => $customCakeOrder,
