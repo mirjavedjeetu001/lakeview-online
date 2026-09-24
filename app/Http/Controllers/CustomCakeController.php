@@ -24,14 +24,14 @@ class CustomCakeController extends Controller
             'category:id,name',
             'branches' => fn ($query) => $query
                 ->where('branches.is_active', true)
-                ->wherePivot('is_available', true)
+                ->where('branch_product.is_available', true)
                 ->where(fn ($stock) => $stock->whereNull('branch_product.stock')->orWhere('branch_product.stock', '>', 0)),
         ])
             ->where('is_available', true)
             ->whereIn('customization_mode', ['ready_and_customization', 'customization_only'])
             ->whereHas('branches', fn ($query) => $query
                 ->where('branches.is_active', true)
-                ->wherePivot('is_available', true)
+                ->where('branch_product.is_available', true)
                 ->where(fn ($stock) => $stock->whereNull('branch_product.stock')->orWhere('branch_product.stock', '>', 0)))
             ->orderBy('sort_order')->orderBy('name')->get();
 
