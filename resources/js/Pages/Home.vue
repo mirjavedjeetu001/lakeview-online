@@ -1,5 +1,6 @@
 <template>
     <CustomerLayout>
+        <section v-if="allProducts.length" class="section-shell pt-6 sm:pt-8"><div class="rounded-2xl border border-brand-100 bg-white p-4 shadow-soft sm:flex sm:items-center sm:justify-between sm:gap-5"><div><p class="eyebrow">Quick filter</p><p class="text-sm font-semibold text-brand-800">Shop by delivery option</p></div><div class="mt-3 flex gap-2 overflow-x-auto scrollbar-hide pb-1 sm:mt-0"><Link v-for="option in deliveryFilters" :key="`home-filter-${option.value}`" :href="route('products.index', option.value ? { delivery: option.value } : {})" class="whitespace-nowrap rounded-full border border-brand-200 bg-cream-50 px-3 py-2 text-xs font-bold text-brand-700 transition hover:border-brand-500 hover:bg-brand-50">{{ option.label }}</Link></div></div></section>
         <section v-if="activeCoupons.length" class="coupon-ticker relative z-20 w-full overflow-hidden border-b border-gold-300/30 bg-brand-950 text-cream-50">
             <div class="mx-auto flex min-h-11 w-full max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
                 <span class="relative z-10 inline-flex shrink-0 items-center gap-2 rounded-full bg-gold-500 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.14em] text-brand-950 shadow-soft"><span class="h-1.5 w-1.5 rounded-full bg-brand-950"></span>Live offers</span>
@@ -82,6 +83,13 @@ const bestSellingProducts = computed(() => page.props.bestSellingProducts || fea
 const allProducts = computed(() => page.props.allProducts || []);
 const showAllProducts = ref(false);
 const displayedAllProducts = computed(() => showAllProducts.value ? allProducts.value : allProducts.value.slice(0, 8));
+const deliveryFilters = [
+    { value: '', label: 'All' },
+    { value: 'home_delivery', label: 'Only home delivery' },
+    { value: 'pickup', label: 'Only pickup' },
+    { value: 'both', label: 'Pickup + delivery' },
+    { value: 'national', label: 'All Bangladesh delivery' },
+];
 const categories = computed(() => page.props.categories || []);
 const branches = computed(() => page.props.branches || []);
 const activeCoupons = computed(() => page.props.activeCoupons || []);
