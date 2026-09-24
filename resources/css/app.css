@@ -45,6 +45,8 @@ html { scroll-behavior: smooth; }
 
 body {
     margin: 0;
+    max-width: 100%;
+    overflow-x: hidden;
     font-family: 'DM Sans', sans-serif;
     background: #fffdf9;
     color: #351b16;
@@ -164,7 +166,7 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 .outlet-icon-large { width: 48px; height: 48px; border-radius: 15px; font-size: 1.5rem; }
 .eyebrow { display: inline-flex; align-items: center; gap: .55rem; color: #a76329; font-size: .7rem; font-weight: 700; letter-spacing: .22em; line-height: 1; text-transform: uppercase; }
 .eyebrow::before { content: ''; width: 24px; height: 1px; background: #c9853b; }
-.section-shell { max-width: 80rem; margin: 0 auto; padding: 5rem 1rem; }
+.section-shell { width: 100%; max-width: 80rem; min-width: 0; margin: 0 auto; padding: 5rem 1rem; }
 .section-title { margin-top: .75rem; color: #351b16; font-family: 'Playfair Display', Georgia, serif; font-size: clamp(2rem, 4vw, 3.1rem); line-height: 1.06; font-weight: 700; letter-spacing: -.025em; }
 .section-copy { margin-top: 1rem; color: #6e392b; font-size: .98rem; line-height: 1.8; }
 .btn-primary, .btn-outline, .btn-light { display: inline-flex; align-items: center; justify-content: center; gap: .65rem; min-height: 48px; border-radius: 999px; padding: .75rem 1.35rem; font-size: .875rem; font-weight: 700; transition: all .2s ease; }

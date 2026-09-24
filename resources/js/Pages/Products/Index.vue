@@ -11,7 +11,7 @@
                     </div>
                 </div>
             </div>
-            <div v-if="productItems.length" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6"><ProductCard v-for="product in productItems" :key="product.id" :product="product" @add="addToCart" /></div>
+            <div v-if="productItems.length" class="grid min-w-0 grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6 lg:grid-cols-4"><ProductCard v-for="product in productItems" :key="product.id" :product="product" @add="addToCart" /></div>
             <div v-else class="rounded-[2rem] border border-brand-200 bg-white px-6 py-20 text-center shadow-soft"><div class="text-6xl">🍰</div><h2 class="font-serif text-2xl font-bold text-brand-900 mt-4">Nothing on the counter</h2><p class="text-sm text-brand-500 mt-2">Try a different search or category for this outlet.</p></div>
             <div v-if="hasMore" class="mt-10 flex justify-center"><button type="button" @click="loadMore" :disabled="loadingMore" class="inline-flex min-w-40 items-center justify-center gap-2 rounded-full border border-brand-300 bg-white px-6 py-3 text-sm font-bold text-brand-700 shadow-soft transition hover:-translate-y-0.5 hover:border-brand-500 hover:bg-brand-50 disabled:cursor-wait disabled:opacity-60"><span v-if="loadingMore" class="h-4 w-4 animate-spin rounded-full border-2 border-brand-200 border-t-brand-600"></span><span>{{ loadingMore ? 'Loading more...' : 'Show more products' }}</span></button></div>
         </section>
