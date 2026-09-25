@@ -10,9 +10,19 @@
                 <button @click="openModal()" class="rounded-full bg-brand-700 px-5 py-3 text-sm font-bold text-white hover:bg-brand-600 transition">+ Add category</button>
             </div>
 
-            <div class="bg-white rounded-2xl border border-brand-100 shadow-soft overflow-hidden">
+            <section class="overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-soft">
+                <div class="flex flex-col gap-2 border-b border-brand-100 p-5 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h3 class="font-serif text-xl font-bold text-brand-900">Category directory</h3>
+                        <p class="mt-1 text-sm text-brand-400">Organize products into easy-to-browse menu groups.</p>
+                    </div>
+                    <span class="inline-flex w-fit items-center gap-2 rounded-full bg-gold-50 px-3 py-1.5 text-xs font-bold text-gold-700">
+                        <span class="h-1.5 w-1.5 rounded-full bg-gold-500"></span>
+                        {{ categories.length }} {{ categories.length === 1 ? 'category' : 'categories' }}
+                    </span>
+                </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full min-w-[680px]">
+                    <table class="w-full min-w-[760px]">
                         <thead class="bg-brand-50 border-b border-brand-100">
                             <tr>
                                 <th class="table-head">Category</th>
@@ -23,57 +33,116 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-brand-100">
-                            <tr v-for="cat in categories" :key="cat.id" class="hover:bg-cream-50 transition">
+                            <tr v-for="cat in categories" :key="cat.id" class="transition hover:bg-cream-50/80">
                                 <td class="table-cell">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-11 h-11 rounded-xl bg-brand-50 overflow-hidden flex items-center justify-center">
+                                        <div class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-brand-100 bg-cream-50 shadow-sm">
                                             <img v-if="cat.image" :src="assetUrl(cat.image)" :alt="cat.name" class="w-full h-full object-cover" />
                                             <span v-else class="text-xl">🍰</span>
                                         </div>
-                                        <div>
-                                            <div class="font-semibold text-brand-900">{{ cat.name }}</div>
-                                            <div class="text-xs text-brand-400">{{ cat.description || 'No description' }}</div>
+                                        <div class="min-w-0">
+                                            <p class="truncate font-semibold text-brand-900">{{ cat.name }}</p>
+                                            <p class="mt-0.5 max-w-sm truncate text-xs text-brand-400">{{ cat.description || 'No description added' }}</p>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="table-cell font-semibold text-brand-700">{{ cat.products_count || 0 }}</td>
-                                <td class="table-cell text-xs font-semibold text-brand-600">{{ deliveryLabel(cat.delivery_mode) }}</td>
+                                <td class="table-cell">
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1.5 text-xs font-bold text-brand-700">
+                                        <svg class="h-3.5 w-3.5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 7 12 3 4 7v10l8 4 8-4V7Zm-8 0v14m8-14-8 5-8-5" /></svg>
+                                        {{ cat.products_count || 0 }} {{ (cat.products_count || 0) === 1 ? 'product' : 'products' }}
+                                    </span>
+                                </td>
+                                <td class="table-cell">
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-cream-50 px-3 py-1.5 text-xs font-semibold text-brand-600">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-gold-500"></span>{{ deliveryLabel(cat.delivery_mode) }}
+                                    </span>
+                                </td>
                                 <td class="table-cell"><span :class="cat.is_active ? 'status-success' : 'status-danger'">{{ cat.is_active ? 'Active' : 'Hidden' }}</span></td>
                                 <td class="table-cell whitespace-nowrap">
-                                    <button @click="openModal(cat)" class="text-brand-600 hover:text-brand-500 font-semibold text-sm mr-4">Edit</button>
-                                    <button @click="deleteCategory(cat)" class="text-red-500 hover:text-red-700 font-semibold text-sm">Delete</button>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" @click="openModal(cat)" class="text-brand-600">Edit</button>
+                                        <button type="button" @click="deleteCategory(cat)" class="text-red-500">Delete</button>
+                                    </div>
                                 </td>
                             </tr>
-                            <tr v-if="!categories?.length"><td colspan="5" class="p-12 text-center text-sm text-brand-500">No categories found.</td></tr>
+                            <tr v-if="!categories?.length">
+                                <td colspan="5" class="px-6 py-14 text-center">
+                                    <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-500">
+                                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 7 12 3 4 7v10l8 4 8-4V7Zm-8 0v14m8-14-8 5-8-5" /></svg>
+                                    </div>
+                                    <p class="mt-3 font-semibold text-brand-800">No categories yet</p>
+                                    <p class="mt-1 text-sm text-brand-400">Add a category to start organizing your bakery products.</p>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
-            </div>
+            </section>
         </div>
 
-        <div v-if="showModal" class="fixed inset-0 z-[100] bg-brand-950/60 backdrop-blur-sm p-4 flex items-center justify-center" @click.self="showModal = false">
-            <div class="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-3xl bg-cream-50 shadow-2xl p-6 sm:p-8">
-                <div class="flex items-start justify-between gap-4 mb-6">
-                    <div><p class="eyebrow">Menu group</p><h3 class="font-serif text-2xl font-bold text-brand-900 mt-2">{{ editing ? 'Edit category' : 'Add category' }}</h3></div>
-                    <button @click="showModal = false" class="icon-button" aria-label="Close">×</button>
-                </div>
-                <form @submit.prevent="saveCategory" class="space-y-5">
-                    <label class="field-label">Category name<input v-model="form.name" type="text" required class="field-input" /></label>
-                    <label class="field-label">Description<textarea v-model="form.description" rows="3" class="field-input"></textarea></label>
-                    <label class="field-label">Category image<input @change="handleFile" type="file" accept="image/*" class="field-input file:mr-3 file:rounded-full file:border-0 file:bg-brand-100 file:px-3 file:py-1 file:text-xs file:font-bold file:text-brand-700" /><span class="block mt-1 text-xs font-normal text-brand-400">JPG, PNG or WEBP · maximum 2MB</span></label>
-                    <div v-if="fileError" class="rounded-xl bg-red-50 px-3 py-2 text-xs text-red-700">{{ fileError }}</div>
-                    <label class="field-label">Delivery options<select v-model="form.delivery_mode" class="field-input"><option value="both">Pickup & Home Delivery</option><option value="pickup">Pickup preferred</option><option value="home_delivery">Home Delivery only</option></select><span class="block mt-1 text-xs font-normal text-brand-400">Home delivery remains available for every product; this controls pickup availability.</span></label>
-                    <div class="grid sm:grid-cols-2 gap-4">
-                        <label class="field-label">Sort order<input v-model="form.sort_order" type="number" min="0" class="field-input" /></label>
-                        <label class="inline-flex items-center gap-2 self-end pb-3 text-sm font-semibold text-brand-700"><input v-model="form.is_active" type="checkbox" class="rounded border-brand-300 text-brand-600" /> Active category</label>
+        <Transition name="fade">
+            <div v-if="showModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-brand-950/60 p-4 backdrop-blur-sm" @click.self="showModal = false">
+                <section class="max-h-[92vh] w-full max-w-xl overflow-y-auto rounded-3xl border border-brand-100 bg-white shadow-2xl">
+                    <div class="flex items-start justify-between gap-4 border-b border-brand-100 bg-cream-50/80 p-6 sm:p-7">
+                        <div class="flex items-start gap-4">
+                            <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gold-100 text-gold-700">
+                                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M21 15.5c-.5 0-1 .15-1.5.5a2.7 2.7 0 0 1-3 0 2.7 2.7 0 0 0-3 0 2.7 2.7 0 0 1-3 0 2.7 2.7 0 0 0-3 0 2.7 2.7 0 0 1-3 0A2.7 2.7 0 0 0 2 15.5M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M21 21v-7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v7h18Z" /></svg>
+                            </span>
+                            <div>
+                                <p class="eyebrow">Menu organization</p>
+                                <h3 class="mt-2 font-serif text-2xl font-bold text-brand-900">{{ editing ? 'Edit category' : 'Create a category' }}</h3>
+                                <p class="mt-1 text-sm leading-6 text-brand-500">Set up how this group appears in your bakery menu.</p>
+                            </div>
+                        </div>
+                        <button type="button" @click="showModal = false" class="icon-button shrink-0" aria-label="Close form">×</button>
                     </div>
-                    <div class="flex gap-3 pt-2">
-                        <button type="submit" :disabled="saving || !!fileError" class="flex-1 rounded-full bg-brand-700 py-3 text-sm font-bold text-white hover:bg-brand-600 disabled:opacity-60">{{ saving ? 'Saving...' : editing ? 'Save changes' : 'Create category' }}</button>
-                        <button type="button" @click="showModal = false" class="rounded-full border border-brand-200 px-6 py-3 text-sm font-bold text-brand-700">Cancel</button>
-                    </div>
-                </form>
+
+                    <form @submit.prevent="saveCategory" class="space-y-5 p-6 sm:p-7">
+                        <label class="field-label">Category name
+                            <input v-model="form.name" type="text" required placeholder="e.g. Celebration cakes" class="field-input" />
+                        </label>
+
+                        <label class="field-label">Description <span class="font-normal text-brand-400">(optional)</span>
+                            <textarea v-model="form.description" rows="3" placeholder="A short description to help customers browse..." class="field-input min-h-24 resize-y"></textarea>
+                        </label>
+
+                        <div class="space-y-2">
+                            <label class="field-label">Category image <span class="font-normal text-brand-400">(optional)</span></label>
+                            <div v-if="editing?.image" class="flex items-center gap-3 rounded-2xl border border-brand-100 bg-cream-50 p-3">
+                                <img :src="assetUrl(editing.image)" :alt="editing.name" class="h-14 w-14 rounded-xl object-cover" />
+                                <div class="min-w-0"><p class="text-sm font-bold text-brand-800">Current category image</p><p class="mt-0.5 text-xs text-brand-400">Upload another image below to replace it.</p></div>
+                            </div>
+                            <input @change="handleFile" type="file" accept="image/*" class="field-input cursor-pointer bg-white py-2.5 file:mr-3 file:rounded-full file:border-0 file:bg-brand-100 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-brand-700" />
+                            <p class="text-xs text-brand-400">{{ form.image?.name || 'JPG, PNG or WEBP · maximum 2MB' }}</p>
+                            <div v-if="fileError" role="alert" class="rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-sm font-medium text-red-700">{{ fileError }}</div>
+                        </div>
+
+                        <label class="field-label">Delivery options
+                            <select v-model="form.delivery_mode" class="field-input"><option value="both">Pickup & Home Delivery</option><option value="pickup">Pickup preferred</option><option value="home_delivery">Home Delivery only</option></select>
+                            <span class="mt-1 block text-xs font-normal leading-5 text-brand-400">Home delivery remains available for every product; this controls pickup availability.</span>
+                        </label>
+
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <label class="field-label">Sort order
+                                <input v-model="form.sort_order" type="number" min="0" placeholder="0" class="field-input" />
+                            </label>
+                            <label class="flex cursor-pointer items-center justify-between gap-3 self-end rounded-2xl border border-brand-100 bg-cream-50 px-4 py-3.5 transition hover:border-brand-200">
+                                <span><span class="block text-sm font-bold text-brand-800">Active category</span><span class="mt-0.5 block text-xs text-brand-400">Visible to customers</span></span>
+                                <input v-model="form.is_active" type="checkbox" class="h-5 w-5 rounded border-brand-300 text-gold-500 focus:ring-gold-300" />
+                            </label>
+                        </div>
+
+                        <div class="flex flex-col-reverse gap-3 border-t border-brand-100 pt-5 sm:flex-row sm:justify-end">
+                            <button type="button" @click="showModal = false" class="btn-outline !rounded-xl">Cancel</button>
+                            <button type="submit" :disabled="saving || !!fileError" class="btn-primary !rounded-xl disabled:cursor-not-allowed disabled:opacity-60">
+                                <svg v-if="!saving" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m5 12 4 4L19 6" /></svg>
+                                {{ saving ? 'Saving...' : editing ? 'Save changes' : 'Create category' }}
+                            </button>
+                        </div>
+                    </form>
+                </section>
             </div>
-        </div>
+        </Transition>
     </AdminLayout>
 </template>
 

@@ -1,7 +1,25 @@
 <template>
-    <div class="h-screen flex overflow-hidden bg-cream-50">
+    <div class="admin-panel h-screen flex overflow-hidden bg-cream-50">
+        <Transition name="toast">
+            <div v-if="toast" :key="toast.id" class="fixed right-4 top-4 z-[100] w-[min(92vw,26rem)] sm:right-6 sm:top-6" :role="toast.type === 'error' ? 'alert' : 'status'" aria-live="polite">
+                <div class="flex items-start gap-3 rounded-2xl border border-brand-100 bg-white/95 p-4 shadow-2xl backdrop-blur-xl">
+                    <div :class="toast.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-sage-50 text-sage-700'" class="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
+                        <svg v-if="toast.type === 'error'" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" /></svg>
+                        <svg v-else class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m5 12 4 4L19 6" /></svg>
+                    </div>
+                    <div class="min-w-0 flex-1 pt-0.5">
+                        <p :class="toast.type === 'error' ? 'text-red-700' : 'text-sage-700'" class="text-sm font-extrabold">{{ toast.type === 'error' ? 'Please check this' : 'Saved successfully' }}</p>
+                        <p class="mt-1 break-words text-sm leading-5 text-brand-600">{{ toast.message }}</p>
+                    </div>
+                    <button type="button" class="-mr-1 -mt-1 rounded-lg p-1.5 text-brand-400 transition hover:bg-brand-50 hover:text-brand-700" aria-label="Dismiss notification" @click="dismissToast">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 6 12 12M18 6 6 18" /></svg>
+                    </button>
+                </div>
+            </div>
+        </Transition>
+
         <!-- Sidebar -->
-        <aside :class="sidebarOpen ? 'w-64' : 'w-0 md:w-20'" class="bg-brand-950 text-cream-200 transition-all duration-300 overflow-hidden flex-shrink-0 h-full z-50 md:relative fixed">
+        <aside :class="sidebarOpen ? 'w-64' : 'w-0 md:w-20'" class="admin-sidebar bg-brand-950 text-cream-200 transition-all duration-300 overflow-hidden flex-shrink-0 h-full z-50 md:relative fixed">
             <div class="p-4 h-full overflow-y-auto">
                 <Link :href="route('admin.dashboard')" class="flex items-center gap-3 mb-8">
                     <div class="w-11 h-11 rounded-full hero-gradient flex items-center justify-center flex-shrink-0">
@@ -80,7 +98,7 @@
         <!-- Main Content -->
         <div class="flex-1 flex flex-col min-w-0 h-full">
             <!-- Top Bar -->
-            <header class="bg-white shadow-sm flex-shrink-0 border-b border-brand-100 z-30">
+            <header class="admin-topbar bg-white shadow-sm flex-shrink-0 border-b border-brand-100 z-30">
                 <div class="flex items-center justify-between px-4 sm:px-6 h-16">
                     <div class="flex items-center gap-3">
                         <button @click="sidebarOpen = !sidebarOpen" class="p-2 rounded-lg hover:bg-brand-50 transition">
@@ -132,11 +150,6 @@
 
             <!-- Scrollable Content Area -->
             <div class="flex-1 overflow-y-auto" @click="profileOpen = false">
-                <!-- Flash Messages -->
-                <div v-if="$page.props.flash.success" class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 text-sm m-4 rounded-lg">
-                    {{ $page.props.flash.success }}
-                </div>
-
                 <!-- Page Content -->
                 <div class="p-4 sm:p-6 pb-12">
                     <slot />
@@ -144,7 +157,7 @@
 
                 <!-- Footer Credit -->
                 <div class="text-center py-4 text-xs text-brand-400 border-t border-brand-50">
-                    Powered by <span class="text-gold-600 font-medium">Mir Javed Jeetu</span> | <span class="text-gold-600 font-medium">Metasoft Info Solutions</span> | <span class="text-gold-600 font-medium">01811480222</span>
+                    Powered by <a href="https://metasoftinfo.com/" target="_blank" rel="noopener noreferrer" class="text-gold-600 font-medium hover:underline">Metasoft Info Solutions</a>
                 </div>
             </div>
         </div>
@@ -153,7 +166,7 @@
 
 <script setup>
 import { Link, router } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 
 defineProps({
@@ -165,6 +178,34 @@ const sidebarOpen = ref(window.innerWidth >= 768);
 const profileOpen = ref(false);
 const page = usePage();
 const currentUser = computed(() => page.props.auth?.user);
+const toast = ref(null);
+let toastTimer;
+let toastId = 0;
+
+const dismissToast = () => {
+    clearTimeout(toastTimer);
+    toast.value = null;
+};
+
+const showToast = (type, message) => {
+    if (!message) return;
+    clearTimeout(toastTimer);
+    toast.value = { type, message, id: ++toastId };
+    toastTimer = setTimeout(dismissToast, 5000);
+};
+
+watch(() => page.props.flash?.success, message => showToast('success', message), { immediate: true });
+watch(() => page.props.flash?.error, message => showToast('error', message), { immediate: true });
+watch(() => page.props.errors, errors => {
+    const firstError = Object.values(errors || {})
+        .flatMap(value => Array.isArray(value) ? value : [value])
+        .find(value => typeof value === 'string' && value.trim());
+
+    if (firstError) showToast('error', firstError);
+}, { deep: true, immediate: true });
+
+onBeforeUnmount(() => clearTimeout(toastTimer));
+
 const can = (permission) => currentUser.value?.role === 'super_admin' || !currentUser.value?.permissions || currentUser.value.permissions.includes(permission);
 
 const logout = () => {

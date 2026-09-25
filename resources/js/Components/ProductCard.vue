@@ -1,7 +1,7 @@
 <template>
-    <article class="group min-w-0 rounded-[1.4rem] border border-brand-100 bg-white overflow-hidden shadow-soft hover:-translate-y-1 hover:shadow-card transition">
+    <article class="product-card group min-w-0 rounded-[1.4rem] border border-brand-100 bg-white overflow-hidden shadow-soft hover:-translate-y-1 hover:shadow-card transition">
         <button type="button" @click="openQuickView" class="block relative w-full text-left">
-            <div class="aspect-[.95] bg-brand-50 flex items-center justify-center overflow-hidden">
+            <div class="product-card-media aspect-[.95] bg-brand-50 flex items-center justify-center overflow-hidden">
                 <img v-if="product.image" :src="assetUrl(product.image)" :alt="product.name" loading="lazy" decoding="async" class="h-full w-full object-contain p-2 sm:p-3 group-hover:scale-105 transition duration-500" />
                 <span v-else class="text-6xl">{{ emoji }}</span>
             </div>
