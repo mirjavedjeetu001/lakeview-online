@@ -1,13 +1,13 @@
 <template>
     <div class="min-h-screen bg-cream-50 text-brand-900 flex flex-col">
-        <div class="bg-brand-950 text-cream-100 text-[11px] tracking-wide">
+        <div class="store-announcement bg-brand-950 text-cream-100 text-[11px] tracking-wide">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between gap-4">
                 <span class="inline-flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-sage-400 animate-pulse"></span>Freshly baked every day</span>
                 <span class="hidden sm:inline">{{ settings.opening_hours || 'Open daily · 9:00 AM – 11:00 PM' }}</span>
             </div>
         </div>
 
-        <header class="sticky top-0 z-50 bg-cream-50/90 backdrop-blur-xl border-b border-brand-200/60">
+        <header class="store-header sticky top-0 z-50 bg-cream-50/90 backdrop-blur-xl border-b border-brand-200/60">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="h-[76px] flex items-center justify-between gap-4">
                     <Link :href="route('home')" class="flex items-center gap-3 shrink-0 group">
@@ -87,7 +87,7 @@
 
         <main class="flex-1 pb-20 lg:pb-0"><slot /></main>
 
-        <footer class="mt-20 bg-brand-950 pb-20 text-cream-200 lg:pb-0">
+        <footer class="store-footer mt-20 bg-brand-950 pb-20 text-cream-200 lg:pb-0">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
                 <div class="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
                     <div>
@@ -98,11 +98,11 @@
                     <div><h3 class="footer-heading">Need help?</h3><div class="space-y-3 text-sm"><Link :href="route('contact')" class="footer-link">Contact us</Link><Link :href="route('checkout.track')" class="footer-link">Track order</Link><button @click="branchPickerOpen = true" class="footer-link text-left">Change outlet</button></div></div>
                     <div><h3 class="footer-heading">Main branch</h3><p class="text-sm leading-7 text-brand-200">{{ mainBranch?.name || 'Lake View Cafe & Restaurant (Main)' }}<br>{{ mainBranch?.address || 'Lake View Sweets & Bakery outlet' }}</p><a v-if="mainBranch?.phones?.length" :href="'tel:' + mainBranch.phones[0]" class="inline-flex mt-3 text-sm text-brand-100 hover:text-gold-300">{{ mainBranch.phones.join(' / ') }}</a><a v-else href="tel:+8801722554400" class="inline-flex mt-3 text-sm text-brand-100 hover:text-gold-300">+8801722554400</a></div>
                 </div>
-                <div class="mt-12 pt-5 border-t border-brand-800 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-brand-300"><span>© {{ new Date().getFullYear() }} Lake View Sweets & Bakery</span><span>Powered by Mir Javed Jeetu | Metasoft Info Solutions | 01811480222</span></div>
+                <div class="mt-12 pt-5 border-t border-brand-800 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-brand-300"><span>© {{ new Date().getFullYear() }} Lake View Sweets & Bakery</span><span>Powered by <a href="https://metasoftinfo.com/" target="_blank" rel="noopener noreferrer" class="hover:text-gold-300 hover:underline">Metasoft Info Solutions</a></span></div>
             </div>
         </footer>
 
-        <nav class="fixed inset-x-0 bottom-0 lg:hidden z-40 bg-cream-50/95 backdrop-blur-xl border-t border-brand-200/70 shadow-lg">
+        <nav class="store-bottom-nav fixed inset-x-0 bottom-0 lg:hidden z-40 bg-cream-50/95 backdrop-blur-xl border-t border-brand-200/70 shadow-lg">
             <div class="h-16 flex items-center justify-around px-2">
                 <Link :href="route('home')" class="bottom-nav-item" :class="isActive('home') && 'bottom-nav-active'"><span>⌂</span><small>Home</small></Link>
                 <Link :href="route('products.index')" class="bottom-nav-item" :class="isActive('products') && 'bottom-nav-active'"><span>◌</span><small>Shop</small></Link>
