@@ -189,14 +189,26 @@ class AdminProductController extends Controller
         }
 
         $categoryType = Category::whereKey($categoryId)->value('business_type') ?: 'both';
-        if ($categoryType === 'both' || $selectedBranchIds->isEmpty()) {
+        if ($selectedBranchIds->isEmpty()) {
             return;
         }
 
+        $foodTypes = ['bakery', 'fast_food', 'restaurant'];
         $invalidBranch = Branch::whereIn('id', $selectedBranchIds->all())
-            ->where('business_type', '!=', 'both')
-            ->where('business_type', '!=', $categoryType)
-            ->first();
+            ->get()
+            ->first(function (Branch $branch) use ($categoryType, $foodTypes) {
+                $branchType = $branch->business_type ?: 'both';
+
+                if ($branchType === 'both') {
+                    return in_array($categoryType, ['pharmacy', 'clinic'], true);
+                }
+
+                if (in_array($branchType, $foodTypes, true)) {
+                    return !in_array($categoryType, array_merge($foodTypes, ['both']), true);
+                }
+
+                return $branchType !== $categoryType;
+            });
 
         if ($invalidBranch) {
             throw \Illuminate\Validation\ValidationException::withMessages([
