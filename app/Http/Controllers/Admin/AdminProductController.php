@@ -143,6 +143,7 @@ class AdminProductController extends Controller
         ]);
 
         $categoryName = strtolower((string) Category::whereKey($validated['category_id'])->value('name'));
+        $this->validateCategoryForBranches($request, (int) $validated['category_id']);
         $isCake = str_contains($categoryName, 'cake');
         if (!$isCake) {
             $validated['customization_mode'] = 'ready_only';
@@ -160,6 +161,48 @@ class AdminProductController extends Controller
         }
 
         return $validated;
+    }
+
+    private function validateCategoryForBranches(Request $request, int $categoryId): void
+    {
+        $rawAssignments = $request->input('branch_assignments');
+        $hasExplicitAssignments = $request->has('branch_assignments');
+        if (is_string($rawAssignments)) {
+            $rawAssignments = json_decode($rawAssignments, true) ?: [];
+        }
+
+        $adminBranchId = $request->user()->adminBranchId();
+        $allowedBranchIds = Branch::when($adminBranchId, fn ($builder) => $builder->whereKey($adminBranchId))
+            ->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $selectedBranchIds = collect(is_array($rawAssignments) ? $rawAssignments : [])
+            ->filter(fn ($assignment) => is_array($assignment) && in_array((int) ($assignment['branch_id'] ?? 0), $allowedBranchIds, true))
+            ->pluck('branch_id')->map(fn ($id) => (int) $id)->unique()->values();
+
+        if ($hasExplicitAssignments && $selectedBranchIds->isEmpty()) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'branch_assignments' => 'Select at least one branch for this product.',
+            ]);
+        }
+
+        if (!$hasExplicitAssignments) {
+            $selectedBranchIds = collect($allowedBranchIds);
+        }
+
+        $categoryType = Category::whereKey($categoryId)->value('business_type') ?: 'both';
+        if ($categoryType === 'both' || $selectedBranchIds->isEmpty()) {
+            return;
+        }
+
+        $invalidBranch = Branch::whereIn('id', $selectedBranchIds->all())
+            ->where('business_type', '!=', 'both')
+            ->where('business_type', '!=', $categoryType)
+            ->first();
+
+        if ($invalidBranch) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'category_id' => "The {$categoryType} category cannot be assigned to the {$invalidBranch->business_type} branch. Select a matching branch or use an All types category.",
+            ]);
+        }
     }
 
     private function storeGallery(Request $request): array
