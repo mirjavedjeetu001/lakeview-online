@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -41,6 +42,18 @@ return new class extends Migration
                     $table->string('description')->nullable()->after('business_type');
                 }
             });
+        }
+
+        if (Schema::hasTable('categories') && Schema::hasColumn('categories', 'delivery_mode')) {
+            // Cakes support both pickup and delivery by default. Other catalog
+            // groups use home delivery unless an admin explicitly overrides it.
+            DB::table('categories')
+                ->whereRaw('LOWER(name) LIKE ?', ['%cake%'])
+                ->update(['delivery_mode' => 'both']);
+            DB::table('categories')
+                ->whereRaw('LOWER(name) NOT LIKE ?', ['%cake%'])
+                ->where('delivery_mode', 'both')
+                ->update(['delivery_mode' => 'home_delivery']);
         }
     }
 
