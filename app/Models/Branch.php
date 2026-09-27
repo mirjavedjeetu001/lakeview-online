@@ -11,7 +11,7 @@ class Branch extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'name_bn', 'slug', 'address', 'phones', 'image', 'is_active', 'sort_order'];
+    protected $fillable = ['name', 'name_bn', 'slug', 'address', 'phones', 'image', 'business_type', 'is_active', 'sort_order'];
 
     protected $casts = [
         'phones' => 'array',
@@ -25,13 +25,13 @@ class Branch extends Model
                 $branch->slug = Str::slug($branch->name) . '-' . Str::random(5);
             }
         });
-        static::saved(fn () => Cache::forget('branches.active.v3'));
-        static::deleted(fn () => Cache::forget('branches.active.v3'));
+        static::saved(fn () => Cache::forget('branches.active.v4'));
+        static::deleted(fn () => Cache::forget('branches.active.v4'));
     }
 
     public static function activeList()
     {
-        return static::hydrate(Cache::remember('branches.active.v3', now()->addMinutes(5), function () {
+        return static::hydrate(Cache::remember('branches.active.v4', now()->addMinutes(5), function () {
             return static::where('is_active', true)->orderBy('sort_order')->get()
                 ->map(fn (self $branch) => $branch->getAttributes())
                 ->all();

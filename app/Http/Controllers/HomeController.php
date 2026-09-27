@@ -15,14 +15,19 @@ class HomeController extends Controller
 {
     public function index()
     {
-        $categories = Category::where('is_active', true)
+        $branchId = (int) session('branch_id');
+        $selectedBranch = $branchId ? Branch::find($branchId) : null;
+        $categoriesQuery = Category::where('is_active', true);
+        if ($selectedBranch?->business_type && $selectedBranch->business_type !== 'both') {
+            $categoriesQuery->whereIn('business_type', [$selectedBranch->business_type, 'both']);
+        }
+        $categories = $categoriesQuery
             ->orderBy('sort_order')
             ->get(['id', 'name', 'slug', 'image', 'delivery_mode']);
-        $branchId = (int) session('branch_id');
         $branches = Branch::query()
             ->where('is_active', true)
             ->orderBy('sort_order')
-            ->get(['id', 'name', 'name_bn', 'address', 'phones', 'image', 'is_active', 'sort_order']);
+            ->get(['id', 'name', 'name_bn', 'address', 'phones', 'image', 'business_type', 'is_active', 'sort_order']);
         $activeCoupons = Coupon::query()
             ->where('is_active', true)
             ->where(function ($query) {

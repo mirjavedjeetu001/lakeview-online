@@ -27,6 +27,7 @@
                             <tr>
                                 <th class="table-head">Category</th>
                                 <th class="table-head">Products</th>
+                                <th class="table-head">Business</th>
                                 <th class="table-head">Delivery</th>
                                 <th class="table-head">Status</th>
                                 <th class="table-head">Actions</th>
@@ -46,6 +47,7 @@
                                         </div>
                                     </div>
                                 </td>
+                                <td class="table-cell"><span class="inline-flex rounded-full bg-brand-50 px-3 py-1.5 text-xs font-bold capitalize text-brand-700">{{ businessTypeLabel(cat.business_type) }}</span></td>
                                 <td class="table-cell">
                                     <span class="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1.5 text-xs font-bold text-brand-700">
                                         <svg class="h-3.5 w-3.5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 7 12 3 4 7v10l8 4 8-4V7Zm-8 0v14m8-14-8 5-8-5" /></svg>
@@ -66,7 +68,7 @@
                                 </td>
                             </tr>
                             <tr v-if="!categories?.length">
-                                <td colspan="5" class="px-6 py-14 text-center">
+                                <td colspan="6" class="px-6 py-14 text-center">
                                     <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-500">
                                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 7 12 3 4 7v10l8 4 8-4V7Zm-8 0v14m8-14-8 5-8-5" /></svg>
                                     </div>
@@ -117,9 +119,14 @@
                             <div v-if="fileError" role="alert" class="rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-sm font-medium text-red-700">{{ fileError }}</div>
                         </div>
 
+                        <label class="field-label">Business type
+                            <select v-model="form.business_type" class="field-input"><option value="both">All business types</option><option value="bakery">Bakery</option><option value="fast_food">Fast food</option><option value="restaurant">Restaurant</option><option value="pharmacy">Pharmacy</option><option value="clinic">Clinic / dental</option></select>
+                            <span class="mt-1 block text-xs font-normal leading-5 text-brand-400">Use Pharmacy or Clinic for non-food catalog groups.</span>
+                        </label>
+
                         <label class="field-label">Delivery options
                             <select v-model="form.delivery_mode" class="field-input"><option value="both">Pickup & Home Delivery</option><option value="pickup">Pickup preferred</option><option value="home_delivery">Home Delivery only</option></select>
-                            <span class="mt-1 block text-xs font-normal leading-5 text-brand-400">Home delivery remains available for every product; this controls pickup availability.</span>
+                            <span class="mt-1 block text-xs font-normal leading-5 text-brand-400">Products set to inherit will use this exact delivery mode.</span>
                         </label>
 
                         <div class="grid gap-4 sm:grid-cols-2">
@@ -156,15 +163,15 @@ const showModal = ref(false);
 const editing = ref(null);
 const saving = ref(false);
 const fileError = ref('');
-const form = ref({ name: '', description: '', sort_order: 0, delivery_mode: 'both', is_active: true, image: null });
+const form = ref({ name: '', description: '', sort_order: 0, delivery_mode: 'both', business_type: 'both', is_active: true, image: null });
 const assetUrl = (path) => path?.startsWith('http') ? path : '/storage/' + path;
 
 const openModal = (cat = null) => {
     editing.value = cat;
     fileError.value = '';
     form.value = cat
-        ? { name: cat.name, description: cat.description || '', sort_order: cat.sort_order || 0, delivery_mode: cat.delivery_mode || 'both', is_active: !!cat.is_active, image: null }
-        : { name: '', description: '', sort_order: 0, delivery_mode: 'both', is_active: true, image: null };
+        ? { name: cat.name, description: cat.description || '', sort_order: cat.sort_order || 0, delivery_mode: cat.delivery_mode || 'both', business_type: cat.business_type || 'both', is_active: !!cat.is_active, image: null }
+        : { name: '', description: '', sort_order: 0, delivery_mode: 'both', business_type: 'both', is_active: true, image: null };
     showModal.value = true;
 };
 
@@ -182,6 +189,7 @@ const saveCategory = () => {
     data.append('description', form.value.description || '');
     data.append('sort_order', form.value.sort_order ?? 0);
     data.append('delivery_mode', form.value.delivery_mode || 'both');
+    data.append('business_type', form.value.business_type || 'both');
     data.append('is_active', form.value.is_active ? '1' : '0');
     if (form.value.image) data.append('image', form.value.image);
     if (editing.value) {
@@ -193,5 +201,6 @@ const saveCategory = () => {
 };
 
 const deleteCategory = (cat) => { if (confirm('Delete this category?')) router.delete(route('admin.categories.destroy', cat.id)); };
-const deliveryLabel = (mode) => ({ pickup: 'Pickup + delivery', home_delivery: 'Home delivery', both: 'Pickup + delivery' }[mode] || 'Pickup + delivery');
+const deliveryLabel = (mode) => ({ pickup: 'Pickup only', home_delivery: 'Home delivery only', both: 'Pickup + delivery' }[mode] || 'Pickup + delivery');
+const businessTypeLabel = (type) => ({ bakery: 'Bakery', fast_food: 'Fast food', restaurant: 'Restaurant', pharmacy: 'Pharmacy', clinic: 'Clinic / dental', both: 'All types' }[type] || 'All types');
 </script>

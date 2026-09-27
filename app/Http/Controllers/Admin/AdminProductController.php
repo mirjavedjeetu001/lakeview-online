@@ -116,6 +116,10 @@ class AdminProductController extends Controller
 
     private function validateProduct(Request $request): array
     {
+        if (is_string($request->input('cake_sizes'))) {
+            $request->merge(['cake_sizes' => json_decode($request->input('cake_sizes'), true) ?: []]);
+        }
+
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
             'name' => 'required|string|max:255',
@@ -129,14 +133,30 @@ class AdminProductController extends Controller
             'delivery_mode' => 'required|in:inherit,both,pickup,home_delivery',
             'national_delivery' => 'boolean',
             'customization_mode' => 'required|in:ready_only,ready_and_customization,customization_only',
+            'cake_sizes' => 'nullable|array',
+            'cake_sizes.*.label' => 'required|string|max:40',
+            'cake_sizes.*.price' => 'required|numeric|min:0',
+            'cake_sizes.*.discount_price' => 'nullable|numeric|min:0',
             'is_available' => 'boolean',
             'is_featured' => 'boolean',
             'sort_order' => 'integer|min:0',
         ]);
 
         $categoryName = strtolower((string) Category::whereKey($validated['category_id'])->value('name'));
-        if (!in_array($categoryName, ['cake', 'order cake'], true)) {
+        $isCake = str_contains($categoryName, 'cake');
+        if (!$isCake) {
             $validated['customization_mode'] = 'ready_only';
+            $validated['cake_sizes'] = null;
+        } else {
+            $validated['cake_sizes'] = collect($validated['cake_sizes'] ?? [])
+                ->map(fn (array $size) => [
+                    'label' => trim($size['label']),
+                    'price' => (float) $size['price'],
+                    'discount_price' => $size['discount_price'] === null || $size['discount_price'] === '' ? null : (float) $size['discount_price'],
+                ])
+                ->filter(fn (array $size) => $size['label'] !== '')
+                ->values()
+                ->all();
         }
 
         return $validated;

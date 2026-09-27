@@ -229,6 +229,7 @@ class AdminSettingController extends Controller
             'min_order_amount' => [$globalMinimum, 'delivery'],
             'min_order_sadar' => [$globalMinimum, 'delivery'],
             'min_order_outside' => [$globalMinimum, 'delivery'],
+            'min_order_national' => ['0', 'delivery'],
             'min_order_pickup' => ['0', 'delivery'],
         ];
 

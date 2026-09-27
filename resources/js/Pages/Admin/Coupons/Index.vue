@@ -108,6 +108,8 @@
                                 <span class="relative block"><input v-model="form.value" type="number" min="0" step="0.01" required class="field-input pr-14" /><span class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-brand-400">{{ form.type === 'percentage' ? '%' : '৳' }}</span></span>
                             </label>
                         </div>
+                        <label class="field-label">Offer note <span class="font-normal text-brand-400">(optional)</span><input v-model="form.description" type="text" placeholder="e.g. Pharmacy customer offer" class="field-input" /></label>
+                        <div class="rounded-2xl border border-brand-100 bg-cream-50 p-4"><div class="mb-3"><p class="text-sm font-bold text-brand-900">Target this offer</p><p class="mt-1 text-xs leading-5 text-brand-500">Leave these blank for a general coupon. You can target a branch, category or business type.</p></div><div class="grid gap-4 sm:grid-cols-3"><label class="field-label">Business type<select v-model="form.business_type" class="field-input"><option value="">All types</option><option value="bakery">Bakery</option><option value="fast_food">Fast food</option><option value="restaurant">Restaurant</option><option value="pharmacy">Pharmacy</option><option value="clinic">Clinic / dental</option><option value="both">All types</option></select></label><label class="field-label">Category<select v-model="form.category_id" class="field-input"><option value="">All categories</option><option v-for="category in categories" :key="category.id" :value="category.id">{{ category.name }}</option></select></label><label class="field-label">Branch<select v-model="form.branch_id" class="field-input"><option value="">All branches</option><option v-for="branch in branches" :key="branch.id" :value="branch.id">{{ branch.name }}</option></select></label></div></div>
                         <div class="grid gap-4 sm:grid-cols-2">
                             <label class="field-label">Minimum order (৳)<input v-model="form.min_order_amount" type="number" min="0" step="0.01" class="field-input" /></label>
                             <label class="field-label">Maximum discount (৳)<input v-model="form.max_discount_amount" type="number" min="0" step="0.01" placeholder="No cap" class="field-input" /></label>
@@ -138,15 +140,15 @@ import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Link, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
-const props = defineProps({ coupons: Object });
+const props = defineProps({ coupons: Object, categories: Array, branches: Array });
 const showModal = ref(false);
 const editing = ref(null);
-const form = ref({ code: '', type: 'percentage', value: '', min_order_amount: 0, max_discount_amount: '', usage_limit: '', is_active: true });
+const form = ref({ code: '', description: '', category_id: '', branch_id: '', business_type: '', type: 'percentage', value: '', min_order_amount: 0, max_discount_amount: '', usage_limit: '', is_active: true });
 
 const openModal = (coupon = null) => {
     editing.value = coupon;
-    if (coupon) { form.value = { code: coupon.code, type: coupon.type, value: coupon.value, min_order_amount: coupon.min_order_amount, max_discount_amount: coupon.max_discount_amount || '', usage_limit: coupon.usage_limit || '', is_active: coupon.is_active }; }
-    else { form.value = { code: '', type: 'percentage', value: '', min_order_amount: 0, max_discount_amount: '', usage_limit: '', is_active: true }; }
+    if (coupon) { form.value = { code: coupon.code, description: coupon.description || '', category_id: coupon.category_id || '', branch_id: coupon.branch_id || '', business_type: coupon.business_type || '', type: coupon.type, value: coupon.value, min_order_amount: coupon.min_order_amount, max_discount_amount: coupon.max_discount_amount || '', usage_limit: coupon.usage_limit || '', is_active: coupon.is_active }; }
+    else { form.value = { code: '', description: '', category_id: '', branch_id: '', business_type: '', type: 'percentage', value: '', min_order_amount: 0, max_discount_amount: '', usage_limit: '', is_active: true }; }
     showModal.value = true;
 };
 
@@ -156,4 +158,5 @@ const saveCoupon = () => {
 };
 
 const deleteCoupon = (coupon) => { if (confirm('Delete this coupon?')) router.delete(route('admin.coupons.destroy', coupon.id)); };
+const couponScope = coupon => coupon.business_type || coupon.category_id || coupon.branch_id ? 'Targeted offer' : 'All customers';
 </script>

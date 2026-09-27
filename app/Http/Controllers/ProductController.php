@@ -57,7 +57,12 @@ class ProductController extends Controller
         }
 
         $products = $query->orderBy('sort_order')->paginate(12)->withQueryString();
-        $categories = Category::where('is_active', true)->orderBy('sort_order')->get();
+        $branch = \App\Models\Branch::find((int) session('branch_id'));
+        $categoriesQuery = Category::where('is_active', true);
+        if ($branch?->business_type && $branch->business_type !== 'both') {
+            $categoriesQuery->whereIn('business_type', [$branch->business_type, 'both']);
+        }
+        $categories = $categoriesQuery->orderBy('sort_order')->get();
 
         return Inertia::render('Products/Index', [
             'products' => $products,

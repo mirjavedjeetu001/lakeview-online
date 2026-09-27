@@ -85,6 +85,28 @@ class CustomCakeController extends Controller
             if (!$product) {
                 return redirect()->back()->withErrors(['product_id' => 'Please choose an available customizable cake product.'])->withInput();
             }
+
+            if ($validated['delivery_type'] === 'pickup' && !$product->allow_pickup) {
+                return redirect()->back()->withErrors(['delivery_type' => 'This cake is available for home delivery only.'])->withInput();
+            }
+
+            if ($validated['delivery_type'] === 'home_delivery' && !$product->allow_home_delivery) {
+                return redirect()->back()->withErrors(['delivery_type' => 'This cake is available for branch pickup only.'])->withInput();
+            }
+        }
+
+        $estimatedPrice = 0;
+        if ($product) {
+            $sizeOptions = collect($product->cake_sizes ?: []);
+            if ($sizeOptions->isNotEmpty()) {
+                $selectedSize = $sizeOptions->first(fn (array $size) => trim((string) ($size['label'] ?? '')) === trim((string) ($validated['cake_size'] ?? '')));
+                if (!$selectedSize) {
+                    return redirect()->back()->withErrors(['cake_size' => 'Please choose one of the available cake sizes.'])->withInput();
+                }
+                $estimatedPrice = (float) (($selectedSize['discount_price'] ?? 0) > 0 ? $selectedSize['discount_price'] : ($selectedSize['price'] ?? 0));
+            } else {
+                $estimatedPrice = (float) $product->effective_price;
+            }
         }
 
         if ($validated['delivery_type'] === 'pickup') {
@@ -149,9 +171,9 @@ class CustomCakeController extends Controller
             'delivery_date' => $validated['delivery_date'],
             'delivery_time' => $validated['delivery_time'] ?? null,
             'design_image' => $imagePath,
-            'estimated_price' => 0,
+            'estimated_price' => $estimatedPrice,
             'delivery_charge' => $deliveryCharge,
-            'total' => $deliveryCharge,
+            'total' => $estimatedPrice + $deliveryCharge,
             'payment_method' => 'cash_on_delivery',
             'status' => 'pending',
             'notes' => $validated['notes'] ?? null,

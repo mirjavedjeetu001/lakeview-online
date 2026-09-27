@@ -10,7 +10,7 @@ class Coupon extends Model
     use HasFactory;
 
     protected $fillable = [
-        'code', 'type', 'value', 'min_order_amount', 'max_discount_amount',
+        'code', 'description', 'category_id', 'branch_id', 'business_type', 'type', 'value', 'min_order_amount', 'max_discount_amount',
         'usage_limit', 'used_count', 'starts_at', 'expires_at', 'is_active'
     ];
 
@@ -24,13 +24,26 @@ class Coupon extends Model
         return $this->hasMany(Order::class);
     }
 
-    public function isValid($subtotal = 0): bool
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
+
+    public function isValid($subtotal = 0, $products = null, ?Branch $branch = null): bool
     {
         if (!$this->is_active) return false;
         if ($this->starts_at && now() < $this->starts_at) return false;
         if ($this->expires_at && now() > $this->expires_at) return false;
         if ($this->usage_limit && $this->used_count >= $this->usage_limit) return false;
         if ($subtotal < $this->min_order_amount) return false;
+        if ($this->branch_id && (!$branch || (int) $this->branch_id !== (int) $branch->id)) return false;
+        if ($this->business_type && $this->business_type !== 'both' && (!$branch || $this->business_type !== $branch->business_type)) return false;
+        if ($this->category_id && (!$products || !$products->contains(fn ($product) => (int) $product->category_id === (int) $this->category_id))) return false;
         return true;
     }
 

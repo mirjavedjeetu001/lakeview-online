@@ -14,11 +14,12 @@ class Product extends Model
 
     protected $fillable = [
         'category_id', 'name', 'slug', 'description', 'price', 'discount_price',
-        'image', 'gallery', 'delivery_mode', 'national_delivery', 'customization_mode', 'is_available', 'is_featured', 'sort_order'
+        'image', 'gallery', 'delivery_mode', 'national_delivery', 'customization_mode', 'cake_sizes', 'is_available', 'is_featured', 'sort_order'
     ];
 
     protected $casts = [
         'gallery' => 'array',
+        'cake_sizes' => 'array',
         'national_delivery' => 'boolean',
     ];
 
@@ -48,6 +49,12 @@ class Product extends Model
 
     public function scopeForBranch(Builder $query, int $branchId): Builder
     {
+        $branchType = Branch::whereKey($branchId)->value('business_type');
+
+        if ($branchType && $branchType !== 'both') {
+            $query->whereHas('category', fn (Builder $category) => $category->whereIn('business_type', [$branchType, 'both']));
+        }
+
         return $query
             ->join('branch_product', function ($join) use ($branchId) {
                 $join->on('branch_product.product_id', '=', 'products.id')
@@ -100,13 +107,7 @@ class Product extends Model
             ? $this->delivery_mode
             : ($this->category?->delivery_mode ?: 'both');
 
-        // Home delivery is available for every catalog item. A legacy pickup-only
-        // setting still keeps the pickup option, but must not block delivery.
-        if ($mode === 'pickup') {
-            return 'both';
-        }
-
-        return in_array($mode, ['home_delivery', 'both'], true) ? $mode : 'both';
+        return in_array($mode, ['pickup', 'home_delivery', 'both'], true) ? $mode : 'both';
     }
 
     public function getAllowPickupAttribute(): bool
@@ -116,7 +117,7 @@ class Product extends Model
 
     public function getAllowHomeDeliveryAttribute(): bool
     {
-        return true;
+        return in_array($this->effective_delivery_mode, ['home_delivery', 'both'], true);
     }
 
     public function getAllowNationalDeliveryAttribute(): bool

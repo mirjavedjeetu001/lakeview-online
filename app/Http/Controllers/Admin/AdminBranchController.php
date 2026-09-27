@@ -27,6 +27,7 @@ class AdminBranchController extends Controller
             'phones' => 'nullable|array',
             'phones.*' => 'string|max:20',
             'image' => 'nullable|image|max:2048',
+            'business_type' => 'required|in:bakery,fast_food,restaurant,pharmacy,clinic,both',
             'is_active' => 'boolean',
             'sort_order' => 'integer|min:0',
         ]);
@@ -51,6 +52,7 @@ class AdminBranchController extends Controller
             'phones' => 'nullable|array',
             'phones.*' => 'string|max:20',
             'image' => 'nullable|image|max:2048',
+            'business_type' => 'required|in:bakery,fast_food,restaurant,pharmacy,clinic,both',
             'is_active' => 'boolean',
             'sort_order' => 'integer|min:0',
         ]);

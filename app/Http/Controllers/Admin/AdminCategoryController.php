@@ -24,6 +24,7 @@ class AdminCategoryController extends Controller
             'description' => 'nullable|string',
             'image' => 'nullable|image|max:2048',
             'delivery_mode' => 'required|in:both,pickup,home_delivery',
+            'business_type' => 'required|in:bakery,fast_food,restaurant,pharmacy,clinic,both',
             'is_active' => 'boolean',
             'sort_order' => 'integer|min:0',
         ]);
@@ -45,6 +46,7 @@ class AdminCategoryController extends Controller
             'description' => 'nullable|string',
             'image' => 'nullable|image|max:2048',
             'delivery_mode' => 'required|in:both,pickup,home_delivery',
+            'business_type' => 'required|in:bakery,fast_food,restaurant,pharmacy,clinic,both',
             'is_active' => 'boolean',
             'sort_order' => 'integer|min:0',
         ]);

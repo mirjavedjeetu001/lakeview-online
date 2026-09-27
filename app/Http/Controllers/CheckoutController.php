@@ -38,6 +38,7 @@ class CheckoutController extends Controller
             'minOrder' => [
                 'sadar' => (float) ($settings['min_order_sadar'] ?? $settings['min_order_amount'] ?? 0),
                 'outside' => (float) ($settings['min_order_outside'] ?? $settings['min_order_amount'] ?? 0),
+                'national' => (float) ($settings['min_order_national'] ?? $settings['min_order_outside'] ?? $settings['min_order_amount'] ?? 0),
             ],
             'paymentSettings' => [
                 'bkash_enabled' => ($paymentSettings['bkash_enabled'] ?? '0') === '1' && filled($paymentSettings['bkash_number'] ?? null),
@@ -173,7 +174,11 @@ class CheckoutController extends Controller
                     ->first();
                 if ($area) {
                     $serviceScope = $area->service_scope ?: ($area->zone_type === 'outside_sadar' ? 'outside_sadar' : 'sadar');
-                    $minKey = in_array($serviceScope, ['sadar', 'sadar_rural'], true) ? 'min_order_sadar' : 'min_order_outside';
+                    $minKey = match ($serviceScope) {
+                        'sadar', 'sadar_rural' => 'min_order_sadar',
+                        'national' => 'min_order_national',
+                        default => 'min_order_outside',
+                    };
                     $globalMinimum = \App\Models\Setting::where('key', 'min_order_amount')->value('value');
                     $minOrder = (float) (\App\Models\Setting::where('key', $minKey)->value('value') ?? $globalMinimum ?? 0);
                 }
@@ -208,11 +213,13 @@ class CheckoutController extends Controller
         $discount = 0;
         $couponId = null;
         if (!empty($validated['coupon_code'])) {
-            $coupon = Coupon::where('code', $validated['coupon_code'])->first();
-            if ($coupon && $coupon->isValid($subtotal)) {
+            $coupon = Coupon::whereRaw('UPPER(code) = ?', [strtoupper($validated['coupon_code'])])->first();
+            if ($coupon && $coupon->isValid($subtotal, $products, $branch)) {
                 $discount = $coupon->calculateDiscount($subtotal);
                 $couponId = $coupon->id;
                 $coupon->increment('used_count');
+            } elseif ($coupon) {
+                return redirect()->back()->withErrors(['coupon_code' => 'This coupon is not valid for the selected branch or products.'])->withInput();
             }
         }
 
@@ -309,10 +316,15 @@ class CheckoutController extends Controller
         $request->validate([
             'code' => 'required|string',
             'subtotal' => 'required|numeric|min:0',
+            'branch_id' => 'nullable|exists:branches,id',
+            'product_ids' => 'nullable|array',
+            'product_ids.*' => 'integer|exists:products,id',
         ]);
 
-        $coupon = Coupon::where('code', $request->code)->first();
-        if (!$coupon || !$coupon->isValid($request->subtotal)) {
+        $coupon = Coupon::whereRaw('UPPER(code) = ?', [strtoupper($request->code)])->first();
+        $branch = $request->filled('branch_id') ? Branch::find($request->integer('branch_id')) : null;
+        $products = $request->filled('product_ids') ? Product::whereIn('id', $request->input('product_ids', []))->get() : null;
+        if (!$coupon || !$coupon->isValid($request->subtotal, $products, $branch)) {
             return response()->json(['success' => false, 'message' => 'Invalid or expired coupon.'], 422);
         }
 
