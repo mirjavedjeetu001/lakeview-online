@@ -4,8 +4,9 @@
 
 set -e
 
-PROJECT_DIR="/home/lakeviex/lakeview"
-PUBLIC_HTML="/home/lakeviex/public_html"
+PROJECT_DIR="/home/lakeviewcafe/public_html"
+PUBLIC_HTML="/home/lakeviewcafe/public_html"
+PHP_BIN="/opt/cpanel/ea-php84/root/usr/bin/php"
 
 echo "=== Lake View Sweets & Bakery Deployment ==="
 
@@ -18,7 +19,7 @@ if [ -d "$PROJECT_DIR/.git" ]; then
     git pull origin prod
 else
     echo "Cloning repository..."
-    cd /home/lakeviex
+    cd /home/lakeviewcafe
     git clone -b prod https://github.com/mirjavedjeetu001/lakeview-online.git lakeview
     cd $PROJECT_DIR
 fi
@@ -36,7 +37,7 @@ npm run build 2>/dev/null || echo "npm build not available, skipping..."
 echo "Configuring environment..."
 if [ ! -f "$PROJECT_DIR/.env" ]; then
     cp $PROJECT_DIR/.env.example $PROJECT_DIR/.env
-    php artisan key:generate --force
+    "$PHP_BIN" artisan key:generate --force
 fi
 
 # Symlink public_html to project public directory
@@ -54,19 +55,19 @@ chmod -R 775 $PROJECT_DIR/bootstrap/cache
 
 # Run migrations
 echo "Running migrations..."
-php artisan migrate --force
+"$PHP_BIN" artisan migrate --force
 
 # Clear caches
 echo "Clearing caches..."
-php artisan config:clear
-php artisan route:clear
-php artisan view:clear
-php artisan cache:clear
+"$PHP_BIN" artisan config:clear
+"$PHP_BIN" artisan route:clear
+"$PHP_BIN" artisan view:clear
+"$PHP_BIN" artisan cache:clear
 
 # Optimize for production
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+"$PHP_BIN" artisan config:cache
+"$PHP_BIN" artisan route:cache
+"$PHP_BIN" artisan view:cache
 
 echo "=== Deployment Complete! ==="
 echo "Visit: https://lakeview-cafe.com"

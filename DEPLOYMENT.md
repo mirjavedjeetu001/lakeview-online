@@ -12,7 +12,7 @@
    - Repository Name: `lakeview`
    - Clone URL: `https://github.com/mirjavedjeetu001/lakeview-online.git`
    - Branch: `prod`
-   - Repository Path: `/home/lakeviex/public_html`
+   - Repository Path: `/home/lakeviewcafe/public_html`
    - Click **Create**
 
 4. Wait for the clone to complete
@@ -108,7 +108,7 @@ Your website should be live!
 
 ## Auto-Deploy Setup
 
-The cPanel Git repository and public document root are both `/home/lakeviex/public_html`. The deploy script fetches and resets the working tree to `origin/prod`, preserves untracked runtime files such as `.env` and `storage`, refreshes migrations and caches, and removes `setup.php` from the public root.
+The cPanel Git repository and public document root are both `/home/lakeviewcafe/public_html`. The deploy script fetches and resets the working tree to `origin/prod`, preserves untracked runtime files such as `.env` and `storage`, refreshes migrations and caches, and removes `setup.php` from the public root.
 
 ### Add GitHub Webhook:
 1. Go to: https://github.com/mirjavedjeetu001/lakeview-online/settings/hooks

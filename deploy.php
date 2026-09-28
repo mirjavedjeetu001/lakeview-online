@@ -24,9 +24,12 @@ if ($SECRET === '') {
     exit('Deployment is not configured');
 }
 
-$REPO_DIR = '/home/lakeviex/public_html';
-$PROJECT_DIR = '/home/lakeviex/public_html';
-$LOG_FILE = '/home/lakeviex/deploy.log';
+$REPO_DIR = '/home/lakeviewcafe/public_html';
+$PROJECT_DIR = '/home/lakeviewcafe/public_html';
+$LOG_FILE = '/home/lakeviewcafe/deploy.log';
+$PHP_BIN = is_executable('/opt/cpanel/ea-php84/root/usr/bin/php')
+    ? '/opt/cpanel/ea-php84/root/usr/bin/php'
+    : 'php';
 
 function log_msg($msg) {
     global $LOG_FILE;
@@ -65,11 +68,11 @@ $commands = [
     "cd $REPO_DIR && /bin/cp -f public_html/index.php $PROJECT_DIR/index.php 2>&1",
     "cd $REPO_DIR && /bin/cp -f public_html/.htaccess $PROJECT_DIR/.htaccess 2>&1",
     "cd $PROJECT_DIR && /bin/rm -f setup.php 2>&1",
-    "cd $PROJECT_DIR && php artisan migrate --force 2>&1",
-    "cd $PROJECT_DIR && php artisan cache:forget branches.active.v3 2>&1",
-    "cd $PROJECT_DIR && php artisan config:cache 2>&1",
-    "cd $PROJECT_DIR && php artisan route:cache 2>&1",
-    "cd $PROJECT_DIR && php artisan view:cache 2>&1",
+    "cd $PROJECT_DIR && $PHP_BIN artisan migrate --force 2>&1",
+    "cd $PROJECT_DIR && $PHP_BIN artisan cache:forget branches.active.v4 2>&1",
+    "cd $PROJECT_DIR && $PHP_BIN artisan config:cache 2>&1",
+    "cd $PROJECT_DIR && $PHP_BIN artisan route:cache 2>&1",
+    "cd $PROJECT_DIR && $PHP_BIN artisan view:cache 2>&1",
     "cd $PROJECT_DIR && chmod -R 775 storage bootstrap/cache 2>&1",
 ];
 
