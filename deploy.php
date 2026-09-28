@@ -8,15 +8,18 @@
  * Events: Push only (prod branch)
  */
 
-$SECRET = getenv('DEPLOY_WEBHOOK_SECRET') ?: '';
+$SECRET = '';
 $envFile = __DIR__ . '/.env';
-if ($SECRET === '' && is_readable($envFile)) {
+if (is_readable($envFile)) {
     foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
         if (preg_match('/^\s*DEPLOY_WEBHOOK_SECRET\s*=\s*(.*)\s*$/', $line, $matches)) {
             $SECRET = trim($matches[1], " \t\"'");
             break;
         }
     }
+}
+if ($SECRET === '') {
+    $SECRET = getenv('DEPLOY_WEBHOOK_SECRET') ?: '';
 }
 
 if ($SECRET === '') {
