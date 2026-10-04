@@ -2,7 +2,7 @@
     <article class="product-card group min-w-0 rounded-[1.4rem] border border-brand-100 bg-white overflow-hidden shadow-soft hover:-translate-y-1 hover:shadow-card transition">
         <button type="button" @click="openQuickView" class="block relative w-full text-left">
             <div class="product-card-media aspect-[.95] bg-brand-50 flex items-center justify-center overflow-hidden">
-                <img v-if="product.image" :src="assetUrl(product.image)" :alt="product.name" loading="lazy" decoding="async" class="h-full w-full object-contain p-2 sm:p-3 group-hover:scale-105 transition duration-500" />
+                <ImageCarousel v-if="productImages.length" :images="productImages" :alt="product.name" :fallback="emoji" image-class="h-full w-full object-contain p-2 sm:p-3 group-hover:scale-105 transition duration-500" />
                 <span v-else class="text-6xl">{{ emoji }}</span>
             </div>
             <span v-if="hasDiscount" class="absolute top-3 left-3 rounded-full bg-brand-600 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white">Sale</span>
@@ -30,15 +30,9 @@
                     <button type="button" @click="closeModals" class="absolute right-4 top-4 z-10 icon-button bg-white/90 shadow-soft" aria-label="Close modal">×</button>
 
                     <div v-if="quickViewOpen" class="grid md:grid-cols-2">
-                        <div class="bg-brand-50 p-4 sm:p-7">
-                            <div class="aspect-square overflow-hidden rounded-[1.5rem] bg-white border border-brand-100 flex items-center justify-center">
-                                <img v-if="selectedImage" :src="assetUrl(selectedImage)" :alt="product.name" class="h-full w-full object-cover" />
-                                <span v-else class="text-8xl">{{ emoji }}</span>
-                            </div>
-                            <div v-if="productImages.length > 1" class="mt-3 grid grid-cols-5 gap-2">
-                                <button v-for="image in productImages" :key="image" type="button" @click="selectedImage = image" class="aspect-square overflow-hidden rounded-xl border-2 bg-white" :class="selectedImage === image ? 'border-gold-500' : 'border-brand-100'">
-                                    <img :src="assetUrl(image)" :alt="product.name" loading="lazy" decoding="async" class="h-full w-full object-cover" />
-                                </button>
+                        <div class="aspect-square bg-brand-50 p-4 sm:p-7">
+                            <div class="h-full overflow-hidden rounded-[1.5rem] border border-brand-100 bg-white">
+                                <ImageCarousel :images="productImages" :alt="product.name" :fallback="emoji" image-class="h-full w-full object-cover" />
                             </div>
                         </div>
                         <div class="p-6 sm:p-8 flex flex-col">
@@ -91,6 +85,7 @@
 <script setup>
 import { Link } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
+import ImageCarousel from '@/Components/ImageCarousel.vue';
 
 const props = defineProps({ product: Object });
 const emit = defineEmits(['add']);
@@ -98,7 +93,6 @@ const quickViewOpen = ref(false);
 const bagModalOpen = ref(false);
 const quantity = ref(1);
 const addedQuantity = ref(1);
-const selectedImage = ref('');
 
 const assetUrl = (path) => path?.startsWith('http') ? path : '/storage/' + path;
 const money = (value) => Number(value || 0).toLocaleString('en-BD', { maximumFractionDigits: 0 });
@@ -107,7 +101,6 @@ const hasDiscount = computed(() => props.product.branch_discount_price !== null 
 const emoji = computed(() => ({ Cake: '🎂', Bread: '🍞', Cookies: '🍪', Sweets: '🍬', 'Fast Food': '🥪', Dessert: '🍮' }[props.product.category?.name] || '🍰'));
 
 const openQuickView = () => {
-    selectedImage.value = productImages.value[0] || '';
     quantity.value = 1;
     quickViewOpen.value = true;
     bagModalOpen.value = false;

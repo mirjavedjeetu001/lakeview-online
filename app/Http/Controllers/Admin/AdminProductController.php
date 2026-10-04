@@ -43,8 +43,11 @@ class AdminProductController extends Controller
     public function store(Request $request)
     {
         $validated = $this->validateProduct($request);
+        if (is_array($validated['cake_sizes'] ?? null)) {
+            $validated['cake_sizes'] = $this->storeCakeSizeImages($request, $validated['cake_sizes'], []);
+        }
         $gallery = $this->storeGallery($request);
-        unset($validated['gallery'], $validated['remove_gallery']);
+        unset($validated['gallery'], $validated['remove_gallery'], $validated['cake_size_images']);
 
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('products', 'public');
@@ -65,7 +68,11 @@ class AdminProductController extends Controller
     {
         $this->ensureProductAccess($request, $product);
         $oldImage = $product->image;
+        $currentCakeSizes = $product->cake_sizes ?: [];
         $validated = $this->validateProduct($request);
+        if (is_array($validated['cake_sizes'] ?? null)) {
+            $validated['cake_sizes'] = $this->storeCakeSizeImages($request, $validated['cake_sizes'], $currentCakeSizes);
+        }
         $currentGallery = $product->gallery ?: [];
         $removeGallery = json_decode($request->input('remove_gallery', '[]'), true) ?: [];
         $remainingGallery = array_values(array_diff($currentGallery, $removeGallery));
@@ -75,7 +82,7 @@ class AdminProductController extends Controller
             }
         }
         $newGallery = $this->storeGallery($request);
-        unset($validated['gallery'], $validated['remove_gallery']);
+        unset($validated['gallery'], $validated['remove_gallery'], $validated['cake_size_images']);
 
         $validated['gallery'] = array_values(array_merge($remainingGallery, $newGallery));
         if ($request->hasFile('image')) {
@@ -104,6 +111,7 @@ class AdminProductController extends Controller
         $this->ensureProductAccess(request(), $product);
         $imagePaths = collect([$product->image])
             ->merge($product->gallery ?: [])
+            ->merge(collect($product->cake_sizes ?: [])->flatMap(fn ($size) => is_array($size) ? ($size['images'] ?? []) : []))
             ->filter(fn ($path) => is_string($path) && $path !== '' && !str_starts_with($path, 'http'))
             ->unique()
             ->values()
@@ -137,6 +145,11 @@ class AdminProductController extends Controller
             'cake_sizes.*.label' => 'required|string|max:40',
             'cake_sizes.*.price' => 'required|numeric|min:0',
             'cake_sizes.*.discount_price' => 'nullable|numeric|min:0',
+            'cake_sizes.*.images' => 'nullable|array',
+            'cake_sizes.*.images.*' => 'string|max:500',
+            'cake_size_images' => 'nullable|array',
+            'cake_size_images.*' => 'nullable|array',
+            'cake_size_images.*.*' => 'image|max:4096',
             'is_available' => 'boolean',
             'is_featured' => 'boolean',
             'sort_order' => 'integer|min:0',
@@ -153,7 +166,12 @@ class AdminProductController extends Controller
                 ->map(fn (array $size) => [
                     'label' => trim($size['label']),
                     'price' => (float) $size['price'],
-                    'discount_price' => $size['discount_price'] === null || $size['discount_price'] === '' ? null : (float) $size['discount_price'],
+                    'discount_price' => ($size['discount_price'] ?? null) === null || ($size['discount_price'] ?? null) === '' ? null : (float) $size['discount_price'],
+                    'images' => collect($size['images'] ?? [])
+                        ->filter(fn ($image) => is_string($image) && trim($image) !== '')
+                        ->map(fn ($image) => trim($image))
+                        ->values()
+                        ->all(),
                 ])
                 ->filter(fn (array $size) => $size['label'] !== '')
                 ->values()
@@ -224,6 +242,49 @@ class AdminProductController extends Controller
             ->map(fn ($file) => $file->store('products/gallery', 'public'))
             ->values()
             ->all();
+    }
+
+    private function storeCakeSizeImages(Request $request, array $sizes, array $currentSizes): array
+    {
+        $oldImages = collect($currentSizes)
+            ->flatMap(fn ($size) => is_array($size) ? ($size['images'] ?? []) : [])
+            ->filter(fn ($image) => is_string($image) && $image !== '')
+            ->values();
+        $allowedExisting = $oldImages->flip();
+        $storedImages = [];
+
+        $normalized = collect($sizes)
+            ->values()
+            ->map(function (array $size, int $index) use ($request, $allowedExisting, &$storedImages) {
+                $existing = collect($size['images'] ?? [])
+                    ->filter(fn ($image) => is_string($image) && ($allowedExisting->has($image) || str_starts_with($image, 'http')))
+                    ->values()
+                    ->all();
+                $uploaded = collect($request->file("cake_size_images.$index", []))
+                    ->filter()
+                    ->map(fn ($file) => $file->store('products/cake-sizes', 'public'))
+                    ->values()
+                    ->all();
+                $images = array_values(array_merge($existing, $uploaded));
+                $storedImages = array_merge($storedImages, $images);
+
+                return [
+                    'label' => trim((string) ($size['label'] ?? '')),
+                    'price' => (float) ($size['price'] ?? 0),
+                    'discount_price' => ($size['discount_price'] ?? null) === null || ($size['discount_price'] ?? null) === '' ? null : (float) $size['discount_price'],
+                    'images' => $images,
+                ];
+            })
+            ->filter(fn (array $size) => $size['label'] !== '')
+            ->values()
+            ->all();
+
+        $keep = collect($storedImages);
+        $oldImages
+            ->filter(fn ($image) => !str_starts_with($image, 'http') && !$keep->contains($image))
+            ->each(fn ($image) => Storage::disk('public')->delete($image));
+
+        return $normalized;
     }
 
     private function branchAssignments(Request $request): array

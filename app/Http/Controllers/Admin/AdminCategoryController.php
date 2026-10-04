@@ -19,19 +19,16 @@ class AdminCategoryController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'image' => 'nullable|image|max:2048',
-            'delivery_mode' => 'required|in:both,pickup,home_delivery',
-            'business_type' => 'required|in:bakery,fast_food,restaurant,pharmacy,clinic,both',
-            'is_active' => 'boolean',
-            'sort_order' => 'integer|min:0',
-        ]);
+        $validated = $this->validateCategory($request);
+        $gallery = $this->storeGallery($request);
+        unset($validated['gallery'], $validated['remove_gallery']);
 
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('categories', 'public');
+        } elseif ($gallery) {
+            $validated['image'] = $gallery[0];
         }
+        $validated['gallery'] = $gallery;
         $validated['slug'] = Str::slug($validated['name']) . '-' . Str::random(5);
 
         Category::create($validated);
@@ -41,19 +38,28 @@ class AdminCategoryController extends Controller
     public function update(Request $request, Category $category)
     {
         $oldImage = $category->image;
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'image' => 'nullable|image|max:2048',
-            'delivery_mode' => 'required|in:both,pickup,home_delivery',
-            'business_type' => 'required|in:bakery,fast_food,restaurant,pharmacy,clinic,both',
-            'is_active' => 'boolean',
-            'sort_order' => 'integer|min:0',
-        ]);
+        $currentGallery = $category->gallery ?: [];
+        $removeGallery = json_decode($request->input('remove_gallery', '[]'), true) ?: [];
+        $remainingGallery = array_values(array_diff($currentGallery, $removeGallery));
+
+        foreach (array_diff($currentGallery, $remainingGallery) as $removedImage) {
+            if (is_string($removedImage) && $removedImage !== '' && !str_starts_with($removedImage, 'http')) {
+                Storage::disk('public')->delete($removedImage);
+            }
+        }
+
+        $validated = $this->validateCategory($request);
+        $newGallery = $this->storeGallery($request);
+        unset($validated['gallery'], $validated['remove_gallery']);
 
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('categories', 'public');
+        } elseif ($oldImage && in_array($oldImage, $removeGallery, true)) {
+            $validated['image'] = $newGallery[0] ?? ($remainingGallery[0] ?? null);
+        } elseif (!$oldImage && $newGallery) {
+            $validated['image'] = $newGallery[0];
         }
+        $validated['gallery'] = array_values(array_merge($remainingGallery, $newGallery));
 
         $category->update($validated);
         if ($request->hasFile('image') && $oldImage && !str_starts_with($oldImage, 'http')) {
@@ -64,11 +70,41 @@ class AdminCategoryController extends Controller
 
     public function destroy(Category $category)
     {
-        $image = $category->image;
+        $imagePaths = collect([$category->image])
+            ->merge($category->gallery ?: [])
+            ->filter(fn ($path) => is_string($path) && $path !== '' && !str_starts_with($path, 'http'))
+            ->unique()
+            ->values()
+            ->all();
+
         $category->delete();
-        if ($image && !str_starts_with($image, 'http')) {
-            Storage::disk('public')->delete($image);
-        }
+        Storage::disk('public')->delete($imagePaths);
+
         return redirect()->back()->with('success', 'Category deleted successfully.');
+    }
+
+    private function validateCategory(Request $request): array
+    {
+        return $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'image' => 'nullable|image|max:2048',
+            'gallery' => 'nullable|array',
+            'gallery.*' => 'image|max:4096',
+            'remove_gallery' => 'nullable|json',
+            'delivery_mode' => 'required|in:both,pickup,home_delivery',
+            'business_type' => 'required|in:bakery,fast_food,restaurant,pharmacy,clinic,both',
+            'is_active' => 'boolean',
+            'sort_order' => 'integer|min:0',
+        ]);
+    }
+
+    private function storeGallery(Request $request): array
+    {
+        return collect($request->file('gallery', []))
+            ->filter()
+            ->map(fn ($file) => $file->store('categories/gallery', 'public'))
+            ->values()
+            ->all();
     }
 }
