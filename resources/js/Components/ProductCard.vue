@@ -15,10 +15,10 @@
             </button>
             <div class="flex items-center justify-between gap-2 mt-4">
                 <div>
-                    <span class="font-serif font-bold text-lg text-brand-700">{{ isCake && sizeOptions.length ? 'From ' : '' }}৳{{ money(displayPrice) }}</span>
-                    <span v-if="hasDiscount" class="ml-1 text-[10px] text-brand-300 line-through">৳{{ money(product.branch_price || product.price) }}</span>
+                    <span class="font-serif font-bold text-lg text-brand-700">{{ isCake && sizeOptions.length ? 'From ' : '' }}৳{{ money(startingPrice) }}</span>
+                    <span v-if="hasDiscount && !isCake" class="ml-1 text-[10px] text-brand-300 line-through">৳{{ money(product.branch_price || product.price) }}</span>
                 </div>
-                <button type="button" @click.stop="customizationOnly ? openQuickView() : addToBag(1)" class="add-button" :aria-label="customizationOnly ? 'Customize cake' : 'Add to bag'">{{ customizationOnly ? '↗' : '+' }}</button>
+                <button type="button" @click.stop="isCake || customizationOnly ? openQuickView() : addToBag(1)" class="add-button" :aria-label="isCake || customizationOnly ? 'Choose cake options' : 'Add to bag'">{{ isCake || customizationOnly ? '↗' : '+' }}</button>
             </div>
         </div>
     </article>
@@ -39,9 +39,10 @@
                             <p class="eyebrow">{{ product.category?.name || 'From the bakery' }}</p>
                             <h2 class="mt-3 font-serif text-3xl sm:text-4xl font-bold tracking-tight text-brand-900">{{ product.name }}</h2>
                             <div class="mt-5 flex items-end gap-3">
-                                <span class="font-serif text-3xl font-bold text-brand-600">৳{{ money(product.effective_price) }}</span>
-                                <span v-if="hasDiscount" class="mb-1 text-sm text-brand-300 line-through">৳{{ money(product.branch_price || product.price) }}</span>
+                                <span class="font-serif text-3xl font-bold text-brand-600">৳{{ money(displayPrice) }}</span>
+                                <span v-if="hasDiscount && !selectedSize" class="mb-1 text-sm text-brand-300 line-through">৳{{ money(product.branch_price || product.price) }}</span>
                             </div>
+                            <p v-if="isCake && sizeOptions.length" class="mt-1 text-xs leading-5 text-brand-500">{{ customizationOnly ? 'Base cake estimate; final custom price is confirmed by our team.' : 'Ready-cake price for the selected size.' }}</p>
                             <p class="mt-5 text-sm leading-7 text-brand-600">{{ product.description || 'Freshly prepared with care in our local bakery.' }}</p>
 
                             <div v-if="isCake && sizeOptions.length" class="mt-5 rounded-2xl border border-gold-200 bg-gold-50 p-4">
@@ -77,7 +78,7 @@
                                 <Link v-if="customizationOnly" :href="customizationHref" class="btn-primary flex-1 text-center">Customize this cake <span>→</span></Link>
                                 <button v-else type="button" @click="addToBag(quantity)" class="btn-primary flex-1">Add to bag <span>→</span></button>
                             </div>
-                            <Link v-if="isCake && product.customization_mode === 'ready_and_customization'" :href="customizationHref" class="mt-3 text-center text-xs font-bold text-brand-600 hover:text-brand-900">Want a design? Customize this cake →</Link>
+                            <Link v-if="isCake && product.customization_mode === 'ready_and_customization'" :href="customizationHref" class="btn-outline mt-3 w-full whitespace-normal text-center">Need a custom design? Open cake request <span>→</span></Link>
                         </div>
                     </div>
 
@@ -87,7 +88,7 @@
                         <h2 class="mt-3 font-serif text-3xl font-bold text-brand-900">Added to your bag</h2>
                         <div class="mx-auto mt-6 flex max-w-sm items-center gap-3 rounded-2xl border border-brand-100 bg-white p-3 text-left">
                             <div class="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-brand-50 flex items-center justify-center"><img v-if="product.image" :src="assetUrl(product.image)" :alt="product.name" class="h-full w-full object-cover" /><span v-else class="text-3xl">{{ emoji }}</span></div>
-                            <div class="min-w-0"><div class="truncate font-bold text-brand-900">{{ product.name }}</div><div class="mt-1 text-xs text-brand-500">{{ addedQuantity }} item{{ addedQuantity > 1 ? 's' : '' }} · ৳{{ money(Number(product.effective_price) * addedQuantity) }}</div></div>
+                            <div class="min-w-0"><div class="truncate font-bold text-brand-900">{{ product.name }}</div><div class="mt-1 text-xs text-brand-500">{{ addedQuantity }} item{{ addedQuantity > 1 ? 's' : '' }}<span v-if="addedCakeSize"> · {{ addedCakeSize }}</span> · ৳{{ money(addedUnitPrice * addedQuantity) }}</div></div>
                         </div>
                         <div class="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-center">
                             <button type="button" @click="closeModals" class="btn-outline">Continue shopping</button>
@@ -111,6 +112,8 @@ const quickViewOpen = ref(false);
 const bagModalOpen = ref(false);
 const quantity = ref(1);
 const addedQuantity = ref(1);
+const addedUnitPrice = ref(0);
+const addedCakeSize = ref('');
 
 const assetUrl = (path) => path?.startsWith('http') ? path : '/storage/' + path;
 const money = (value) => Number(value || 0).toLocaleString('en-BD', { maximumFractionDigits: 0 });
@@ -123,6 +126,7 @@ const selectedSizeLabel = ref(sizeOptions.value[0]?.label || '');
 const selectedSize = computed(() => sizeOptions.value.find(size => size.label === selectedSizeLabel.value));
 const sizePrice = size => Number(size?.discount_price || 0) > 0 ? Number(size.discount_price) : Number(size?.price || 0);
 const displayPrice = computed(() => selectedSize.value ? sizePrice(selectedSize.value) : Number(props.product.effective_price || 0));
+const startingPrice = computed(() => sizeOptions.value.length ? Math.min(...sizeOptions.value.map(sizePrice)) : Number(props.product.effective_price || 0));
 const customizationOnly = computed(() => props.product.customization_mode === 'customization_only');
 const customizationHref = computed(() => route('custom-cake.index', { product: props.product.id }));
 
@@ -142,6 +146,8 @@ const addToBag = (amount = 1) => {
     const finalAmount = Math.max(1, Number(amount) || 1);
     emit('add', props.product, finalAmount, selectedSize.value || null);
     addedQuantity.value = finalAmount;
+    addedUnitPrice.value = displayPrice.value;
+    addedCakeSize.value = selectedSize.value?.label || '';
     quickViewOpen.value = false;
     bagModalOpen.value = true;
 };

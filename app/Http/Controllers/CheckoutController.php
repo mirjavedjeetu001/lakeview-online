@@ -34,6 +34,17 @@ class CheckoutController extends Controller
             'branches' => $branches,
             'deliveryAreas' => $deliveryAreas,
             'nationalProductIds' => $nationalProductIds,
+            'cakeProducts' => Product::forBranch($selectedBranchId)
+                ->with('category:id,name')
+                ->whereNotNull('products.cake_sizes')
+                ->get()
+                ->map(fn (Product $product) => [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'category_name' => $product->category?->name,
+                    'cake_sizes' => $product->cake_sizes ?: [],
+                ])
+                ->values(),
             'selectedBranchId' => $selectedBranchId,
             'minOrder' => [
                 'sadar' => (float) ($settings['min_order_sadar'] ?? $settings['min_order_amount'] ?? 0),

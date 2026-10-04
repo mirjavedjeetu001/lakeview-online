@@ -19,7 +19,7 @@
                         <h2 class="mt-3 font-serif text-3xl font-bold text-brand-900">Added to your bag</h2>
                         <div class="mx-auto mt-6 flex items-center gap-3 rounded-2xl border border-brand-100 bg-white p-3 text-left">
                             <div class="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-brand-50 flex items-center justify-center"><img v-if="product.image" :src="assetUrl(product.image)" :alt="product.name" class="h-full w-full object-cover" /><span v-else class="text-3xl">🍰</span></div>
-                            <div class="min-w-0"><div class="truncate font-bold text-brand-900">{{ product.name }}</div><div class="mt-1 text-xs text-brand-500">{{ addedQuantity }} item{{ addedQuantity > 1 ? 's' : '' }} · ৳{{ money(Number(product.effective_price) * addedQuantity) }}</div></div>
+                            <div class="min-w-0"><div class="truncate font-bold text-brand-900">{{ product.name }}</div><div class="mt-1 text-xs text-brand-500">{{ addedQuantity }} item{{ addedQuantity > 1 ? 's' : '' }}<span v-if="addedCakeSize"> · {{ addedCakeSize }}</span> · ৳{{ money(addedUnitPrice * addedQuantity) }}</div></div>
                         </div>
                         <div class="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-center">
                             <button type="button" @click="addedModalOpen = false" class="btn-outline">Continue shopping</button>
@@ -44,6 +44,8 @@ const page = usePage();
 const selectedBranch = computed(() => page.props.selectedBranch || null);
 const quantity = ref(1);
 const addedQuantity = ref(1);
+const addedUnitPrice = ref(0);
+const addedCakeSize = ref('');
 const addedModalOpen = ref(false);
 const productImages = computed(() => [props.product.image, ...(props.product.gallery || [])].filter(Boolean));
 const assetUrl = (path) => path?.startsWith('http') ? path : '/storage/' + path;
@@ -59,6 +61,6 @@ const customizationOnly = computed(() => props.product.customization_mode === 'c
 const customizationHref = computed(() => route('custom-cake.index', { product: props.product.id }));
 const cartKey = (productId, cakeSize = '') => `${productId}:${cakeSize || ''}`;
 const save = (product, amount = 1, size = null) => { let cart = []; try { cart = JSON.parse(localStorage.getItem('cart') || '[]'); } catch {} const cakeSize = size?.label || ''; const item = cart.find(i => cartKey(i.product_id, i.cake_size) === cartKey(product.id, cakeSize)); const price = size ? sizePrice(size) : Number(product.effective_price); if (item) { item.quantity += amount; item.price = price; item.cake_size = cakeSize || item.cake_size || null; item.name = cakeSize ? `${product.name} · ${cakeSize}` : product.name; item.image = product.image || item.image; item.category_name = product.category?.name || item.category_name || ''; item.allow_pickup = product.allow_pickup !== false; item.allow_home_delivery = product.allow_home_delivery !== false; } else cart.push({ product_id: product.id, name: cakeSize ? `${product.name} · ${cakeSize}` : product.name, cake_size: cakeSize || null, category_name: product.category?.name || '', image: product.image || '', price, quantity: amount, allow_pickup: product.allow_pickup !== false, allow_home_delivery: product.allow_home_delivery !== false, allow_national_delivery: product.allow_national_delivery === true }); localStorage.setItem('cart', JSON.stringify(cart)); window.dispatchEvent(new Event('cart-updated')); };
-const addToCart = () => { save(props.product, quantity.value, selectedSize.value); addedQuantity.value = quantity.value; addedModalOpen.value = true; };
+const addToCart = () => { save(props.product, quantity.value, selectedSize.value); addedQuantity.value = quantity.value; addedUnitPrice.value = displayPrice.value; addedCakeSize.value = selectedSize.value?.label || ''; addedModalOpen.value = true; };
 const quickAdd = (product, amount = 1, size = null) => save(product, amount, size);
 </script>
