@@ -57,7 +57,7 @@ class CustomCakeController extends Controller
             'customer_email' => 'nullable|email|max:255',
             'customer_address' => 'nullable|required_if:delivery_type,home_delivery|string|max:500',
             'cake_type' => 'nullable|string|max:255',
-            'cake_size' => 'nullable|string|max:255',
+            'cake_size' => 'nullable|string|max:40',
             'cake_flavor' => 'nullable|string|max:255',
             'message_on_cake' => 'nullable|string|max:255',
             'delivery_date' => 'required|date|after:today',
@@ -97,16 +97,25 @@ class CustomCakeController extends Controller
         }
 
         $estimatedPrice = 0;
+        $cakeSize = trim((string) ($validated['cake_size'] ?? ''));
+        if ($product && $cakeSize === '') {
+            return redirect()->back()->withErrors(['cake_size' => 'Please choose a listed size or enter the custom size you need.'])->withInput();
+        }
+        $validated['cake_size'] = $cakeSize !== '' ? $cakeSize : null;
+
         if ($product) {
             $sizeOptions = collect($product->cake_sizes ?: []);
             if ($sizeOptions->isNotEmpty()) {
-                $selectedSize = $sizeOptions->first(fn (array $size) => trim((string) ($size['label'] ?? '')) === trim((string) ($validated['cake_size'] ?? '')));
-                if (!$selectedSize) {
-                    return redirect()->back()->withErrors(['cake_size' => 'Please choose one of the available cake sizes.'])->withInput();
+                $selectedSize = $sizeOptions->first(fn (array $size) => trim((string) ($size['label'] ?? '')) === $cakeSize);
+                if ($selectedSize) {
+                    $estimatedPrice = (float) (($selectedSize['discount_price'] ?? 0) > 0 ? $selectedSize['discount_price'] : ($selectedSize['price'] ?? 0));
                 }
-                $estimatedPrice = (float) (($selectedSize['discount_price'] ?? 0) > 0 ? $selectedSize['discount_price'] : ($selectedSize['price'] ?? 0));
+                // Custom sizes are stored as a request, without borrowing a preset price.
             } else {
-                $estimatedPrice = (float) $product->effective_price;
+                $defaultPricedSizes = ['500 gm', '1 kg', '1.5 kg', '2 kg'];
+                if (in_array(mb_strtolower($cakeSize), $defaultPricedSizes, true)) {
+                    $estimatedPrice = (float) $product->effective_price;
+                }
             }
         }
 
