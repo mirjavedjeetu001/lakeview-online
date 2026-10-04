@@ -25,12 +25,12 @@ import { router, usePage } from '@inertiajs/vue3';
 import { ref, computed, watch } from 'vue';
 import ImageCarousel from '@/Components/ImageCarousel.vue';
 
-const props = defineProps({ branches: Array, deliveryAreas: Array, customizableProducts: Array, auth: Object, selectedBranchId: [Number, String], deliveryMode: String });
+const props = defineProps({ branches: Array, deliveryAreas: Array, customizableProducts: Array, auth: Object, selectedBranchId: [Number, String], selectedProductId: [Number, String], deliveryMode: String });
 const page = usePage();
 const settings = computed(() => page.props.settings || {});
 const errors = computed(() => page.props.errors || {});
 const processing = ref(false); const designImage = ref(null); const designPreview = ref(''); const fileError = ref('');
-const form = ref({ branch_id: props.selectedBranchId || '', product_id: '', delivery_type: 'pickup', delivery_area_id: '', customer_name: '', customer_phone: '', customer_email: '', customer_address: '', cake_type: '', cake_size: '', cake_flavor: '', message_on_cake: '', delivery_date: '', delivery_time: '', notes: '' });
+const form = ref({ branch_id: props.selectedBranchId || '', product_id: props.selectedProductId || '', delivery_type: 'pickup', delivery_area_id: '', customer_name: '', customer_phone: '', customer_email: '', customer_address: '', cake_type: '', cake_size: '', cake_flavor: '', message_on_cake: '', delivery_date: '', delivery_time: '', notes: '' });
 if (props.auth?.user) { form.value.customer_name = props.auth.user.name || ''; form.value.customer_phone = props.auth.user.phone || ''; form.value.customer_email = props.auth.user.email || ''; }
 const selectedBranch = computed(() => props.branches?.find(branch => branch.id == form.value.branch_id));
 const availableCustomizableProducts = computed(() => (props.customizableProducts || []).filter(product => !product.branches?.length || product.branches.some(branch => Number(branch.id) === Number(form.value.branch_id))));
@@ -41,6 +41,7 @@ const selectedSize = computed(() => sizeOptions.value.find(size => size.label ==
 const customizationLabel = mode => ({ ready_and_customization: 'Ready + customization', customization_only: 'Customization only' }[mode] || 'Customization');
 const assetUrl = path => path?.startsWith('http') ? path : '/storage/' + path;
 const selectProduct = product => { form.value.product_id = product.id; form.value.cake_type = form.value.cake_type || product.name; form.value.cake_size = product.cake_sizes?.[0]?.label || ''; form.value.delivery_type = product.allow_pickup === false ? 'home_delivery' : 'pickup'; };
+watch(selectedProduct, product => { if (product) { form.value.cake_type = form.value.cake_type || product.name; form.value.cake_size = form.value.cake_size || product.cake_sizes?.[0]?.label || ''; } }, { immediate: true });
 const allDeliveryAreas = computed(() => props.deliveryAreas || []);
 const normalizedAreaName = name => String(name || '').toLowerCase().replace(/[()\s_-]+/g, ' ').trim();
 const branchDeliveryAreas = computed(() => { if (!form.value.branch_id) return []; const branchId = Number(form.value.branch_id); const scoped = allDeliveryAreas.value.filter(area => area.branch_id == null || Number(area.branch_id) === branchId); const branchSpecific = scoped.filter(area => Number(area.branch_id) === branchId); const global = scoped.filter(area => area.branch_id == null); const seen = new Set(); return [...branchSpecific, ...global].filter(area => { const key = normalizedAreaName(area.name); if (seen.has(key)) return false; seen.add(key); return true; }); });

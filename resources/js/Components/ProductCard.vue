@@ -15,10 +15,10 @@
             </button>
             <div class="flex items-center justify-between gap-2 mt-4">
                 <div>
-                    <span class="font-serif font-bold text-lg text-brand-700">৳{{ money(product.effective_price) }}</span>
+                    <span class="font-serif font-bold text-lg text-brand-700">{{ isCake && sizeOptions.length ? 'From ' : '' }}৳{{ money(displayPrice) }}</span>
                     <span v-if="hasDiscount" class="ml-1 text-[10px] text-brand-300 line-through">৳{{ money(product.branch_price || product.price) }}</span>
                 </div>
-                <button type="button" @click.stop="addToBag(1)" class="add-button" aria-label="Add to bag">+</button>
+                <button type="button" @click.stop="customizationOnly ? openQuickView() : addToBag(1)" class="add-button" :aria-label="customizationOnly ? 'Customize cake' : 'Add to bag'">{{ customizationOnly ? '↗' : '+' }}</button>
             </div>
         </div>
     </article>
@@ -44,6 +44,22 @@
                             </div>
                             <p class="mt-5 text-sm leading-7 text-brand-600">{{ product.description || 'Freshly prepared with care in our local bakery.' }}</p>
 
+                            <div v-if="isCake && sizeOptions.length" class="mt-5 rounded-2xl border border-gold-200 bg-gold-50 p-4">
+                                <div class="flex items-center justify-between gap-3">
+                                    <label class="text-xs font-bold uppercase tracking-[.14em] text-brand-600">Choose cake size</label>
+                                    <span class="text-xs font-bold text-gold-700">{{ sizeOptions.length }} options</span>
+                                </div>
+                                <select v-model="selectedSizeLabel" class="field-input mt-2">
+                                    <option v-for="size in sizeOptions" :key="size.label" :value="size.label">{{ size.label }} · ৳{{ money(sizePrice(size)) }}</option>
+                                </select>
+                                <p class="mt-2 text-xs text-brand-500">Selected size: <strong>{{ selectedSize?.label }}</strong></p>
+                            </div>
+
+                            <div v-if="customizationOnly" class="mt-4 rounded-2xl border border-brand-200 bg-brand-50 p-4 text-xs leading-5 text-brand-700">
+                                <strong class="text-brand-900">Customization required</strong>
+                                <p class="mt-1">Choose the size, flavour and design on the custom cake form.</p>
+                            </div>
+
                             <div class="mt-5 rounded-2xl border border-brand-100 bg-white p-4 text-sm text-brand-700">
                                 <div class="flex items-center gap-2 font-semibold"><span class="h-2 w-2 rounded-full bg-sage-400"></span>Fresh and available for your outlet</div>
                                 <div class="mt-3 flex flex-wrap gap-2 text-xs">
@@ -58,8 +74,10 @@
                                     <span class="w-9 text-center text-sm font-bold">{{ quantity }}</span>
                                     <button type="button" @click="quantity++" class="h-9 w-9 rounded-full text-brand-600 hover:bg-brand-100">+</button>
                                 </div>
-                                <button type="button" @click="addToBag(quantity)" class="btn-primary flex-1">Add to bag <span>→</span></button>
+                                <Link v-if="customizationOnly" :href="customizationHref" class="btn-primary flex-1 text-center">Customize this cake <span>→</span></Link>
+                                <button v-else type="button" @click="addToBag(quantity)" class="btn-primary flex-1">Add to bag <span>→</span></button>
                             </div>
+                            <Link v-if="isCake && product.customization_mode === 'ready_and_customization'" :href="customizationHref" class="mt-3 text-center text-xs font-bold text-brand-600 hover:text-brand-900">Want a design? Customize this cake →</Link>
                         </div>
                     </div>
 
@@ -99,9 +117,18 @@ const money = (value) => Number(value || 0).toLocaleString('en-BD', { maximumFra
 const productImages = computed(() => [props.product.image, ...(props.product.gallery || [])].filter(Boolean));
 const hasDiscount = computed(() => props.product.branch_discount_price !== null && props.product.branch_discount_price !== undefined ? Number(props.product.branch_discount_price) > 0 : Number(props.product.discount_price) > 0);
 const emoji = computed(() => ({ Cake: '🎂', Bread: '🍞', Cookies: '🍪', Sweets: '🍬', 'Fast Food': '🥪', Dessert: '🍮' }[props.product.category?.name] || '🍰'));
+const isCake = computed(() => /cake/i.test(`${props.product.category?.name || ''} ${props.product.name || ''}`) || (props.product.cake_sizes || []).length > 0);
+const sizeOptions = computed(() => isCake.value ? (props.product.cake_sizes || []) : []);
+const selectedSizeLabel = ref(sizeOptions.value[0]?.label || '');
+const selectedSize = computed(() => sizeOptions.value.find(size => size.label === selectedSizeLabel.value));
+const sizePrice = size => Number(size?.discount_price || 0) > 0 ? Number(size.discount_price) : Number(size?.price || 0);
+const displayPrice = computed(() => selectedSize.value ? sizePrice(selectedSize.value) : Number(props.product.effective_price || 0));
+const customizationOnly = computed(() => props.product.customization_mode === 'customization_only');
+const customizationHref = computed(() => route('custom-cake.index', { product: props.product.id }));
 
 const openQuickView = () => {
     quantity.value = 1;
+    selectedSizeLabel.value = sizeOptions.value[0]?.label || '';
     quickViewOpen.value = true;
     bagModalOpen.value = false;
 };
@@ -113,7 +140,7 @@ const closeModals = () => {
 
 const addToBag = (amount = 1) => {
     const finalAmount = Math.max(1, Number(amount) || 1);
-    emit('add', props.product, finalAmount);
+    emit('add', props.product, finalAmount, selectedSize.value || null);
     addedQuantity.value = finalAmount;
     quickViewOpen.value = false;
     bagModalOpen.value = true;

@@ -74,6 +74,7 @@ class CheckoutController extends Controller
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
+            'items.*.cake_size' => 'nullable|string|max:40',
             'coupon_code' => 'nullable|string',
         ], [
             'customer_address.required' => 'Please provide your full delivery address for home delivery.',
@@ -117,12 +118,30 @@ class CheckoutController extends Controller
                 ])->withInput();
             }
 
+            if ($product->customization_mode === 'customization_only') {
+                return redirect()->back()->withErrors([
+                    'items' => "{$product->name} must be ordered through the custom cake form.",
+                ])->withInput();
+            }
+
+            $productName = $product->name;
             $price = $product->effective_price;
+            $cakeSizes = collect($product->cake_sizes ?: []);
+            if ($cakeSizes->isNotEmpty()) {
+                $cakeSize = $cakeSizes->first(fn (array $size) => trim((string) ($size['label'] ?? '')) === trim((string) ($item['cake_size'] ?? '')));
+                if (!$cakeSize) {
+                    return redirect()->back()->withErrors([
+                        'items' => "Choose a size for {$product->name} before placing the order.",
+                    ])->withInput();
+                }
+                $price = (float) (($cakeSize['discount_price'] ?? 0) > 0 ? $cakeSize['discount_price'] : ($cakeSize['price'] ?? 0));
+                $productName .= ' · ' . trim((string) $cakeSize['label']);
+            }
             $itemTotal = $price * $item['quantity'];
             $subtotal += $itemTotal;
             $itemsData[] = [
                 'product_id' => $product->id,
-                'product_name' => $product->name,
+                'product_name' => $productName,
                 'price' => $price,
                 'quantity' => $item['quantity'],
                 'total' => $itemTotal,

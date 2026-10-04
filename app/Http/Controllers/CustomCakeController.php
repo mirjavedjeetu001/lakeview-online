@@ -16,7 +16,7 @@ use Inertia\Inertia;
 
 class CustomCakeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $branches = Branch::activeList();
         $deliveryAreas = DeliveryArea::where('is_active', true)->orderBy('zone_type')->orderBy('name')->get();
@@ -40,6 +40,7 @@ class CustomCakeController extends Controller
             'deliveryAreas' => $deliveryAreas,
             'customizableProducts' => $customizableProducts,
             'selectedBranchId' => (int) session('branch_id'),
+            'selectedProductId' => (int) $request->input('product', 0),
             'deliveryMode' => 'both',
         ]);
     }
